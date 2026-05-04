@@ -1,0 +1,175 @@
+/**
+ * 풍성한 첫걸음 - 로컬 저장소 래퍼
+ *
+ * 두 가지 저장소를 사용:
+ * - localStorage: 작은 설정값 (이름, 보통 속도, 알림 시간)
+ * - IndexedDB: 큰 데이터 (한 마디 기도들, 잠잠히 기록)
+ *
+ * MVP에서는 localStorage만 사용 (단순하게 시작).
+ * IndexedDB는 다음 단계에 추가.
+ */
+
+const STORAGE_KEYS = {
+  USER_NAME: 'firststep:userName',
+  DEFAULT_PACE: 'firststep:defaultPace',  // 'one' | 'two' | 'three' (한 과/두 과/세 과)
+  NOTIFY_TIMES: 'firststep:notifyTimes',  // { morning, midday, evening }
+  NOTIFY_ENABLED: 'firststep:notifyEnabled',  // true | false
+
+  // 진도
+  CURRENT_LESSON: 'firststep:currentLesson',  // 1, 2, ...
+  CURRENT_DAY: 'firststep:currentDay',  // 1~6
+  WEEK_START_DATE: 'firststep:weekStartDate',  // ISO 날짜 문자열
+  WEEK_PACE: 'firststep:weekPace',  // 이번 주 속도 ('one' | 'two' | 'three')
+
+  // 세션 완료 기록 (날짜별)
+  // 예: firststep:session:2026-05-05:morning = 'done'
+  SESSION_PREFIX: 'firststep:session:',
+
+  // 한 마디 기도 기록
+  // 예: firststep:prayer:1:1:morning = "주님께 적은 한 마디"
+  PRAYER_PREFIX: 'firststep:prayer:',
+
+  // 온보딩 완료 플래그
+  ONBOARDING_DONE: 'firststep:onboardingDone',
+};
+
+const Storage = {
+  // 이름
+  getUserName() {
+    return localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
+  },
+  setUserName(name) {
+    localStorage.setItem(STORAGE_KEYS.USER_NAME, name);
+  },
+
+  // 보통 속도
+  getDefaultPace() {
+    return localStorage.getItem(STORAGE_KEYS.DEFAULT_PACE) || 'one';
+  },
+  setDefaultPace(pace) {
+    localStorage.setItem(STORAGE_KEYS.DEFAULT_PACE, pace);
+  },
+
+  // 알림 시간
+  getNotifyTimes() {
+    const stored = localStorage.getItem(STORAGE_KEYS.NOTIFY_TIMES);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        return null;
+      }
+    }
+    // 기본값
+    return {
+      morning: '07:00',
+      midday: '13:00',
+      evening: '22:00',
+    };
+  },
+  setNotifyTimes(times) {
+    localStorage.setItem(STORAGE_KEYS.NOTIFY_TIMES, JSON.stringify(times));
+  },
+
+  getNotifyEnabled() {
+    const stored = localStorage.getItem(STORAGE_KEYS.NOTIFY_ENABLED);
+    if (stored === null) return true;  // 기본값: 켬
+    return stored === 'true';
+  },
+  setNotifyEnabled(enabled) {
+    localStorage.setItem(STORAGE_KEYS.NOTIFY_ENABLED, enabled ? 'true' : 'false');
+  },
+
+  // 온보딩 완료 여부
+  isOnboardingDone() {
+    return localStorage.getItem(STORAGE_KEYS.ONBOARDING_DONE) === 'true';
+  },
+  setOnboardingDone() {
+    localStorage.setItem(STORAGE_KEYS.ONBOARDING_DONE, 'true');
+  },
+
+  // 진도
+  getCurrentLesson() {
+    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_LESSON);
+    return stored ? parseInt(stored, 10) : 1;
+  },
+  setCurrentLesson(lessonId) {
+    localStorage.setItem(STORAGE_KEYS.CURRENT_LESSON, String(lessonId));
+  },
+
+  getCurrentDay() {
+    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_DAY);
+    return stored ? parseInt(stored, 10) : 1;
+  },
+  setCurrentDay(dayIndex) {
+    localStorage.setItem(STORAGE_KEYS.CURRENT_DAY, String(dayIndex));
+  },
+
+  getWeekPace() {
+    return localStorage.getItem(STORAGE_KEYS.WEEK_PACE) || this.getDefaultPace();
+  },
+  setWeekPace(pace) {
+    localStorage.setItem(STORAGE_KEYS.WEEK_PACE, pace);
+  },
+
+  // 디버그 - 모든 데이터 초기화
+  clearAll() {
+    // 풍성한 첫걸음 키만 지우기 (다른 앱 데이터 안 건드림)
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('firststep:')) {
+        keys.push(key);
+      }
+    }
+    keys.forEach(key => localStorage.removeItem(key));
+  },
+
+  // 세션 완료 기록
+  // sessionType: 'morning' | 'midday' | 'evening'
+  // dateStr: 'YYYY-MM-DD' (오늘 날짜)
+  isSessionDone(dateStr, sessionType) {
+    return localStorage.getItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType) === 'done';
+  },
+  markSessionDone(dateStr, sessionType) {
+    localStorage.setItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType, 'done');
+  },
+
+  // 한 마디 기도 저장
+  // lessonId: 1, dayIndex: 1, sessionType: 'morning'
+  getPrayer(lessonId, dayIndex, sessionType) {
+    return localStorage.getItem(
+      STORAGE_KEYS.PRAYER_PREFIX + lessonId + ':' + dayIndex + ':' + sessionType
+    ) || '';
+  },
+  setPrayer(lessonId, dayIndex, sessionType, text) {
+    if (text && text.trim()) {
+      localStorage.setItem(
+        STORAGE_KEYS.PRAYER_PREFIX + lessonId + ':' + dayIndex + ':' + sessionType,
+        text.trim()
+      );
+    }
+  },
+
+  // 모든 기도 가져오기 (기록 화면용)
+  getAllPrayers() {
+    const prayers = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_KEYS.PRAYER_PREFIX)) {
+        const parts = key.replace(STORAGE_KEYS.PRAYER_PREFIX, '').split(':');
+        if (parts.length === 3) {
+          prayers.push({
+            lessonId: parseInt(parts[0], 10),
+            dayIndex: parseInt(parts[1], 10),
+            sessionType: parts[2],
+            text: localStorage.getItem(key),
+          });
+        }
+      }
+    }
+    return prayers;
+  },
+};
+
+export default Storage;
