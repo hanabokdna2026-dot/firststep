@@ -288,6 +288,14 @@ p.subtle {
   background: var(--bg-card-soft);
   border-radius: var(--radius-md);
   margin-bottom: 12px;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: rgba(186, 117, 23, 0.05);
+  transition: background 0.15s;
+}
+
+.time-row:active {
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .time-row-label {
@@ -302,6 +310,27 @@ p.subtle {
   font-weight: 500;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
+}
+
+/* "변경" 라벨 - 더 이상 버튼이 아니고 시각적 안내 */
+.time-row-change {
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 0.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  pointer-events: none;
+}
+
+/* 진짜 input은 화면 모서리에 1px로 숨겨두지만 작동은 함 */
+.time-input-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  /* iOS에서 input이 절대 안 보이게 */
+  left: -9999px;
 }
 
 /* 헤더 (화면 상단의 작은 라벨) */

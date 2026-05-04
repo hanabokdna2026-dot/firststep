@@ -6,6 +6,11 @@
   <meta name="theme-color" content="#FAEEDA">
   <meta name="description" content="풍성한 삶으로 한 걸음씩 함께">
 
+  <!-- 캐시 방지 (개발 단계 - 8단계에서 Service Worker로 정식 교체) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <!-- iOS PWA 설정 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,20 +18,38 @@
 
   <title>풍성한 첫걸음</title>
 
-  <!-- 폰트 (구글 웹폰트) -->
+  <!-- 폰트 (외부 CDN - 캐시 OK) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- 우리 CSS·JS는 매 방문마다 새로 받기 -->
+  <script>
+    (function() {
+      var v = '?v=' + Date.now();
+
+      // CSS 동적 추가 (timestamp 붙음)
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'css/styles.css' + v;
+      document.head.appendChild(link);
+
+      // app.js 진입 (timestamp 붙음)
+      // 내부 import는 상대 경로로 동작하지만, app.js 자체가 새로 받아오면
+      // 그 안의 import 경로도 새로 해석되어 다시 받아옴 (Cache-Control과 함께)
+      window.addEventListener('DOMContentLoaded', function() {
+        var script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'js/app.js' + v;
+        document.body.appendChild(script);
+      });
+    })();
+  </script>
 </head>
 <body>
   <div id="app">
     <!-- 화면이 동적으로 여기 렌더링됨 -->
   </div>
-
-  <!-- 앱 코드 -->
-  <script type="module" src="js/app.js"></script>
 </body>
 </html>
