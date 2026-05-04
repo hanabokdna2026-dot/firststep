@@ -2,17 +2,23 @@
  * 풍성한 첫걸음 - 앱 진입점
  *
  * URL 해시 기반 라우팅:
- * - #welcome  → 환영 화면
- * - #name     → 이름 묻기
+ *
+ * 정적 라우트:
+ * - #welcome  → 환영
+ * - #name     → 이름
  * - #pace     → 보통 속도
  * - #intro    → 안내
  * - #notify   → 알림 시간
  * - #home     → 홈
  *
+ * 동적 라우트 (세션):
+ * - #session/:type → 세션 시작 인터스티셜 (먼저 잠시 멈추세요)
+ * - #read/:type    → 본문/통독/묵상 화면
+ * - #done/:type    → 마침 화면
+ *   :type은 morning | midday | evening
+ *
  * 캐시 처리:
  * 모든 모듈을 dynamic import로 가져오면서 URL에 timestamp 붙임.
- * 이러면 매 페이지 로드마다 모든 JS가 새로 받아짐.
- * (개발 단계용 - 8단계에서 Service Worker로 정식 처리)
  */
 
 // 페이지 로드 시점의 timestamp (모든 import에 붙음)
@@ -21,22 +27,43 @@ const v = '?v=' + Date.now();
 // Storage는 다른 모듈들도 사용하니 먼저 import
 const { default: Storage } = await import('./storage.js' + v);
 
-// 라우트별 모듈 lazy 로드 (필요할 때 import)
-const routeLoaders = {
-  '#welcome': () => import('./screens/welcome.js' + v).then(m => m.default),
-  '#name': () => import('./screens/name.js' + v).then(m => m.default),
-  '#pace': () => import('./screens/pace.js' + v).then(m => m.default),
-  '#intro': () => import('./screens/intro.js' + v).then(m => m.default),
-  '#notify': () => import('./screens/notify.js' + v).then(m => m.default),
-  '#home': () => import('./screens/home.js' + v).then(m => m.default),
-};
+// 라우트 매핑 — 정적 라우트와 동적 라우트(prefix 매칭)
+// 정적 라우트는 정확히 일치, 동적은 'prefix/:param' 형태
+const routes = [
+  { pattern: '#welcome', loader: () => import('./screens/welcome.js' + v) },
+  { pattern: '#name', loader: () => import('./screens/name.js' + v) },
+  { pattern: '#pace', loader: () => import('./screens/pace.js' + v) },
+  { pattern: '#intro', loader: () => import('./screens/intro.js' + v) },
+  { pattern: '#notify', loader: () => import('./screens/notify.js' + v) },
+  { pattern: '#home', loader: () => import('./screens/home.js' + v) },
+  { pattern: '#session/', loader: () => import('./screens/session-start.js' + v) },
+  { pattern: '#read/', loader: () => import('./screens/read.js' + v) },
+  { pattern: '#done/', loader: () => import('./screens/done.js' + v) },
+];
+
+// 해시에서 라우트와 파라미터 추출
+function matchRoute(hash) {
+  // 정확히 일치하는 정적 라우트 먼저 찾기
+  for (const route of routes) {
+    if (route.pattern === hash) {
+      return { route, param: null };
+    }
+  }
+  // prefix로 시작하는 동적 라우트 찾기
+  for (const route of routes) {
+    if (route.pattern.endsWith('/') && hash.startsWith(route.pattern)) {
+      const param = hash.slice(route.pattern.length);
+      return { route, param };
+    }
+  }
+  return null;
+}
 
 // 화면 전환
 function navigateTo(hash) {
   if (window.location.hash !== hash) {
     window.location.hash = hash;
   } else {
-    // 같은 해시면 hashchange 이벤트가 안 생기니 직접 렌더
     render();
   }
 }
@@ -44,18 +71,16 @@ function navigateTo(hash) {
 // 화면 그리기
 async function render() {
   const hash = window.location.hash || '#welcome';
-  const loader = routeLoaders[hash];
+  const matched = matchRoute(hash);
   const app = document.getElementById('app');
 
-  if (loader) {
+  if (matched) {
     try {
-      const renderFn = await loader();
+      const module = await matched.route.loader();
+      const renderFn = module.default;
       app.innerHTML = '';
-      // renderFn이 async일 수도 있고 sync일 수도 있음
-      const screen = await renderFn({ navigateTo });
+      const screen = await renderFn({ navigateTo, param: matched.param });
       app.appendChild(screen);
-
-      // 스크롤 위치 초기화
       window.scrollTo(0, 0);
     } catch (e) {
       console.error('화면 로딩 실패:', e);
@@ -67,14 +92,12 @@ async function render() {
       `;
     }
   } else {
-    // 잘못된 해시면 환영 화면으로
     navigateTo('#welcome');
   }
 }
 
 // 첫 진입 처리
 function init() {
-  // 해시가 없거나 #이면 적절한 화면으로
   if (!window.location.hash || window.location.hash === '#') {
     if (Storage.isOnboardingDone()) {
       window.location.hash = '#home';
@@ -82,13 +105,8 @@ function init() {
       window.location.hash = '#welcome';
     }
   }
-
-  // 해시 변경 시 다시 렌더
   window.addEventListener('hashchange', render);
-
-  // 첫 렌더
   render();
 }
 
-// 시작
 init();

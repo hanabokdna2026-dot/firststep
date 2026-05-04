@@ -279,7 +279,52 @@ p.subtle {
   line-height: 1.5;
 }
 
-/* 시간 카드 */
+/* 시간 카드 (v2 - 직접 input 사용) */
+.time-row-v2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bg-card-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+
+.time-input-v2 {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 500;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: right;
+  min-width: 110px;
+  /* iOS에서 input 자체 디자인 무력화 */
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-opacity: 1;
+}
+
+.time-input-v2:focus {
+  background: rgba(255, 255, 255, 0.5);
+  outline: 0.5px solid var(--accent);
+}
+
+/* iOS의 시간 input 내부 텍스트 스타일 통일 */
+.time-input-v2::-webkit-date-and-time-value {
+  text-align: right;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* 시간 카드 (예전 - 더 이상 사용 안 함, 호환을 위해 남겨둠) */
 .time-row {
   display: flex;
   justify-content: space-between;
@@ -569,7 +614,7 @@ p.subtle {
   font-style: italic;
 }
 
-/* 다음 세션 안내 */
+/* 다음 세션 안내 (예전 - 더 이상 사용 안 함, 호환을 위해 남겨둠) */
 .home-next-row {
   padding: 0 20px 12px;
 }
@@ -589,6 +634,69 @@ p.subtle {
 .home-next-value {
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+/* 다른 세션 카드들 (홈에서 메인 카드 외 두 개) */
+.home-other-sessions {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-other-card {
+  width: 100%;
+  background: var(--bg-card-softer);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.home-other-card:active {
+  background: var(--bg-card-soft);
+}
+
+.home-other-card-done {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.home-other-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.home-other-card-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.home-other-card-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-other-card-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.home-other-card-status {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* 하단 탭바 */
@@ -637,4 +745,319 @@ p.subtle {
 /* 홈 화면은 화면 전체를 채워야 함 */
 .screen:has(.home-tabbar) {
   padding: 0;
+}
+
+/* ==========================================
+   세션 시작 인터스티셜
+   ========================================== */
+
+.session-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 100vh;
+  padding: 48px 32px;
+}
+
+.session-start-body {
+  margin-bottom: 48px;
+}
+
+.session-start-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+.title-centered {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.btn-narrow {
+  width: 100%;
+  max-width: 240px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+
+.btn-narrow:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================
+   본문/통독/묵상 화면
+   ========================================== */
+
+.read-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px 12px;
+}
+
+.read-header-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.read-header-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.read-header-toggle {
+  background: var(--bg-card);
+  border: 0.5px solid var(--border-mid);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: inherit;
+}
+
+.read-body {
+  padding: 32px 28px 32px;
+}
+
+.read-section-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.read-verse {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* 저녁 묵상에서 다시 보는 본문 — 살짝 작게 */
+.read-verse-evening {
+  font-size: 19px;
+  margin-bottom: 12px;
+}
+
+.read-verse-ref {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 36px;
+}
+
+.read-divider {
+  height: 0.5px;
+  background: var(--border-mid);
+  margin: 0 0 28px;
+}
+
+.read-guide-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  line-height: 1.65;
+}
+
+.read-prayer-example {
+  background: var(--bg-card-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.read-prayer-example-text {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.read-prayer-input {
+  width: 100%;
+  min-height: 80px;
+  background: var(--bg-card);
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 14px;
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  resize: none;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.read-prayer-input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.read-cta {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/* 낮 통독 - 단락 본문 */
+.read-passage-paragraph {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.read-passage-paragraph:last-child {
+  margin-bottom: 36px;
+}
+
+.read-guide-card {
+  background: var(--bg-card-softer);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 32px;
+}
+
+.read-guide-card-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* 한 주 마무리 - 6개 말씀 요약 */
+.read-week-summary {
+  background: var(--bg-card-softer);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin-bottom: 28px;
+}
+
+.read-week-verse-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.read-week-verse-row:last-child {
+  margin-bottom: 0;
+}
+
+.read-week-verse-day {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.read-week-verse-fragment {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+.read-week-verse-ref {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==========================================
+   마침 화면
+   ========================================== */
+
+.done-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 100vh;
+  padding: 48px 32px;
+}
+
+.done-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(186, 117, 23, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.done-message {
+  margin-bottom: 56px;
+}
+
+.done-next-card {
+  width: 100%;
+  max-width: 280px;
+  padding: 16px 18px;
+  background: var(--bg-card-soft);
+  border-radius: 14px;
+  margin-bottom: 24px;
+}
+
+.done-journey-end {
+  background: var(--bg-card);
+}
+
+.done-next-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.done-next-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.done-next-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.done-cta {
+  background: transparent;
+  color: var(--text-muted);
+  border: 0.5px solid var(--accent);
 }
