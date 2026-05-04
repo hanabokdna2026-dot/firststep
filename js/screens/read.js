@@ -127,9 +127,9 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex) {
     saveAndExit(screen, lessonId, dayIndex, 'morning', navigateTo, '#home');
   });
 
-  // 잠잠히 머물기 (5단계까지는 임시로 마침 화면으로)
+  // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'morning', navigateTo, '#done/morning');
+    saveAndExit(screen, lessonId, dayIndex, 'morning', navigateTo, '#silence/morning');
   });
 
   return screen;
@@ -277,9 +277,9 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex) {
     saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#home');
   });
 
-  // 잠잠히 머물기 (5단계까지는 임시로 마침 화면으로)
+  // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening');
+    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening');
   });
 
   return screen;

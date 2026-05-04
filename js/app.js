@@ -38,6 +38,7 @@ const routes = [
   { pattern: '#home', loader: () => import('./screens/home.js' + v) },
   { pattern: '#session/', loader: () => import('./screens/session-start.js' + v) },
   { pattern: '#read/', loader: () => import('./screens/read.js' + v) },
+  { pattern: '#silence/', loader: () => import('./screens/silence.js' + v) },
   { pattern: '#done/', loader: () => import('./screens/done.js' + v) },
 ];
 

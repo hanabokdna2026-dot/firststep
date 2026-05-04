@@ -1061,3 +1061,241 @@ p.subtle {
   color: var(--text-muted);
   border: 0.5px solid var(--accent);
 }
+
+/* ==========================================
+   잠잠히 머물기 화면
+   ========================================== */
+
+.silence-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.silence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px 12px;
+}
+
+.silence-header-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.silence-header-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.silence-header-spacer {
+  width: 56px;
+}
+
+.silence-header-minimal {
+  padding: 18px 24px 12px;
+}
+
+.silence-skip {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+/* 시간 설정 화면 */
+.silence-setup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 32px 32px;
+  text-align: center;
+}
+
+.silence-setup-title {
+  margin-bottom: 12px;
+}
+
+.silence-setup-sub {
+  margin-bottom: 56px;
+}
+
+.silence-setup-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.silence-time-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 56px;
+}
+
+.silence-time-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 0.5px solid var(--border-mid);
+  color: var(--text-muted);
+  font-size: 22px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  padding: 0;
+  -webkit-appearance: none;
+}
+
+.silence-time-btn:active:not(:disabled) {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.silence-time-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.silence-time-display {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 100px;
+}
+
+.silence-time-num {
+  display: inline-block;
+}
+
+.silence-setup-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.silence-setup-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.silence-start-btn {
+  margin-bottom: 0;
+}
+
+/* 카운트다운 화면 */
+.silence-counting {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 32px 32px;
+  text-align: center;
+}
+
+.silence-counting-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 56px;
+}
+
+.silence-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 64px;
+}
+
+.silence-circle-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.silence-circle-time {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  color: var(--text-primary);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.silence-circle-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin: 8px 0 0;
+}
+
+.silence-counting-quote {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* 마침 화면 */
+.silence-done {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 32px 32px;
+  text-align: center;
+}
+
+.silence-done-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 56px;
+}
+
+.silence-done-bell-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin: 12px 0 0;
+}
+
+.silence-done-title {
+  margin-bottom: 12px;
+}
+
+.silence-done-message {
+  margin-bottom: 56px;
+}
