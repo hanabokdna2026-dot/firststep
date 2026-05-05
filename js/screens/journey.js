@@ -54,11 +54,17 @@ export default async function renderJourney({ navigateTo }) {
     const lessonCards = lessons.map(lesson => renderLessonCard(lesson)).join('');
 
     screen.innerHTML = `
-      <div class="screen-inner-with-tabs">
-        <div class="journey-header">
-          <button class="journey-back" id="btn-back">‹ 홈</button>
-        </div>
+      <div class="home-swipe-hints">
+        <span class="home-swipe-hint-spacer"></span>
+        <button class="home-swipe-hint home-swipe-hint-right" id="btn-back" aria-label="홈으로">
+          <span class="home-swipe-hint-label">홈</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
 
+      <div class="screen-inner-with-tabs">
         <div class="journey-title-row">
           <p class="eyebrow">여정 전체</p>
           <h2 class="title-small">풍성한 삶으로 첫걸음</h2>
@@ -73,7 +79,7 @@ export default async function renderJourney({ navigateTo }) {
       </div>
     `;
 
-    // 뒤로
+    // 뒤로 (상단 우측 힌트)
     screen.querySelector('#btn-back').addEventListener('click', () => {
       navigateTo('#home');
     });
@@ -286,15 +292,12 @@ export default async function renderJourney({ navigateTo }) {
 
   await render();
 
-  // 좌우 스와이프 — 왼쪽으로 밀면 홈으로
+  // 좌우 스와이프 — 왼쪽으로 밀면 오른편의 홈으로
   const { setupSwipePager } = await import('../swipe-pager.js');
   setupSwipePager(screen, {
-    onLeft: null,  // 여정 왼편엔 아무것도 없음
-    onCommitLeft: null,
-    onRight: async () => {
-      const renderHome = (await import('./home.js')).default;
-      return await renderHome({ navigateTo });
-    },
+    rightBg: '#FAEEDA',  // 홈 배경 색
+    rightLabel: '홈',
+    onCommitLeft: null,  // 여정 왼편엔 아무것도 없음
     onCommitRight: () => {
       navigateTo('#home');
     },

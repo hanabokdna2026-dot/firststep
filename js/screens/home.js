@@ -311,18 +311,12 @@ export default async function renderHome({ navigateTo, param, extra }) {
   }
 
   // ============= 좌우 스와이프 =============
-  // 두 화면이 동시에 슬라이드되는 결로
+  // 두 화면이 동시에 슬라이드되는 결 (placeholder 사용)
   setupSwipePager(screen, {
-    // 왼편 화면 (오른쪽 스와이프 시 들어옴)
-    onLeft: async () => {
-      if (isPreview) {
-        // 미리보기 모드 → 왼편은 오늘 홈
-        return await loadAdjacentHomeScreen(navigateTo, null, null);
-      } else {
-        // 오늘 모드 → 왼편은 여정
-        return await loadAdjacentJourneyScreen(navigateTo);
-      }
-    },
+    leftBg: '#EFE4D2',     // 여정 자리 색
+    rightBg: '#F2EBDD',    // 다음 자리 색
+    leftLabel: isPreview ? '오늘' : '여정',
+    rightLabel: isPreview ? '다음 자리' : '다음 날',
     onCommitLeft: () => {
       if (isPreview) {
         navigateTo('#home');
@@ -330,17 +324,9 @@ export default async function renderHome({ navigateTo, param, extra }) {
         navigateTo('#journey');
       }
     },
-    // 오른편 화면 (왼쪽 스와이프 시 들어옴)
-    onRight: async () => {
-      if (!nextActiveDay) return null;
-      // 다음 활성 자리의 미리보기
-      return await loadAdjacentHomeScreen(navigateTo, nextActiveDay.lessonId, nextActiveDay.dayIndex);
-    },
-    onCommitRight: () => {
-      if (nextActiveDay) {
-        navigateTo(`#home/preview/${nextActiveDay.lessonId}/${nextActiveDay.dayIndex}`);
-      }
-    },
+    onCommitRight: nextActiveDay
+      ? () => navigateTo(`#home/preview/${nextActiveDay.lessonId}/${nextActiveDay.dayIndex}`)
+      : null,
   });
 
   return screen;
@@ -453,34 +439,5 @@ export default async function renderHome({ navigateTo, param, extra }) {
 }
 
 // ============================================
-// 인접 화면 로드 (스와이프 페이저용)
+// (스와이프 페이저는 placeholder 결이라 인접 화면 미리 그릴 필요 없음)
 // ============================================
-
-/**
- * 옆에 보일 home 화면을 로드.
- * 본 화면 그릴 때와 같은 모듈을 다시 호출.
- */
-async function loadAdjacentHomeScreen(navigateTo, lessonId, dayIndex) {
-  // 미리보기 모드로 home 그리기 (lessonId/dayIndex 있으면)
-  // 또는 그냥 home 그리기 (없으면 — 미리보기 모드에서 오늘로 돌아갈 때)
-  const renderHome = (await import('./home.js')).default;
-
-  const param = (lessonId && dayIndex) ? 'preview' : null;
-  const extra = (lessonId && dayIndex) ? [String(lessonId), String(dayIndex)] : null;
-
-  const screen = await renderHome({
-    navigateTo,
-    param,
-    extra,
-  });
-  return screen;
-}
-
-/**
- * 옆에 보일 journey 화면을 로드.
- */
-async function loadAdjacentJourneyScreen(navigateTo) {
-  const renderJourney = (await import('./journey.js')).default;
-  const screen = await renderJourney({ navigateTo });
-  return screen;
-}

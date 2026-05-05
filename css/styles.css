@@ -589,26 +589,33 @@ p.subtle {
 }
 
 /* ==========================================
-   스와이프 페이저 — 옆 화면이 함께 슬라이드
+   스와이프 페이저 — placeholder (옆에 깔리는 단색 자리)
    ========================================== */
-
-/* 본 화면(현재 보이는) — 위치 기준 */
-.screen {
-  position: relative;
-  z-index: 1;
-}
-
-/* 옆 화면(스와이프 도중에만 DOM에 추가됨) */
-.screen.swipe-neighbor {
+.swipe-placeholder {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
-  /* 옆 화면도 본 화면과 같은 결의 박스 */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  /* 기본 배경은 inline style로 지정됨 */
+}
+
+.swipe-placeholder-label {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--text-muted);
+  letter-spacing: -0.2px;
+  opacity: 0.75;
+}
+
+/* spacer (왼쪽이 비어있을 때 오른쪽 힌트만 표시) */
+.home-swipe-hint-spacer {
+  display: inline-block;
 }
 
 .home-greeting {
@@ -1428,10 +1435,7 @@ p.subtle {
 /* ==========================================
    홈 화면 — 좌우 스와이프 시 트랜지션
    ========================================== */
-.screen {
-  /* 스와이프 중 손가락 따라 움직일 때 부드럽게 */
-  will-change: transform;
-}
+/* will-change는 스와이프 도중에만 inline으로 켜짐 (성능 위해) */
 
 /* ==========================================
    홈 화면 — 위쪽 좌우 힌트 바
