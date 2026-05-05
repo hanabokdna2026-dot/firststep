@@ -1226,6 +1226,85 @@ p.subtle {
 }
 
 /* ==========================================
+   주기도 따라 드리기 카드 (5·6과)
+   ========================================== */
+.read-lords-card {
+  background: rgba(186, 117, 23, 0.06);
+  border: 1px solid rgba(186, 117, 23, 0.18);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0 16px;
+}
+
+.read-lords-part {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
+}
+
+/* 키워드 리스트 */
+.read-lords-keywords {
+  margin-bottom: 14px;
+}
+
+.read-lords-keyword-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.read-lords-keyword-row:last-child {
+  margin-bottom: 0;
+}
+
+.read-lords-keyword-key {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.read-lords-keyword-meaning {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* 예시 기도 */
+.read-lords-example-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(186, 117, 23, 0.12);
+}
+
+.read-lords-example {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.read-lords-input {
+  margin-bottom: 8px;
+}
+
+/* ==========================================
    하나복 credit (환영 화면 + 설정 화면 footer)
    ========================================== */
 .hanabok-credit {

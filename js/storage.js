@@ -233,6 +233,20 @@ const Storage = {
   setReadingSize(size) {
     localStorage.setItem('firststep:readingSize', String(size));
   },
+
+  // 주기도 자기 말 저장 (5·6과 아침 세션에서 사용)
+  // 키: firststep:lords:{lessonId}:{dayIndex}
+  getLordsEntry(lessonId, dayIndex) {
+    return localStorage.getItem(`firststep:lords:${lessonId}:${dayIndex}`) || '';
+  },
+  setLordsEntry(lessonId, dayIndex, text) {
+    const key = `firststep:lords:${lessonId}:${dayIndex}`;
+    if (text && text.length > 0) {
+      localStorage.setItem(key, text);
+    } else {
+      localStorage.removeItem(key);
+    }
+  },
 };
 
 export default Storage;

@@ -115,6 +115,42 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         </div>
       ` : ''}
 
+      ${morning.lordsPart ? `
+        <div class="read-divider"></div>
+
+        <p class="read-section-label">주기도 따라 드리기</p>
+        ${morning.lordsIntro ? `<p class="read-guide-body">${morning.lordsIntro}</p>` : ''}
+
+        <div class="read-lords-card">
+          <p class="read-lords-part">"${morning.lordsPart}"</p>
+
+          ${morning.lordsKeywords && morning.lordsKeywords.length ? `
+            <div class="read-lords-keywords">
+              ${morning.lordsKeywords.map(kw => `
+                <div class="read-lords-keyword-row">
+                  <span class="read-lords-keyword-key">${kw.key}</span>
+                  <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${morning.lordsExample ? `
+            <p class="read-lords-example-label">예시 기도</p>
+            <p class="read-lords-example">"${morning.lordsExample}"</p>
+          ` : ''}
+        </div>
+
+        <textarea
+          class="read-prayer-input read-lords-input"
+          id="lords-input"
+          placeholder="${morning.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+      ` : ''}
+
       <div class="read-divider"></div>
 
       <p class="read-section-label">하나님께 한 마디</p>
@@ -521,6 +557,12 @@ function saveAndExit(screen, lessonId, dayIndex, sessionType, navigateTo, target
   if (input) {
     const text = input.value.trim();
     Storage.setPrayer(lessonId, dayIndex, sessionType, text);
+  }
+  // 주기도 자기 말 입력 (5·6과 아침 세션에서만 사용됨)
+  const lordsInput = screen.querySelector('#lords-input');
+  if (lordsInput) {
+    const lordsText = lordsInput.value.trim();
+    Storage.setLordsEntry(lessonId, dayIndex, lordsText);
   }
   navigateTo(target);
 }
