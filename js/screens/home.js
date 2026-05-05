@@ -308,8 +308,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
   // ============= 좌우 스와이프 =============
   // 두 화면이 동시에 슬라이드되는 결 (placeholder 사용)
   setupSwipePager(screen, {
-    leftBg: '#C5D5C5',     // 여정 (세이지 그린)
-    rightBg: '#D9D2E4',    // 다음 자리 (라일락)
+    leftBg: '#D5CFA0',     // 여정 (올리브 크림)
+    rightBg: '#C8D4DD',    // 다음 자리 (포그 블루)
     leftLabel: isPreview ? '오늘' : '여정',
     rightLabel: isPreview ? '다음 자리' : '다음 날',
     onCommitLeft: () => {

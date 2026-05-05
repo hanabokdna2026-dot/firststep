@@ -551,17 +551,17 @@ p.subtle {
 
 /* ==========================================
    자리별 배경 색상 — 세 자리가 명확히 구분되는 결
-   왼편(여정) = 세이지 그린 / 가운데(오늘 홈) = amber / 오른편(다음 날) = 라일락
+   왼편(여정) = 올리브 크림 / 가운데(오늘 홈) = amber / 오른편(다음 날) = 포그 블루
    ========================================== */
 
-/* 여정 화면 — 세이지 그린 (자연·차분·전체를 보는 결) */
+/* 여정 화면 — 올리브 크림 (깊은 모래·차분한 자리) */
 .screen.journey-screen {
-  background: #C5D5C5;
+  background: #D5CFA0;
 }
 
-/* 미리보기 홈 — 달빛 라일락 (다가올 자리·살짝 보랏빛) */
+/* 미리보기 홈 — 포그 블루 (옅은 안개·다가올 자리) */
 .screen.home-preview {
-  background: #D9D2E4;
+  background: #C8D4DD;
 }
 
 /* 시간대별 배경 — 미묘한 변화 (오늘 홈) */
@@ -581,12 +581,12 @@ p.subtle {
   background: linear-gradient(180deg, #F0DFC0 0%, #FAEEDA 280px);
 }
 
-/* 미리보기 모드는 시간대 배경 무시하고 라일락으로 통일 */
+/* 미리보기 모드는 시간대 배경 무시하고 포그 블루로 통일 */
 .screen.home-preview.home-dawn,
 .screen.home-preview.home-day,
 .screen.home-preview.home-dusk,
 .screen.home-preview.home-night {
-  background: #D9D2E4;
+  background: #C8D4DD;
 }
 
 /* ==========================================
