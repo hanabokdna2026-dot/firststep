@@ -96,6 +96,12 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <p class="read-section-label">잠시 들여다보기</p>
         <p class="read-guide-body">${morning.observeQuestion}</p>
 
+        ${morning.kingdomQuestion ? `
+          <p class="read-section-label" style="margin-top: 24px;">하나님 나라의 결로</p>
+          ${morning.kingdomIntro ? `<p class="read-guide-body">${morning.kingdomIntro}</p>` : ''}
+          <p class="read-guide-body" style="margin-top: 8px;">${morning.kingdomQuestion}</p>
+        ` : ''}
+
         <p class="read-section-label" style="margin-top: 24px;">오늘 내 하루에서</p>
         <p class="read-guide-body">${morning.applyQuestion}</p>
       ` : `
