@@ -1,8 +1,8 @@
 /**
- * 화면 3 - 보통 속도 정하기
+ * 화면 3 - 기본 속도 정하기
  *
  * 속도
- * 보통 어떤 속도로 가실래요
+ * 어떤 속도로 가실래요
  * 매주 자유롭게 바꿀 수 있어요. 기본 속도만 정해두는 거예요.
  *
  * - 한 과씩 천천히 (권장)
@@ -57,7 +57,7 @@ export default function renderPace({ navigateTo }) {
     <div class="screen-inner">
       <p class="eyebrow">속도</p>
 
-      <h2 class="title">보통<br/>어떤 속도로<br/>가실래요</h2>
+      <h2 class="title">어떤 속도로<br/>가실래요</h2>
 
       <p class="body" style="margin-bottom: 24px;">매주 자유롭게 바꿀 수 있어요.<br/>기본 속도만 정해두는 거예요.</p>
 

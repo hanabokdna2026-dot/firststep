@@ -4,7 +4,7 @@
  * URL: #pace-check
  *
  * 사용자가 새 과를 시작할 때 한 번만 보임.
- * "보통 속도로" 누르면 평소 속도 그대로,
+ * "기본 속도로" 누르면 평소 속도 그대로,
  * "이번 주만 ..." 누르면 이번 한 주만 다른 속도로.
  *
  * 이 화면은 home.js에서 자동으로 라우팅됨:
@@ -52,7 +52,7 @@ export default async function renderPaceCheck({ navigateTo }) {
     return screen;
   }
 
-  // 다른 두 속도 (보통 속도 외)
+  // 다른 두 속도 (기본 속도 외)
   const otherPaces = ['one', 'two', 'three'].filter(p => p !== defaultPace);
 
   // 핵심 메시지 (있으면 표시)
@@ -74,8 +74,8 @@ export default async function renderPaceCheck({ navigateTo }) {
       <p class="pace-check-question">이번 주는 어떤 속도로 가실래요?</p>
 
       <button class="btn pace-check-default-btn" id="btn-default">
-        <span class="pace-check-btn-main">보통 속도로 (${PACE_LABELS[defaultPace]})</span>
-        <span class="pace-check-btn-sub">${PACE_DESCS[defaultPace]}</span>
+        <span class="pace-check-btn-main">이대로 가기</span>
+        <span class="pace-check-btn-sub">${PACE_LABELS[defaultPace]} · ${PACE_DESCS[defaultPace]}</span>
       </button>
 
       <p class="pace-check-other-label">이번 주만 바꾸기</p>
@@ -93,7 +93,7 @@ export default async function renderPaceCheck({ navigateTo }) {
     </div>
   `;
 
-  // 보통 속도 (기본)
+  // 기본 속도 그대로
   screen.querySelector('#btn-default').addEventListener('click', () => {
     Storage.setWeekPace(defaultPace);
     Storage.setLastPaceCheckLesson(lessonId);

@@ -5,7 +5,7 @@
  *
  * 변경 가능:
  * - 이름
- * - 보통 속도
+ * - 기본 속도
  * - 알림 시간 (아침/낮/저녁)
  * - 알림 켜기/끄기
  *
@@ -58,9 +58,9 @@ export default function renderSettings({ navigateTo }) {
         />
       </div>
 
-      <!-- 보통 속도 -->
+      <!-- 기본 속도 -->
       <div class="settings-section">
-        <p class="settings-section-label">보통 속도</p>
+        <p class="settings-section-label">기본 속도</p>
         <div id="pace-options">
           ${Object.entries(PACE_LABELS).map(([id, label]) => `
             <button
@@ -136,7 +136,7 @@ export default function renderSettings({ navigateTo }) {
     </nav>
   `;
 
-  // 보통 속도 선택
+  // 기본 속도 선택
   let selectedPace = defaultPace;
   screen.querySelectorAll('.settings-pace-option').forEach(opt => {
     opt.addEventListener('click', () => {
