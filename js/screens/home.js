@@ -118,8 +118,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
     evening: notifyTimes.evening,
   };
 
-  // 3면 페이저 인디케이터 — 현재 어느 자리에 있는지 (왼편 여정 / 오늘 / 오른편 다음 날)
-  const pageIndicator = renderPageIndicator();
+  // 3면 페이저 인디케이터 자리 — nextActiveDay 결정된 다음에 계산하므로 일단 빈 자리
+  // (실제 계산은 nextActiveDay 정의 뒤에서)
 
   // 세 세션 카드
   const sessionsHtml = SESSION_ORDER.map(type => {
@@ -162,19 +162,14 @@ export default async function renderHome({ navigateTo, param, extra }) {
   // 오늘 모드: 왼쪽 "여정" / 오른쪽 "다음 날"
   // 미리보기 모드: 왼쪽 "오늘" / 오른쪽 "다음 자리" (다음 활성 자리가 있으면)
   let nextActiveDay = null;
-  if (!isPreview) {
-    try {
-      nextActiveDay = await getNextActiveDay(lessonId, dayIndex, weekPace);
-    } catch (e) {
-      nextActiveDay = null;
-    }
-  } else {
-    try {
-      nextActiveDay = await getNextActiveDay(lessonId, dayIndex, weekPace);
-    } catch (e) {
-      nextActiveDay = null;
-    }
+  try {
+    nextActiveDay = await getNextActiveDay(lessonId, dayIndex, weekPace);
+  } catch (e) {
+    nextActiveDay = null;
   }
+
+  // 3면 페이저 인디케이터 — nextActiveDay 결정된 후 계산
+  const pageIndicator = renderPageIndicator();
 
   const swipeHintHtml = `
     <div class="home-swipe-hints">
