@@ -58,7 +58,7 @@ export default async function renderRead({ navigateTo, param, extra }) {
   if (sessionType === 'morning') {
     return renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   } else if (sessionType === 'midday') {
-    return renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+    return await renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   } else if (sessionType === 'evening') {
     return renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   }
@@ -92,8 +92,16 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
       <div class="read-divider"></div>
 
-      <p class="read-section-label">마음에 머물기</p>
-      <p class="read-guide-body">${morning.ponderQuestion}</p>
+      ${morning.observeQuestion && morning.applyQuestion ? `
+        <p class="read-section-label">잠시 들여다보기</p>
+        <p class="read-guide-body">${morning.observeQuestion}</p>
+
+        <p class="read-section-label" style="margin-top: 24px;">오늘 내 하루에서</p>
+        <p class="read-guide-body">${morning.applyQuestion}</p>
+      ` : `
+        <p class="read-section-label">마음에 머물기</p>
+        <p class="read-guide-body">${morning.ponderQuestion}</p>
+      `}
 
       <div class="read-divider"></div>
 
@@ -142,7 +150,20 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 // ==========================================
 // 낮 통독 화면
 // ==========================================
-function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+async function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+  const midday = day.midday;
+
+  // 새 결: continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
+  if (midday.readingMode === 'continuous') {
+    return await renderContinuousMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+  }
+
+  // 기존 결: 고정 단락 (1·2·3과)
+  return renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+}
+
+// 기존 결 — 고정 단락 (1·2·3과 그대로)
+function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   let currentTranslation = 'saebeon';
   const midday = day.midday;
   const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
@@ -202,6 +223,188 @@ function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   });
 
   return screen;
+}
+
+// 새 결 — continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
+async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+  const midday = day.midday;
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
+  const { book, chapter, totalVerses } = midday.source;
+
+  // 분량 정의 (절수)
+  const SIZES = {
+    '3': 8,    // 3분 ≈ 8절
+    '5': 16,   // 5분 ≈ 16절
+    '7': 24,   // 7분 ≈ 24절
+    '10': 36,  // 10분 ≈ 36절
+  };
+
+  // 절 단위 데이터 로드 (요한복음 1장 = john1.json)
+  let chapterData;
+  try {
+    const fileName = `${bookSlug(book)}${chapter}.json`;
+    const res = await fetch(`data/${fileName}`);
+    chapterData = await res.json();
+  } catch (e) {
+    screen.innerHTML = `<div class="screen-inner"><p class="body">통독 본문을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p></div>`;
+    return screen;
+  }
+
+  // 사용자 진도
+  let lastVerse = Storage.getReadingProgress(book, chapter);  // 0이면 처음
+  let startVerse = lastVerse + 1;  // 다음 절부터 시작
+
+  // 1장 다 읽었으면
+  const finishedChapter = startVerse > totalVerses;
+
+  // 분량 선택 (저장된 값 또는 기본 3)
+  let currentSize = Storage.getReadingSize();  // '3'|'5'|'7'|'10'
+  let currentTranslation = 'saebeon';
+
+  // 현재 펼침 범위 계산 함수
+  function calcRange(size) {
+    const wantVerses = SIZES[size];
+    let endVerse = Math.min(startVerse + wantVerses - 1, totalVerses);
+    return { start: startVerse, end: endVerse };
+  }
+
+  // 본문 렌더 함수 (절 번호 + 본문)
+  function renderVerses(start, end, translation) {
+    const lines = [];
+    for (let v = start; v <= end; v++) {
+      const verseData = chapterData.verses.find(x => x.v === v);
+      if (verseData) {
+        lines.push(`<p class="continuous-verse"><span class="continuous-verse-num">${v}</span> ${verseData[translation]}</p>`);
+      }
+    }
+    return lines.join('');
+  }
+
+  // ── 1장을 다 읽은 경우 — 마무리 화면 ──
+  if (finishedChapter) {
+    screen.innerHTML = `
+      <div class="read-header">
+        <button class="read-header-back" id="btn-close">‹ 닫기</button>
+        <p class="read-header-title">낮 · ${day.dayLabel}</p>
+        <span style="width: 60px;"></span>
+      </div>
+
+      <div class="read-body">
+        <p class="eyebrow">통독 마침</p>
+        <h2 class="title-small">요한복음 1장을<br/>다 읽으셨어요</h2>
+
+        <p class="body" style="margin-top: 16px;">
+          한 장을 끝까지 읽으셨다는 것 — 그 자체로 큰 한 걸음이에요.
+        </p>
+
+        <div class="read-guide-card" style="margin-top: 24px;">
+          <p class="read-guide-card-text">
+            다음 한 주 새 과에서 요한복음 2장으로 이어집니다.
+            오늘은 잠시 멈추셔도 좋고,
+            성경책이나 다른 성경 앱으로 더 읽어가셔도 좋아요.
+          </p>
+        </div>
+
+        ${midday.prayerExample ? `
+          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+          <div class="read-prayer-example">
+            <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
+          </div>
+        ` : ''}
+
+        <button class="btn read-cta" id="btn-next">마침</button>
+      </div>
+    `;
+
+    screen.querySelector('#btn-close').addEventListener('click', () => navigateTo('#home'));
+    screen.querySelector('#btn-next').addEventListener('click', () => {
+      navigateTo('#done/midday' + overridePath);
+    });
+    return screen;
+  }
+
+  // ── 일반 통독 화면 ──
+  function paint() {
+    const range = calcRange(currentSize);
+    const versesHtml = renderVerses(range.start, range.end, currentTranslation);
+    const refLabel = `${book} ${chapter}:${range.start}${range.end > range.start ? '-' + range.end : ''}`;
+
+    screen.innerHTML = `
+      <div class="read-header">
+        <button class="read-header-back" id="btn-close">‹ 닫기</button>
+        <p class="read-header-title">낮 · ${day.dayLabel}</p>
+        <button class="read-header-toggle" id="btn-toggle">${currentTranslation === 'saebeon' ? '새번역' : '개역개정'}</button>
+      </div>
+
+      <div class="read-body">
+        <p class="read-section-label">오늘의 통독</p>
+        <p class="read-verse-ref" style="margin-bottom: 12px;">${refLabel}</p>
+
+        <div class="continuous-size-toggle">
+          ${['3', '5', '7', '10'].map(s => `
+            <button class="continuous-size-btn ${s === currentSize ? 'active' : ''}" data-size="${s}">${s}분</button>
+          `).join('')}
+        </div>
+
+        <div class="continuous-verses" id="verses-area">
+          ${versesHtml}
+        </div>
+
+        <div class="read-guide-card">
+          <p class="read-guide-card-text">${midday.guide}</p>
+        </div>
+
+        ${midday.prayerExample ? `
+          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+          <div class="read-prayer-example">
+            <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
+          </div>
+        ` : ''}
+
+        <button class="btn read-cta" id="btn-next">여기까지 읽었어요</button>
+      </div>
+    `;
+
+    // 분량 버튼
+    screen.querySelectorAll('.continuous-size-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentSize = btn.dataset.size;
+        Storage.setReadingSize(currentSize);
+        paint();  // 다시 그림
+      });
+    });
+
+    // 번역 토글
+    screen.querySelector('#btn-toggle').addEventListener('click', () => {
+      currentTranslation = currentTranslation === 'saebeon' ? 'gaeyeok' : 'saebeon';
+      paint();
+    });
+
+    // 닫기
+    screen.querySelector('#btn-close').addEventListener('click', () => {
+      navigateTo('#home');
+    });
+
+    // 여기까지 읽었어요 → 진도 저장 후 마침 화면
+    screen.querySelector('#btn-next').addEventListener('click', () => {
+      const r = calcRange(currentSize);
+      Storage.setReadingProgress(book, chapter, r.end);
+      navigateTo('#done/midday' + overridePath);
+    });
+  }
+
+  paint();
+  return screen;
+}
+
+// 책 이름 → 파일 슬러그 (요한복음 → john)
+function bookSlug(book) {
+  const map = {
+    '요한복음': 'john',
+    '사도행전': 'acts',
+    // 추후 5과부터 다른 책 추가 시 여기에
+  };
+  return map[book] || book;
 }
 
 // ==========================================

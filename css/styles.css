@@ -1131,6 +1131,68 @@ p.subtle {
   margin-bottom: 36px;
 }
 
+/* ==========================================
+   통독 화면 (continuous 모드 - 4과부터)
+   ========================================== */
+
+/* 분량 토글 (3분/5분/7분/10분) */
+.continuous-size-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  background: rgba(186, 117, 23, 0.08);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.continuous-size-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 0;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 4px);
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.continuous-size-btn.active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(186, 117, 23, 0.1);
+}
+
+/* 절 단위 본문 */
+.continuous-verses {
+  margin-bottom: 28px;
+}
+
+.continuous-verse {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  text-indent: 0;
+}
+
+.continuous-verse-num {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: top;
+  margin-right: 6px;
+  margin-top: 4px;
+  min-width: 18px;
+  font-family: var(--font-sans);
+  opacity: 0.75;
+}
+
 .read-guide-card {
   background: var(--bg-card-softer);
   border-radius: var(--radius-md);

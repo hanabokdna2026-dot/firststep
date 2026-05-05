@@ -212,6 +212,27 @@ const Storage = {
     }
     return prayers;
   },
+
+  // 통독 진도 트래커 (4과부터 사용)
+  // 어디까지 읽었는지 절 번호로 저장
+  // 키: firststep:read:lesson4:lastVerse → 18 (요한복음 1장 18절까지 읽음)
+  // 책-장이 바뀌면 별도 키 (5과부터 확장 시)
+  getReadingProgress(book, chapter) {
+    const key = `firststep:read:${book}:${chapter}:lastVerse`;
+    const v = localStorage.getItem(key);
+    return v ? parseInt(v, 10) : 0;  // 0 = 아직 시작 안 함
+  },
+  setReadingProgress(book, chapter, lastVerse) {
+    const key = `firststep:read:${book}:${chapter}:lastVerse`;
+    localStorage.setItem(key, String(lastVerse));
+  },
+  // 통독 분량 선택 기억 (사용자가 다음에 들어올 때 같은 분량으로)
+  getReadingSize() {
+    return localStorage.getItem('firststep:readingSize') || '3';  // '3'|'5'|'7'|'10'
+  },
+  setReadingSize(size) {
+    localStorage.setItem('firststep:readingSize', String(size));
+  },
 };
 
 export default Storage;
