@@ -65,9 +65,9 @@ const Storage = {
     }
     // 기본값
     return {
-      morning: '07:00',
-      midday: '13:00',
-      evening: '22:00',
+      morning: '04:30',
+      midday: '12:00',
+      evening: '18:00',
     };
   },
   setNotifyTimes(times) {
