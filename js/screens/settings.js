@@ -14,7 +14,6 @@
  */
 
 import Storage from '../storage.js';
-import { requestNotificationPermission, startNotifyScheduler, stopNotifyScheduler } from '../notify.js';
 
 const PACE_LABELS = {
   one: '한 과씩 천천히',
@@ -36,7 +35,6 @@ export default function renderSettings({ navigateTo }) {
   const userName = Storage.getUserName();
   const defaultPace = Storage.getDefaultPace();
   const notifyTimes = Storage.getNotifyTimes();
-  const notifyEnabled = Storage.getNotifyEnabled();
 
   screen.innerHTML = `
     <div class="screen-inner-with-tabs">
@@ -73,9 +71,10 @@ export default function renderSettings({ navigateTo }) {
         </div>
       </div>
 
-      <!-- 알림 시간 -->
+      <!-- 만날 시간 -->
       <div class="settings-section">
-        <p class="settings-section-label">알림 시간</p>
+        <p class="settings-section-label">만날 시간</p>
+        <p class="settings-section-hint">매일 그분과 만날 자리의 시간이에요.<br/>직접 휴대폰의 알람이나 캘린더에 약속을 적어두시면 좋아요.</p>
 
         <div class="time-row-v2">
           <p class="time-row-label">아침</p>
@@ -91,12 +90,6 @@ export default function renderSettings({ navigateTo }) {
           <p class="time-row-label">저녁</p>
           <input type="time" class="time-input-v2" id="input-evening" value="${notifyTimes.evening}"/>
         </div>
-
-        <label class="settings-toggle-row">
-          <span class="settings-toggle-label">알림 켜기</span>
-          <input type="checkbox" id="input-notify-enabled" ${notifyEnabled ? 'checked' : ''}/>
-          <span class="settings-toggle-switch"></span>
-        </label>
       </div>
 
       <!-- 저장 -->
@@ -161,31 +154,12 @@ export default function renderSettings({ navigateTo }) {
     Storage.setUserName(screen.querySelector('#input-name').value.trim());
     // 속도
     Storage.setDefaultPace(selectedPace);
-    // 알림 시간
+    // 만날 시간
     Storage.setNotifyTimes({
       morning: screen.querySelector('#input-morning').value,
       midday: screen.querySelector('#input-midday').value,
       evening: screen.querySelector('#input-evening').value,
     });
-    // 알림 켜기
-    const wasEnabled = Storage.getNotifyEnabled();
-    const isEnabled = screen.querySelector('#input-notify-enabled').checked;
-    Storage.setNotifyEnabled(isEnabled);
-
-    // 알림 스케줄러 재시작 (정적 import된 함수 사용)
-    try {
-      // 알림 권한 새로 요청 (꺼져있다가 켜졌을 때)
-      if (isEnabled && !wasEnabled) {
-        requestNotificationPermission().catch(() => {});
-      }
-      if (isEnabled) {
-        startNotifyScheduler();
-      } else {
-        stopNotifyScheduler();
-      }
-    } catch (e) {
-      // 알림 모듈 사용 불가 시 무시
-    }
 
     showToast(screen, '저장되었어요');
     setTimeout(() => navigateTo('#home'), 800);

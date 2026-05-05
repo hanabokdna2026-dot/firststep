@@ -8,7 +8,7 @@
  * - #name     → 이름
  * - #pace     → 보통 속도
  * - #intro    → 안내
- * - #notify   → 알림 시간
+ * - #notify   → 만날 시간
  * - #home     → 홈
  *
  * 동적 라우트 (세션):
@@ -26,14 +26,6 @@ const v = '?v=' + Date.now();
 
 // Storage는 다른 모듈들도 사용하니 먼저 import
 const { default: Storage } = await import('./storage.js' + v);
-
-// 알림 스케줄러 (선택적 — 환경 미지원 시 조용히 작동 안 함)
-let notifyModule = null;
-try {
-  notifyModule = await import('./notify.js' + v);
-} catch (e) {
-  // 알림 모듈 로드 실패 시 무시
-}
 
 // 라우트 매핑 — 정적 라우트와 동적 라우트(prefix 매칭)
 // 정적 라우트는 정확히 일치, 동적은 'prefix/:param' 형태
@@ -147,11 +139,6 @@ function init() {
   } else {
     // 해시가 이미 있는 경우 (예: PWA가 이전 상태로 복원되거나, 사용자가 URL 직접 입력)
     render();
-  }
-
-  // 알림 스케줄러 시작 (지원하는 환경에서만)
-  if (notifyModule && Storage.isOnboardingDone()) {
-    notifyModule.startNotifyScheduler();
   }
 }
 
