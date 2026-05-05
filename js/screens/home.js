@@ -18,7 +18,7 @@ import { getDay, getLesson } from '../content.js';
 import {
   getCurrentSessionType,
   getSessionLabel,
-  getSessionGreeting,
+  formatCurrentTime,
   formatKoreanDate,
   formatKoreanShortTime,
   getTodayISO,
@@ -69,7 +69,7 @@ export default async function renderHome({ navigateTo }) {
   if (!day) {
     screen.innerHTML = `<div class="screen-inner-centered">
       <h2 class="title" style="text-align: center;">여정의 끝까지 오셨어요</h2>
-      <p class="body-large" style="margin-top: 16px;">풍성한 첫걸음을<br/>모두 함께 걸으셨습니다.</p>
+      <p class="body-large" style="margin-top: 16px;">풍성한 삶으로 첫걸음을<br/>모두 함께 걸으셨습니다.</p>
     </div>`;
     return screen;
   }
@@ -78,10 +78,10 @@ export default async function renderHome({ navigateTo }) {
   const currentSessionType = getCurrentSessionType();
 
   // 인사말
-  const greeting = getSessionGreeting(currentSessionType);
   const userName = Storage.getUserName();
   const today = formatKoreanDate();
   const todayISO = getTodayISO();
+  const currentTime = formatCurrentTime();
   const greetingSub = userName
     ? `${userName}님, 오늘도 함께 걸어요`
     : '오늘도 함께 걸어요';
@@ -94,29 +94,32 @@ export default async function renderHome({ navigateTo }) {
     evening: notifyTimes.evening,
   };
 
-  // 메인 카드 (현재 시간대) HTML
-  const mainCardHtml = renderMainCard(day, currentSessionType, todayISO, sessionTimes[currentSessionType]);
-
-  // 다른 두 세션 (작은 카드들)
-  const otherSessions = SESSION_ORDER.filter(t => t !== currentSessionType);
-  const otherCardsHtml = otherSessions.map(type =>
-    renderOtherCard(type, todayISO, sessionTimes[type])
-  ).join('');
+  // 세 세션을 항상 같은 순서로 그리되, 현재 시간대는 메인 카드로 강조
+  const sessionsHtml = SESSION_ORDER.map(type => {
+    if (type === currentSessionType) {
+      return renderMainCard(day, type, todayISO, sessionTimes[type]);
+    } else {
+      return renderOtherCard(type, todayISO, sessionTimes[type]);
+    }
+  }).join('');
 
   screen.innerHTML = `
     <div class="home-greeting">
       <p class="home-date">${today}</p>
-      <h1 class="home-greeting-title">${greeting}</h1>
+      <h1 class="home-greeting-title" id="current-time">${currentTime}</h1>
       <p class="home-greeting-sub">${greetingSub}</p>
     </div>
 
-    <div class="home-main">
-      ${mainCardHtml}
+    <div class="home-sessions">
+      ${sessionsHtml}
     </div>
 
-    <div class="home-other-sessions">
-      ${otherCardsHtml}
-    </div>
+    <button class="home-other-days-btn" id="btn-other-days">
+      <span>여정 전체 보기</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
 
     <nav class="home-tabbar">
       <button class="home-tab home-tab-active" data-tab="today">
@@ -167,6 +170,28 @@ export default async function renderHome({ navigateTo }) {
       else if (tabName === 'settings') navigateTo('#settings');
     });
   });
+
+  // 시간 자동 업데이트 (1분마다)
+  // 다음 분 시작에 맞춰 첫 업데이트, 그 후 60초마다
+  const now = new Date();
+  const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+  let intervalId = null;
+  const timeoutId = setTimeout(() => {
+    const timeEl = screen.querySelector('#current-time');
+    if (timeEl) timeEl.textContent = formatCurrentTime();
+    intervalId = setInterval(() => {
+      const el = screen.querySelector('#current-time');
+      if (el) el.textContent = formatCurrentTime();
+    }, 60000);
+  }, msUntilNextMinute);
+
+  // 화면 떠날 때 타이머 cleanup
+  const cleanup = () => {
+    clearTimeout(timeoutId);
+    if (intervalId) clearInterval(intervalId);
+    window.removeEventListener('hashchange', cleanup);
+  };
+  window.addEventListener('hashchange', cleanup);
 
   return screen;
 
@@ -225,13 +250,6 @@ export default async function renderHome({ navigateTo }) {
 
         <button class="btn home-card-btn" id="btn-start-main">${buttonLabel}</button>
       </div>
-
-      <button class="home-other-days-btn" id="btn-other-days">
-        <span>여정 전체 보기</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
     `;
   }
 

@@ -33,6 +33,14 @@ export function formatKoreanShortTime(hhmm) {
   return `${period} ${displayH}시 ${m}분`;
 }
 
+// 현재 시간 - 자연스럽게 (예: "오후 1시 32분")
+export function formatCurrentTime(date = new Date()) {
+  const h = date.getHours();
+  const m = date.getMinutes();
+  const hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return formatKoreanShortTime(hhmm);
+}
+
 // 오늘 날짜 ISO (YYYY-MM-DD)
 export function getTodayISO() {
   const d = new Date();

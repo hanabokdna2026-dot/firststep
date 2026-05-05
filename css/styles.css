@@ -1,5 +1,5 @@
 /* ==========================================
-   풍성한 첫걸음 - 스타일
+   풍성한 삶으로 첫걸음 - 스타일
    ========================================== */
 
 /* 디자인 토큰 */
@@ -72,7 +72,7 @@ body {
 
 /* 모든 화면 위 앱 이름 - 작고 세련되게 */
 #app::before {
-  content: '풍성한 첫걸음';
+  content: '풍성한 삶으로 첫걸음';
   position: fixed;
   top: env(safe-area-inset-top);
   left: 50%;
@@ -540,14 +540,15 @@ p.subtle {
 
 .home-greeting-title {
   font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 400;
   color: var(--text-primary);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .home-greeting-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
@@ -636,20 +637,20 @@ p.subtle {
   flex-shrink: 0;
 }
 
-/* "다른 날 보기" 버튼 */
+/* "여정 전체 보기" 버튼 */
 .home-other-days-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  width: 100%;
+  width: calc(100% - 40px);
+  margin: 4px 20px 16px;
   background: transparent;
   border: none;
   color: var(--text-muted);
   font-size: 12px;
   font-family: inherit;
   padding: 12px 16px;
-  margin-top: -4px;
   cursor: pointer;
   transition: color 0.15s;
 }
@@ -740,6 +741,19 @@ p.subtle {
 .home-next-value {
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+/* 세 세션 카드 박스 (메인 + 다른 둘 통합) */
+.home-sessions {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 메인 카드 (예전 박스 - 호환을 위해 그대로 둠) */
+.home-main {
+  padding: 0 20px 12px;
 }
 
 /* 다른 세션 카드들 (홈에서 메인 카드 외 두 개) */
@@ -2035,6 +2049,46 @@ p.subtle {
   color: var(--accent);
   font-weight: 500;
   margin-top: 6px;
+}
+
+/* 일 카드 안의 세 세션 버튼 */
+.journey-day-sessions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border-soft);
+}
+
+.journey-day-session-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 0.5px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.journey-day-session-btn:active {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.journey-day-session-btn-done {
+  background: rgba(186, 117, 23, 0.1);
+  border-color: rgba(186, 117, 23, 0.3);
+  color: var(--accent);
+}
+
+.journey-day-card-done .journey-day-session-btn {
+  opacity: 0.85;
 }
 
 .journey-hint {

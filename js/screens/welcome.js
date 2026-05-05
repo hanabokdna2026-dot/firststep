@@ -1,7 +1,7 @@
 /**
  * 화면 1 - 환영
  *
- * 풍성한 첫걸음
+ * 풍성한 삶으로 첫걸음
  * 풍성한 삶으로 한 걸음씩 함께
  *
  * [시작하기] → #name
@@ -20,7 +20,7 @@ export default function renderWelcome({ navigateTo }) {
         </svg>
       </div>
 
-      <h1 class="title-large">풍성한 첫걸음</h1>
+      <h1 class="title-large">풍성한 삶으로 첫걸음</h1>
 
       <p class="body-large" style="margin-bottom: 64px;">풍성한 삶으로<br/>한 걸음씩 함께</p>
 

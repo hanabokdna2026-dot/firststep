@@ -1,7 +1,7 @@
 /**
  * Service Worker
  *
- * 풍성한 첫걸음 PWA의 캐시 전략:
+ * 풍성한 삶으로 첫걸음 PWA의 캐시 전략:
  *
  * 1. 앱 셸 (HTML/CSS/JS/JSON/icons): network-first 시도, 실패 시 cache
  *    → 새 버전이 있으면 받아오고, 오프라인이면 캐시로 작동

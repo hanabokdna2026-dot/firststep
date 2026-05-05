@@ -59,7 +59,7 @@ export default async function renderDone({ navigateTo, param, extra }) {
     nextCardHtml = `
       <div class="done-next-card done-journey-end">
         <p class="done-next-label">여정의 끝</p>
-        <p class="done-next-value">풍성한 첫걸음을 모두 함께 걸으셨습니다</p>
+        <p class="done-next-value">풍성한 삶으로 첫걸음을 모두 함께 걸으셨습니다</p>
       </div>
     `;
   } else if (sessionType === 'evening') {

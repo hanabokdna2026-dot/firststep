@@ -1,5 +1,5 @@
 /**
- * 풍성한 첫걸음 - 로컬 저장소 래퍼
+ * 풍성한 삶으로 첫걸음 - 로컬 저장소 래퍼
  *
  * 두 가지 저장소를 사용:
  * - localStorage: 작은 설정값 (이름, 보통 속도, 알림 시간)
@@ -126,7 +126,7 @@ const Storage = {
 
   // 디버그 - 모든 데이터 초기화
   clearAll() {
-    // 풍성한 첫걸음 키만 지우기 (다른 앱 데이터 안 건드림)
+    // 풍성한 삶으로 첫걸음 키만 지우기 (다른 앱 데이터 안 건드림)
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);

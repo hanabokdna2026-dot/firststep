@@ -109,7 +109,7 @@ function scheduleNext() {
     notifyTimerId = setTimeout(() => {
       const label = getSessionLabel(next.type);
       const userName = Storage.getUserName();
-      const title = '풍성한 첫걸음';
+      const title = '풍성한 삶으로 첫걸음';
       const body = userName
         ? `${userName}님, ${label} 만남이 기다리고 있어요`
         : `${label} 만남이 기다리고 있어요`;

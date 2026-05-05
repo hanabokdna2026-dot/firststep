@@ -3,7 +3,7 @@
  *
  * URL: #journey
  *
- * 풍성한 첫걸음 전체 9과를 카드로 보여줌.
+ * 풍성한 삶으로 첫걸음 전체 9과를 카드로 보여줌.
  * 과 카드를 누르면 그 자리에서 6일이 펼쳐짐 (아코디언).
  *
  * 진행 상태:
@@ -61,8 +61,8 @@ export default async function renderJourney({ navigateTo }) {
 
         <div class="journey-title-row">
           <p class="eyebrow">여정 전체</p>
-          <h2 class="title-small">풍성한 첫걸음</h2>
-          <p class="journey-intro">하나님과 함께 걸어갈<br/>아홉 번의 한 주</p>
+          <h2 class="title-small">풍성한 삶으로 첫걸음</h2>
+          <p class="journey-intro">하나님과 함께 걸어갈<br/>열 번의 한 주</p>
         </div>
 
         <div class="journey-list">
@@ -92,17 +92,18 @@ export default async function renderJourney({ navigateTo }) {
       });
     });
 
-    // 일 카드 클릭
-    screen.querySelectorAll('[data-day]').forEach(card => {
-      card.addEventListener('click', (e) => {
+    // 세션 버튼 클릭 — 그 세션으로 직접 진입
+    screen.querySelectorAll('[data-session-type]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const lessonId = parseInt(card.dataset.lesson, 10);
-        const dayIndex = parseInt(card.dataset.day, 10);
+        const lessonId = parseInt(btn.dataset.sessionLesson, 10);
+        const dayIndex = parseInt(btn.dataset.sessionDay, 10);
+        const sessionType = btn.dataset.sessionType;
         // 진행 중인 일이면 일반 진입, 다른 일이면 override
         if (lessonId === currentLesson && dayIndex === currentDay) {
-          navigateTo('#session/morning');
+          navigateTo('#session/' + sessionType);
         } else {
-          navigateTo(`#session/morning/${lessonId}/${dayIndex}`);
+          navigateTo(`#session/${sessionType}/${lessonId}/${dayIndex}`);
         }
       });
     });
@@ -231,8 +232,28 @@ export default async function renderJourney({ navigateTo }) {
       cardClass += ' journey-day-card-current';
     }
 
+    // 세 세션 작은 버튼들
+    const sessionButtons = ['morning', 'midday', 'evening'].map(type => {
+      const isSessionDone = Storage.isDaySessionDone(lessonId, day.dayIndex, type);
+      const labels = { morning: '아침', midday: '낮', evening: '저녁' };
+      const checkIcon = isSessionDone ? `
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      ` : '';
+      return `
+        <button class="journey-day-session-btn ${isSessionDone ? 'journey-day-session-btn-done' : ''}"
+                data-session-lesson="${lessonId}"
+                data-session-day="${day.dayIndex}"
+                data-session-type="${type}">
+          ${checkIcon}
+          <span>${labels[type]}</span>
+        </button>
+      `;
+    }).join('');
+
     return `
-      <button class="${cardClass}" data-lesson="${lessonId}" data-day="${day.dayIndex}">
+      <div class="${cardClass}">
         <div class="journey-day-header">
           <span class="journey-day-label">${day.dayLabel}</span>
           ${badge}
@@ -240,7 +261,11 @@ export default async function renderJourney({ navigateTo }) {
         <p class="journey-day-verse">${day.verses.saebeon}</p>
         <p class="journey-day-ref">— ${day.verseRef}</p>
         ${isCurrent ? '<p class="journey-day-current-mark">지금 이 자리</p>' : ''}
-      </button>
+
+        <div class="journey-day-sessions">
+          ${sessionButtons}
+        </div>
+      </div>
     `;
   }
 
