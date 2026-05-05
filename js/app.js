@@ -85,45 +85,68 @@ function navigateTo(hash) {
   }
 }
 
+// 동시 render 방지 — 진행 중인 render가 있으면 새 요청은 그것이 끝난 후에
+let renderInFlight = null;
+
 // 화면 그리기
 async function render() {
-  const hash = window.location.hash || '#welcome';
-  const matched = matchRoute(hash);
-  const app = document.getElementById('app');
-
-  if (matched) {
-    try {
-      const module = await matched.route.loader();
-      const renderFn = module.default;
-      app.innerHTML = '';
-      const screen = await renderFn({ navigateTo, param: matched.param, extra: matched.extra });
-      app.appendChild(screen);
-      window.scrollTo(0, 0);
-    } catch (e) {
-      console.error('화면 로딩 실패:', e);
-      app.innerHTML = `
-        <div style="padding: 48px 32px; text-align: center;">
-          <p style="color: #412402;">화면을 불러오는 중 문제가 있어요.</p>
-          <p style="color: #854F0B; font-size: 13px; margin-top: 12px;">새로고침 해보세요.</p>
-        </div>
-      `;
-    }
-  } else {
-    navigateTo('#welcome');
+  // 이미 진행 중이면 그것이 끝나기를 기다림 (중복 진행 방지)
+  if (renderInFlight) {
+    await renderInFlight;
   }
+
+  renderInFlight = (async () => {
+    const hash = window.location.hash || '#welcome';
+    const matched = matchRoute(hash);
+    const app = document.getElementById('app');
+
+    if (matched) {
+      try {
+        const module = await matched.route.loader();
+        const renderFn = module.default;
+        // 화면을 그리기 직전에 한 번 더 비우기 (완전히 클린)
+        app.innerHTML = '';
+        const screen = await renderFn({ navigateTo, param: matched.param, extra: matched.extra });
+        // await 후에도 또 한 번 비워서, 그 사이에 들어온 요청 결과가 있어도 깨끗하게
+        app.innerHTML = '';
+        app.appendChild(screen);
+        window.scrollTo(0, 0);
+      } catch (e) {
+        console.error('화면 로딩 실패:', e);
+        app.innerHTML = `
+          <div style="padding: 48px 32px; text-align: center;">
+            <p style="color: #412402;">화면을 불러오는 중 문제가 있어요.</p>
+            <p style="color: #854F0B; font-size: 13px; margin-top: 12px;">새로고침 해보세요.</p>
+          </div>
+        `;
+      }
+    } else {
+      navigateTo('#welcome');
+    }
+  })();
+
+  await renderInFlight;
+  renderInFlight = null;
 }
 
 // 첫 진입 처리
 function init() {
+  // hashchange 리스너부터 등록
+  window.addEventListener('hashchange', render);
+
+  // 빈 해시면 적절한 자리로 — 이때 hash를 바꾸면 hashchange가 발생해 render가 호출됨
+  // 그래서 직접 render() 호출은 안 함 (이중 호출 방지)
   if (!window.location.hash || window.location.hash === '#') {
     if (Storage.isOnboardingDone()) {
       window.location.hash = '#home';
     } else {
       window.location.hash = '#welcome';
     }
+    // hashchange가 알아서 render 부름
+  } else {
+    // 해시가 이미 있는 경우 (예: PWA가 이전 상태로 복원되거나, 사용자가 URL 직접 입력)
+    render();
   }
-  window.addEventListener('hashchange', render);
-  render();
 
   // 알림 스케줄러 시작 (지원하는 환경에서만)
   if (notifyModule && Storage.isOnboardingDone()) {

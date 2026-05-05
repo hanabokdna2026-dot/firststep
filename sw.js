@@ -13,14 +13,16 @@
  *   CACHE_VERSION 숫자 올리면 옛 캐시 자동 삭제됨.
  */
 
-const CACHE_VERSION = 'firststep-v1';
+const CACHE_VERSION = 'firststep-v2';
 const APP_SHELL = [
   './',
   './index.html',
   './css/styles.css',
   './data/lessons.json',
-  './assets/icons/icon-192.png',
-  './assets/icons/icon-512.png',
+  './data/john1.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/hanabok-mark.svg',
   './assets/sounds/bell-medium.mp3',
 ];
 
