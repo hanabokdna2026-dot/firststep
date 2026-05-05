@@ -14,7 +14,7 @@
  */
 
 import Storage from '../storage.js';
-import { getDay } from '../content.js';
+import { getDay, getLesson, getActiveDayIndices, getDisplayDayLabel } from '../content.js';
 
 const SESSION_LABELS = {
   morning: '아침',
@@ -54,6 +54,23 @@ export default async function renderRead({ navigateTo, param, extra }) {
     return screen;
   }
 
+  // 사용자 속도에 따른 동적 dayLabel 계산
+  // 데이터의 day.dayLabel(고정 "첫째 날"~"여섯째 날")은 그대로 두고,
+  // 사용자에게 보일 라벨은 활성 자리 안에서 몇 번째인지 기준으로
+  try {
+    const lesson = await getLesson(lessonId);
+    const weekPace = Storage.getWeekPace();
+    const activeDayIndices = getActiveDayIndices(lesson, weekPace);
+    if (activeDayIndices.includes(dayIndex)) {
+      day.displayDayLabel = getDisplayDayLabel(dayIndex, activeDayIndices);
+    } else {
+      // 비활성 자리도 어떻게든 라벨이 있어야 함 (안전장치)
+      day.displayDayLabel = day.dayLabel;
+    }
+  } catch (e) {
+    day.displayDayLabel = day.dayLabel;
+  }
+
   // 세션 타입별로 다르게 렌더링
   if (sessionType === 'morning') {
     return renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride);
@@ -79,7 +96,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   screen.innerHTML = `
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
-      <p class="read-header-title">아침 · ${day.dayLabel}</p>
+      <p class="read-header-title">아침 · ${day.displayDayLabel}</p>
       <button class="read-header-toggle" id="btn-toggle">새번역</button>
     </div>
 
@@ -182,7 +199,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
   screen.innerHTML = `
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
-      <p class="read-header-title">낮 · ${day.dayLabel}</p>
+      <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
       <button class="read-header-toggle" id="btn-toggle">새번역</button>
     </div>
 
@@ -291,7 +308,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     screen.innerHTML = `
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
-        <p class="read-header-title">낮 · ${day.dayLabel}</p>
+        <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
         <span style="width: 60px;"></span>
       </div>
 
@@ -338,7 +355,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     screen.innerHTML = `
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
-        <p class="read-header-title">낮 · ${day.dayLabel}</p>
+        <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
         <button class="read-header-toggle" id="btn-toggle">${currentTranslation === 'saebeon' ? '새번역' : '개역개정'}</button>
       </div>
 
@@ -446,7 +463,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   screen.innerHTML = `
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
-      <p class="read-header-title">저녁 · ${day.dayLabel}</p>
+      <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
       <button class="read-header-toggle" id="btn-toggle">새번역</button>
     </div>
 

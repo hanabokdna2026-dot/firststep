@@ -16,7 +16,7 @@
  */
 
 import Storage from '../storage.js';
-import { getLesson, CURRICULUM_OUTLINE } from '../content.js';
+import { getLesson, CURRICULUM_OUTLINE, getActiveDayIndices, getDisplayDayLabel } from '../content.js';
 
 export default async function renderJourney({ navigateTo }) {
   const screen = document.createElement('div');
@@ -171,8 +171,10 @@ export default async function renderJourney({ navigateTo }) {
     // 펼친 내용 — 6일 카드들 (콘텐츠가 있을 때만)
     let expandedHtml = '';
     if (isExpanded && hasContent) {
+      const weekPace = Storage.getWeekPace();
+      const activeDayIndices = getActiveDayIndices(lesson.data, weekPace);
       const dayCards = lesson.data.days.map(day =>
-        renderDayCard(lesson.id, day)
+        renderDayCard(lesson.id, day, activeDayIndices)
       ).join('');
       expandedHtml = `
         <div class="journey-days-list">
@@ -210,15 +212,20 @@ export default async function renderJourney({ navigateTo }) {
   // ============================================
   // 한 일 카드 (펼친 과 안에서)
   // ============================================
-  function renderDayCard(lessonId, day) {
+  function renderDayCard(lessonId, day, activeDayIndices) {
     const isCurrent = (lessonId === currentLesson && day.dayIndex === currentDay);
     const fullyDone = Storage.isDayFullyDone(lessonId, day.dayIndex);
     const started = Storage.isDayStarted(lessonId, day.dayIndex);
+    const isActive = activeDayIndices.includes(day.dayIndex);
+    const displayLabel = isActive ? getDisplayDayLabel(day.dayIndex, activeDayIndices) : day.dayLabel;
 
     let badge = '';
     let cardClass = 'journey-day-card';
 
-    if (fullyDone) {
+    if (!isActive) {
+      cardClass += ' journey-day-card-inactive';
+      badge = `<span class="journey-day-status journey-day-status-inactive">건너뛰는 자리</span>`;
+    } else if (fullyDone) {
       cardClass += ' journey-day-card-done';
       badge = `
         <span class="journey-day-check">
@@ -235,39 +242,44 @@ export default async function renderJourney({ navigateTo }) {
       cardClass += ' journey-day-card-current';
     }
 
-    // 세 세션 작은 버튼들
-    const sessionButtons = ['morning', 'midday', 'evening'].map(type => {
-      const isSessionDone = Storage.isDaySessionDone(lessonId, day.dayIndex, type);
-      const labels = { morning: '아침', midday: '낮', evening: '저녁' };
-      const checkIcon = isSessionDone ? `
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-          <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      ` : '';
-      return `
-        <button class="journey-day-session-btn ${isSessionDone ? 'journey-day-session-btn-done' : ''}"
-                data-session-lesson="${lessonId}"
-                data-session-day="${day.dayIndex}"
-                data-session-type="${type}">
-          ${checkIcon}
-          <span>${labels[type]}</span>
-        </button>
-      `;
-    }).join('');
+    // 세 세션 작은 버튼들 — 비활성 자리는 버튼 안 그림
+    let sessionButtons = '';
+    if (isActive) {
+      sessionButtons = ['morning', 'midday', 'evening'].map(type => {
+        const isSessionDone = Storage.isDaySessionDone(lessonId, day.dayIndex, type);
+        const labels = { morning: '아침', midday: '낮', evening: '저녁' };
+        const checkIcon = isSessionDone ? `
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        ` : '';
+        return `
+          <button class="journey-day-session-btn ${isSessionDone ? 'journey-day-session-btn-done' : ''}"
+                  data-session-lesson="${lessonId}"
+                  data-session-day="${day.dayIndex}"
+                  data-session-type="${type}">
+            ${checkIcon}
+            <span>${labels[type]}</span>
+          </button>
+        `;
+      }).join('');
+    }
 
     return `
       <div class="${cardClass}">
         <div class="journey-day-header">
-          <span class="journey-day-label">${day.dayLabel}</span>
+          <span class="journey-day-label">${displayLabel}</span>
           ${badge}
         </div>
         <p class="journey-day-verse">${day.verses.saebeon}</p>
         <p class="journey-day-ref">— ${day.verseRef}</p>
         ${isCurrent ? '<p class="journey-day-current-mark">지금 이 자리</p>' : ''}
 
-        <div class="journey-day-sessions">
-          ${sessionButtons}
-        </div>
+        ${isActive ? `
+          <div class="journey-day-sessions">
+            ${sessionButtons}
+          </div>
+        ` : ''}
       </div>
     `;
   }

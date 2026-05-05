@@ -16,7 +16,7 @@
 
 import Storage from './storage.js';
 import { getTodayISO } from './time.js';
-import { hasNext, getNextDay } from './content.js';
+import { getNextActiveDay } from './content.js';
 
 /**
  * 세션 완료 처리.
@@ -29,6 +29,7 @@ export async function completeSession(sessionType, options = {}) {
   const todayISO = getTodayISO();
   const currentLesson = Storage.getCurrentLesson();
   const currentDay = Storage.getCurrentDay();
+  const weekPace = Storage.getWeekPace();
 
   // 마치는 과/일 (지정 안 하면 진행 중인 것)
   const lessonId = options.lessonId ?? currentLesson;
@@ -51,12 +52,12 @@ export async function completeSession(sessionType, options = {}) {
   }
 
   // 진도 진행 — 진행 중인 일의 저녁 세션을 마쳤을 때만
+  // 속도(weekPace) 고려해서 다음 활성 자리로 이동 (비활성 자리 자동 건너뜀)
   let progressed = false;
   let isJourneyEnd = false;
   if (sessionType === 'evening' && isCurrentDay) {
-    const hasMore = await hasNext(currentLesson, currentDay);
-    if (hasMore) {
-      const next = getNextDay(currentLesson, currentDay);
+    const next = await getNextActiveDay(currentLesson, currentDay, weekPace);
+    if (next) {
       Storage.setCurrentLesson(next.lessonId);
       Storage.setCurrentDay(next.dayIndex);
       progressed = true;

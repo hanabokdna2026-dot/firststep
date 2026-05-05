@@ -1360,6 +1360,35 @@ p.subtle {
 }
 
 /* ==========================================
+   여정 — 비활성 자리 (속도에 따라 건너뛰는 자리)
+   ========================================== */
+.journey-day-card-inactive {
+  opacity: 0.45;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.journey-day-card-inactive .journey-day-verse,
+.journey-day-card-inactive .journey-day-ref {
+  color: var(--text-muted);
+}
+
+.journey-day-status-inactive {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.3px;
+}
+
+/* ==========================================
+   홈 화면 — 좌우 스와이프 시 트랜지션
+   ========================================== */
+.screen {
+  /* 스와이프 중 손가락 따라 움직일 때 부드럽게 */
+  will-change: transform;
+}
+
+/* ==========================================
    하나복 credit (환영 화면 + 설정 화면 footer)
    ========================================== */
 .hanabok-credit {
