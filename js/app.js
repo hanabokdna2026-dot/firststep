@@ -44,6 +44,7 @@ const routes = [
   { pattern: '#intro', loader: () => import('./screens/intro.js' + v) },
   { pattern: '#notify', loader: () => import('./screens/notify.js' + v) },
   { pattern: '#home', loader: () => import('./screens/home.js' + v) },
+  { pattern: '#home/', loader: () => import('./screens/home.js' + v) },
   { pattern: '#record', loader: () => import('./screens/record.js' + v) },
   { pattern: '#settings', loader: () => import('./screens/settings.js' + v) },
   { pattern: '#pace-check', loader: () => import('./screens/pace-check.js' + v) },

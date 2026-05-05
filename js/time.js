@@ -41,6 +41,33 @@ export function formatCurrentTime(date = new Date()) {
   return formatKoreanShortTime(hhmm);
 }
 
+// 현재 시간대 인사말
+// 새벽 5~9시: 좋은 아침이에요
+// 오전 10~11시: 오전이 깊어가요
+// 낮 12~16시: 낮 시간이에요
+// 오후 17~19시: 오후가 저물어요
+// 저녁 20~21시: 저녁 시간이에요
+// 밤 22~새벽 4시: 고요한 밤이에요
+export function getTimeGreeting(date = new Date()) {
+  const h = date.getHours();
+  if (h >= 5 && h < 10) return '좋은 아침이에요';
+  if (h >= 10 && h < 12) return '오전이 깊어가요';
+  if (h >= 12 && h < 17) return '낮 시간이에요';
+  if (h >= 17 && h < 20) return '오후가 저물어요';
+  if (h >= 20 && h < 22) return '저녁 시간이에요';
+  return '고요한 밤이에요';
+}
+
+// 시간대 분류 (배경 색조 결정용)
+// dawn (새벽~아침), day (낮), dusk (저녁), night (밤)
+export function getTimeOfDayClass(date = new Date()) {
+  const h = date.getHours();
+  if (h >= 5 && h < 10) return 'dawn';
+  if (h >= 10 && h < 17) return 'day';
+  if (h >= 17 && h < 21) return 'dusk';
+  return 'night';
+}
+
 // 오늘 날짜 ISO (YYYY-MM-DD)
 export function getTodayISO() {
   const d = new Date();

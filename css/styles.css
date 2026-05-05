@@ -549,28 +549,83 @@ p.subtle {
    홈 화면
    ========================================== */
 
-.home-greeting {
-  padding: 16px 24px 20px;
+/* 시간대별 배경 — 미묘한 변화 */
+.screen.home-dawn {
+  background: linear-gradient(180deg, #FEF3DD 0%, #FAEEDA 280px);
 }
 
-.home-date {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
+.screen.home-day {
+  background: var(--bg-primary);
+}
+
+.screen.home-dusk {
+  background: linear-gradient(180deg, #F8E5C7 0%, #FAEEDA 280px);
+}
+
+.screen.home-night {
+  background: linear-gradient(180deg, #F0DFC0 0%, #FAEEDA 280px);
+}
+
+.home-greeting {
+  padding: 32px 24px 16px;
+  text-align: center;
 }
 
 .home-greeting-title {
   font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 28px;
+  font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 4px;
-  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
 }
 
 .home-greeting-sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* 진도 점 영역 */
+.home-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.home-progress-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.home-progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(186, 117, 23, 0.18);
+  transition: all 0.3s ease;
+}
+
+.home-progress-dot.home-progress-dot-done {
+  background: var(--accent);
+  opacity: 0.65;
+}
+
+.home-progress-dot.home-progress-dot-current {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(186, 117, 23, 0.15);
+}
+
+.home-progress-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+  margin: 0;
 }
 
 .home-main {

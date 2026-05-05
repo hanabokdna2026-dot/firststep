@@ -3,14 +3,13 @@
  *
  * 매일 사용자가 켤 때 보는 메인 화면.
  *
- * 구성:
- * - 상단: 오늘 날짜, 인사말, 이름
- * - 메인 카드: 현재 시간대 세션 (강조됨, 본문 미리보기 + 시작 버튼)
- * - 부 카드 2개: 다른 두 세션 (직접 시작 가능)
- * - 하단 탭: 오늘 / 기록 / 설정
+ * 두 모드:
+ * - 기본 (오늘): 사용자의 현재 진도, 시간대 인사말, 진도 점
+ * - 미리보기 (다른 날짜): 여정 화면에서 누른 다른 날의 자리
+ *   화면 구조는 같지만 인사말이 "여정에서 ○과 ○일째 자리"로 바뀜
+ *   세션 시작 누르면 진도 이동 확인 다이얼로그
  *
- * 사용자는 시간대와 무관하게 어떤 세션이든 들어갈 수 있어요.
- * 다만 현재 시간대가 시각적으로 강조됨.
+ * URL: #home (기본) / #home/preview/{lessonId}/{dayIndex} (미리보기)
  */
 
 import Storage from '../storage.js';
@@ -18,10 +17,10 @@ import { getDay, getLesson } from '../content.js';
 import {
   getCurrentSessionType,
   getSessionLabel,
-  formatCurrentTime,
-  formatKoreanDate,
   formatKoreanShortTime,
   getTodayISO,
+  getTimeGreeting,
+  getTimeOfDayClass,
 } from '../time.js';
 
 const SESSION_ORDER = ['morning', 'midday', 'evening'];
@@ -32,25 +31,29 @@ const SESSION_HINTS = {
   evening: '하루를 돌아보며 다시 만납니다',
 };
 
-export default async function renderHome({ navigateTo }) {
+export default async function renderHome({ navigateTo, param, extra }) {
   const screen = document.createElement('div');
   screen.className = 'screen';
 
-  // 진도 정보
-  const lessonId = Storage.getCurrentLesson();
-  const dayIndex = Storage.getCurrentDay();
+  // 미리보기 모드 판단 — URL에서 preview/lesson/day 파라미터
+  const isPreview = param === 'preview' && extra && extra.length >= 2;
+  const previewLesson = isPreview ? Number(extra[0]) : null;
+  const previewDay = isPreview ? Number(extra[1]) : null;
 
-  // 새 과 시작 시점 체크 — 첫째 날인데 아직 속도 확인 안 했으면 pace-check로
-  // (1과 첫째 날은 온보딩에서 기본 속도를 정했으니 LAST_PACE_CHECK_LESSON이 1로 자동 설정됨)
-  const lastPaceCheck = Storage.getLastPaceCheckLesson();
-  if (dayIndex === 1 && lessonId > lastPaceCheck) {
-    // 1과인 경우 — 온보딩에서 속도를 정했으므로 자동으로 OK
-    if (lessonId === 1) {
-      Storage.setLastPaceCheckLesson(1);
-    } else {
-      // 2과 이상 — 속도 확인 필요
-      navigateTo('#pace-check');
-      return screen;
+  // 어떤 자리를 보여줄지 결정
+  const lessonId = isPreview ? previewLesson : Storage.getCurrentLesson();
+  const dayIndex = isPreview ? previewDay : Storage.getCurrentDay();
+
+  // 새 과 시작 시점 체크 (오늘 모드에서만)
+  if (!isPreview) {
+    const lastPaceCheck = Storage.getLastPaceCheckLesson();
+    if (dayIndex === 1 && lessonId > lastPaceCheck) {
+      if (lessonId === 1) {
+        Storage.setLastPaceCheckLesson(1);
+      } else {
+        navigateTo('#pace-check');
+        return screen;
+      }
     }
   }
 
@@ -74,17 +77,27 @@ export default async function renderHome({ navigateTo }) {
     return screen;
   }
 
-  // 현재 시간대 (강조될 세션)
-  const currentSessionType = getCurrentSessionType();
+  // 시간대 분류 (배경 색조)
+  const timeClass = getTimeOfDayClass();
+  screen.classList.add('home-' + timeClass);
+
+  // 현재 시간대 (강조될 세션) — 미리보기 모드는 항상 morning을 메인으로
+  const currentSessionType = isPreview ? 'morning' : getCurrentSessionType();
 
   // 인사말
   const userName = Storage.getUserName();
-  const today = formatKoreanDate();
   const todayISO = getTodayISO();
-  const currentTime = formatCurrentTime();
-  const greetingSub = userName
-    ? `${userName}님, 오늘도 함께 걸어요`
-    : '오늘도 함께 걸어요';
+
+  let greetingMain, greetingSub;
+  if (isPreview) {
+    greetingMain = `여정에서 만나는 자리`;
+    greetingSub = `${lessonId}과 ${day.dayLabel}을 둘러봅니다`;
+  } else {
+    greetingMain = getTimeGreeting();
+    greetingSub = userName
+      ? `${userName}님, 오늘도 함께 걸어요`
+      : '오늘도 함께 걸어요';
+  }
 
   // 알림 시간
   const notifyTimes = Storage.getNotifyTimes();
@@ -94,33 +107,37 @@ export default async function renderHome({ navigateTo }) {
     evening: notifyTimes.evening,
   };
 
-  // 세 세션을 항상 같은 순서로 그리되, 현재 시간대는 메인 카드로 강조
+  // 진도 점 (1~6일) — 미리보기 모드는 그 날까지 표시
+  const progressDots = renderProgressDots(dayIndex);
+
+  // 세 세션 카드
   const sessionsHtml = SESSION_ORDER.map(type => {
     if (type === currentSessionType) {
-      return renderMainCard(day, type, todayISO, sessionTimes[type]);
+      return renderMainCard(day, type, todayISO, sessionTimes[type], isPreview);
     } else {
-      return renderOtherCard(type, todayISO, sessionTimes[type]);
+      return renderOtherCard(type, todayISO, sessionTimes[type], isPreview);
     }
   }).join('');
 
-  screen.innerHTML = `
-    <div class="home-greeting">
-      <p class="home-date">${today}</p>
-      <h1 class="home-greeting-title" id="current-time">${currentTime}</h1>
-      <p class="home-greeting-sub">${greetingSub}</p>
-    </div>
-
-    <div class="home-sessions">
-      ${sessionsHtml}
-    </div>
-
+  // 미리보기 모드면 "오늘로 돌아가기" 버튼, 아니면 "여정 전체 보기"
+  const bottomActionHtml = isPreview ? `
+    <button class="home-other-days-btn" id="btn-back-today">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right: 6px;">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>오늘로 돌아가기</span>
+    </button>
+  ` : `
     <button class="home-other-days-btn" id="btn-other-days">
       <span>여정 전체 보기</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
         <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
+  `;
 
+  // 탭바 — 미리보기 모드에서는 안 보임 (오늘로 돌아가기 버튼만)
+  const tabbarHtml = isPreview ? '' : `
     <nav class="home-tabbar">
       <button class="home-tab home-tab-active" data-tab="today">
         <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -145,15 +162,37 @@ export default async function renderHome({ navigateTo }) {
     </nav>
   `;
 
+  screen.innerHTML = `
+    <div class="home-greeting">
+      <h1 class="home-greeting-title">${greetingMain}</h1>
+      <p class="home-greeting-sub">${greetingSub}</p>
+      ${progressDots}
+    </div>
+
+    <div class="home-sessions">
+      ${sessionsHtml}
+    </div>
+
+    ${bottomActionHtml}
+
+    ${tabbarHtml}
+  `;
+
+  // ============= 이벤트 =============
+
   // 메인 시작 버튼
   const mainStartBtn = screen.querySelector('#btn-start-main');
   if (mainStartBtn) {
     mainStartBtn.addEventListener('click', () => {
-      navigateTo('#session/' + currentSessionType);
+      if (isPreview) {
+        confirmJumpAndStart(currentSessionType);
+      } else {
+        navigateTo('#session/' + currentSessionType);
+      }
     });
   }
 
-  // 여정 전체 보기 버튼
+  // 여정 전체 보기 버튼 (오늘 모드에서만)
   const otherDaysBtn = screen.querySelector('#btn-other-days');
   if (otherDaysBtn) {
     otherDaysBtn.addEventListener('click', () => {
@@ -161,13 +200,39 @@ export default async function renderHome({ navigateTo }) {
     });
   }
 
+  // 오늘로 돌아가기 버튼 (미리보기 모드에서만)
+  const backTodayBtn = screen.querySelector('#btn-back-today');
+  if (backTodayBtn) {
+    backTodayBtn.addEventListener('click', () => {
+      navigateTo('#home');
+    });
+  }
+
   // 다른 세션 카드들 클릭
   screen.querySelectorAll('.home-other-card').forEach(card => {
     card.addEventListener('click', () => {
       const type = card.dataset.session;
-      navigateTo('#session/' + type);
+      if (isPreview) {
+        confirmJumpAndStart(type);
+      } else {
+        navigateTo('#session/' + type);
+      }
     });
   });
+
+  // 미리보기 모드 — 진도 이동 확인
+  function confirmJumpAndStart(sessionType) {
+    const sessionLabel = getSessionLabel(sessionType);
+    const ok = confirm(
+      `${lessonId}과 ${day.dayLabel} ${sessionLabel} 자리로 옮겨가시겠어요?\n\n` +
+      `현재 진도(${Storage.getCurrentLesson()}과 ${Storage.getCurrentDay()}일째)가 이 자리로 이동합니다.`
+    );
+    if (ok) {
+      Storage.setCurrentLesson(lessonId);
+      Storage.setCurrentDay(dayIndex);
+      navigateTo('#session/' + sessionType);
+    }
+  }
 
   // 탭
   screen.querySelectorAll('.home-tab').forEach(tab => {
@@ -179,65 +244,79 @@ export default async function renderHome({ navigateTo }) {
     });
   });
 
-  // 시간 자동 업데이트 (1분마다)
-  // 다음 분 시작에 맞춰 첫 업데이트, 그 후 60초마다
-  // 시간이 흘러서 시간대(아침/낮/저녁)가 바뀌면 화면 다시 그림
-  const now = new Date();
-  const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-  let intervalId = null;
+  // ============= 시간대 자동 갱신 (오늘 모드에서만) =============
+  if (!isPreview) {
+    const now = new Date();
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    let intervalId = null;
 
-  function updateTimeAndCheckSession() {
-    const timeEl = screen.querySelector('#current-time');
-    if (timeEl) timeEl.textContent = formatCurrentTime();
-    // 시간대가 바뀌었으면 화면 다시 그리기
-    const newSessionType = getCurrentSessionType();
-    if (newSessionType !== currentSessionType) {
-      // 현재 화면 다시 렌더 (라우팅 트리거)
-      navigateTo('#home');
+    function checkSessionAndGreeting() {
+      // 시간대(아침/낮/저녁)가 바뀌었으면 화면 다시 그리기
+      const newSessionType = getCurrentSessionType();
+      const newTimeClass = getTimeOfDayClass();
+      if (newSessionType !== currentSessionType || newTimeClass !== timeClass) {
+        navigateTo('#home');
+      }
     }
+
+    const timeoutId = setTimeout(() => {
+      checkSessionAndGreeting();
+      intervalId = setInterval(checkSessionAndGreeting, 60000);
+    }, msUntilNextMinute);
+
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+      window.removeEventListener('hashchange', cleanup);
+    };
+    window.addEventListener('hashchange', cleanup);
   }
-
-  const timeoutId = setTimeout(() => {
-    updateTimeAndCheckSession();
-    intervalId = setInterval(updateTimeAndCheckSession, 60000);
-  }, msUntilNextMinute);
-
-  // 화면 떠날 때 타이머 cleanup
-  const cleanup = () => {
-    clearTimeout(timeoutId);
-    if (intervalId) clearInterval(intervalId);
-    window.removeEventListener('hashchange', cleanup);
-  };
-  window.addEventListener('hashchange', cleanup);
 
   return screen;
 
   // ============================================
+  // 진도 점 (1~6일)
+  // ============================================
+  function renderProgressDots(currentDay) {
+    let dots = '';
+    for (let i = 1; i <= 6; i++) {
+      let cls = 'home-progress-dot';
+      if (i < currentDay) cls += ' home-progress-dot-done';
+      else if (i === currentDay) cls += ' home-progress-dot-current';
+      dots += `<span class="${cls}"></span>`;
+    }
+    return `
+      <div class="home-progress">
+        <div class="home-progress-dots">${dots}</div>
+        <p class="home-progress-label">${lessonId}과 · ${currentDay} / 6</p>
+      </div>
+    `;
+  }
+
+  // ============================================
   // 메인 카드 (현재 시간대 강조)
   // ============================================
-  function renderMainCard(day, sessionType, todayISO, sessionTime) {
+  function renderMainCard(day, sessionType, todayISO, sessionTime, isPreview) {
     const sessionLabel = getSessionLabel(sessionType);
-    const isDone = Storage.isSessionDone(todayISO, sessionType);
-    const timeLabel = formatKoreanShortTime(sessionTime);
+    const isDone = isPreview ? false : Storage.isSessionDone(todayISO, sessionType);
 
     let previewHtml;
     if (sessionType === 'midday') {
       previewHtml = `
         <p class="card-section-label">오늘의 ${sessionLabel} 세션</p>
-        <p class="card-passage-ref">${day.midday.passageRef}</p>
+        <p class="card-passage-ref">${day.midday.passageRef || '오늘 통독을 이어갑니다'}</p>
         <p class="card-passage-hint">짧은 단락을 흘려 읽습니다.</p>
       `;
     } else {
       previewHtml = `
-        <p class="card-section-label">오늘의 ${sessionLabel} 세션</p>
+        <p class="card-section-label">${isPreview ? '미리보는 ' : '오늘의 '}${sessionLabel} 세션</p>
         <p class="card-verse-text">${day.verses.saebeon}</p>
         <p class="card-verse-ref">— ${day.verseRef}</p>
       `;
     }
 
-    const buttonLabel = isDone ? `다시 만나기` : `시작하기`;
+    const buttonLabel = isPreview ? '이 자리부터 시작하기' : (isDone ? '다시 만나기' : '시작하기');
 
-    // 마침 시 헤더 우측에 작은 체크 (다른 카드들과 통일)
     const doneCheck = isDone ? `
       <span class="home-card-check">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -255,7 +334,6 @@ export default async function renderHome({ navigateTo }) {
           </div>
           <div class="home-card-header-right">
             ${doneCheck}
-            <span class="home-card-progress">${day.dayIndex} / 6</span>
           </div>
         </div>
 
@@ -273,13 +351,12 @@ export default async function renderHome({ navigateTo }) {
   // ============================================
   // 다른 세션 카드 (작게)
   // ============================================
-  function renderOtherCard(sessionType, todayISO, sessionTime) {
+  function renderOtherCard(sessionType, todayISO, sessionTime, isPreview) {
     const sessionLabel = getSessionLabel(sessionType);
-    const isDone = Storage.isSessionDone(todayISO, sessionType);
+    const isDone = isPreview ? false : Storage.isSessionDone(todayISO, sessionType);
     const timeLabel = formatKoreanShortTime(sessionTime);
     const hint = SESSION_HINTS[sessionType];
 
-    // 마침 상태 체크 아이콘 (있으면)
     const checkIcon = isDone ? `
       <span class="home-other-card-check">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

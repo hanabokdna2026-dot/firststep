@@ -92,7 +92,7 @@ export default async function renderJourney({ navigateTo }) {
       });
     });
 
-    // 세션 버튼 클릭 — 그 세션으로 진입 (필요 시 진도 이동)
+    // 세션 버튼 클릭 — 다른 자리는 그 날의 홈 미리보기로, 같은 자리는 바로 세션 진입
     screen.querySelectorAll('[data-session-type]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -100,27 +100,14 @@ export default async function renderJourney({ navigateTo }) {
         const dayIndex = parseInt(btn.dataset.sessionDay, 10);
         const sessionType = btn.dataset.sessionType;
 
-        // 현재 진도와 같은 자리면 그냥 진입
+        // 현재 진도와 같은 자리면 그 세션으로 직접 진입
         if (lessonId === currentLesson && dayIndex === currentDay) {
           navigateTo('#session/' + sessionType);
           return;
         }
 
-        // 다른 자리 — 사용자에게 확인
-        const lesson = lessons.find(l => l.id === lessonId);
-        const lessonTitle = lesson ? lesson.title : `${lessonId}과`;
-        const message = `${lessonId}과 ${dayIndex}일째로 옮겨가시겠어요?\n\n"${lessonTitle}"의 그 자리부터 이어가게 됩니다.\n\n[확인] 누르면 그 자리로 옮겨가고\n[취소] 누르면 미리 보기만 합니다`;
-
-        if (confirm(message)) {
-          // 진도 이동
-          Storage.setCurrentLesson(lessonId);
-          Storage.setCurrentDay(dayIndex);
-          // 진입
-          navigateTo('#session/' + sessionType);
-        } else {
-          // 미리 보기 모드 (override URL로 진입, 진도 안 움직임)
-          navigateTo(`#session/${sessionType}/${lessonId}/${dayIndex}`);
-        }
+        // 다른 자리 — 그 날의 홈 미리보기로
+        navigateTo(`#home/preview/${lessonId}/${dayIndex}`);
       });
     });
   }
