@@ -8,6 +8,7 @@
  */
 
 import Storage from '../storage.js';
+import { getTodayISO } from '../time.js';
 
 export default function renderNotify({ navigateTo }) {
   const screen = document.createElement('div');
@@ -61,6 +62,7 @@ export default function renderNotify({ navigateTo }) {
   screen.querySelector('#btn-start').addEventListener('click', () => {
     Storage.setNotifyTimes(currentTimes);
     Storage.setOnboardingDone();
+    Storage.setLastAdvanceDate(getTodayISO());  // 첫 진도 시작점을 오늘로
     navigateTo('#home');
   });
 

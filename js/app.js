@@ -123,9 +123,21 @@ async function render() {
 }
 
 // 첫 진입 처리
-function init() {
+async function init() {
   // hashchange 리스너부터 등록
   window.addEventListener('hashchange', render);
+
+  // 빠진 날 자동 진행 (사용자가 며칠 빼먹어도 자연스럽게 흘러감)
+  // 온보딩 마친 사용자만 — 새 사용자는 진도 아직 시작 안 함
+  if (Storage.isOnboardingDone()) {
+    try {
+      const { catchUpMissedDays } = await import('./catch-up.js' + v);
+      await catchUpMissedDays();
+    } catch (e) {
+      // catch-up 실패해도 앱 시작은 정상 진행
+      console.error('Catch-up error:', e);
+    }
+  }
 
   // 빈 해시면 적절한 자리로 — 이때 hash를 바꾸면 hashchange가 발생해 render가 호출됨
   // 그래서 직접 render() 호출은 안 함 (이중 호출 방지)

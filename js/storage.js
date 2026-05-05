@@ -20,6 +20,7 @@ const STORAGE_KEYS = {
   CURRENT_DAY: 'firststep:currentDay',  // 1~6
   WEEK_START_DATE: 'firststep:weekStartDate',  // ISO 날짜 문자열
   WEEK_PACE: 'firststep:weekPace',  // 이번 주 속도 ('one' | 'two' | 'three')
+  LAST_ADVANCE_DATE: 'firststep:lastAdvanceDate',  // 마지막으로 진도 이동한 날 (ISO)
 
   // 마지막으로 속도 확인한 과 (이 과가 현재 과보다 작으면 새 과 시작이라 속도 묻기)
   LAST_PACE_CHECK_LESSON: 'firststep:lastPaceCheckLesson',
@@ -113,6 +114,15 @@ const Storage = {
   },
   setWeekPace(pace) {
     localStorage.setItem(STORAGE_KEYS.WEEK_PACE, pace);
+  },
+
+  // 마지막으로 진도 이동한 날 (ISO 형식 'YYYY-MM-DD')
+  // 빈 값이면 아직 한 번도 이동 안 한 것 (새 사용자)
+  getLastAdvanceDate() {
+    return localStorage.getItem(STORAGE_KEYS.LAST_ADVANCE_DATE) || '';
+  },
+  setLastAdvanceDate(isoDate) {
+    localStorage.setItem(STORAGE_KEYS.LAST_ADVANCE_DATE, isoDate);
   },
 
   // 마지막 속도 확인한 과

@@ -60,6 +60,7 @@ export async function completeSession(sessionType, options = {}) {
     if (next) {
       Storage.setCurrentLesson(next.lessonId);
       Storage.setCurrentDay(next.dayIndex);
+      Storage.setLastAdvanceDate(todayISO);  // 오늘 자연스럽게 이동했음을 기록
       progressed = true;
     } else {
       isJourneyEnd = true;
