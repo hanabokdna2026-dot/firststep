@@ -47,6 +47,7 @@ const routes = [
   { pattern: '#record', loader: () => import('./screens/record.js' + v) },
   { pattern: '#settings', loader: () => import('./screens/settings.js' + v) },
   { pattern: '#pace-check', loader: () => import('./screens/pace-check.js' + v) },
+  { pattern: '#days/', loader: () => import('./screens/days.js' + v) },
   { pattern: '#session/', loader: () => import('./screens/session-start.js' + v) },
   { pattern: '#read/', loader: () => import('./screens/read.js' + v) },
   { pattern: '#silence/', loader: () => import('./screens/silence.js' + v) },
@@ -64,8 +65,12 @@ function matchRoute(hash) {
   // prefix로 시작하는 동적 라우트 찾기
   for (const route of routes) {
     if (route.pattern.endsWith('/') && hash.startsWith(route.pattern)) {
-      const param = hash.slice(route.pattern.length);
-      return { route, param };
+      const rest = hash.slice(route.pattern.length);
+      // 슬래시로 split — param이 단순 문자열일 수도 있고 'morning/1/3' 같은 복합일 수도 있음
+      const parts = rest.split('/');
+      const param = parts[0];
+      const extra = parts.slice(1);
+      return { route, param, extra };
     }
   }
   return null;
@@ -91,7 +96,7 @@ async function render() {
       const module = await matched.route.loader();
       const renderFn = module.default;
       app.innerHTML = '';
-      const screen = await renderFn({ navigateTo, param: matched.param });
+      const screen = await renderFn({ navigateTo, param: matched.param, extra: matched.extra });
       app.appendChild(screen);
       window.scrollTo(0, 0);
     } catch (e) {

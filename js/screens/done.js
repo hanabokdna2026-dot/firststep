@@ -1,13 +1,12 @@
 /**
- * 마침 화면
+ * 낮 통독 마침 화면
  *
- * URL: #done/:type
- *   :type = morning | midday | evening
+ * URL: #done/:type  (실제로는 :type='midday'만 사용)
+ *
+ * 아침/저녁은 잠잠히 마침 화면에서 직접 홈으로 가므로
+ * 이 화면은 낮 통독 후에만 거침.
  *
  * "잘 마쳤어요" + 다음 세션 안내 + 홈으로
- *
- * 이 화면에 들어오면 그 세션을 완료로 기록.
- * 마지막 세션(저녁)이면 다음 일로 진도 진행.
  */
 
 import Storage from '../storage.js';
@@ -15,9 +14,7 @@ import {
   getSessionLabel,
   getNextSessionTime,
   formatKoreanShortTime,
-  getTodayISO,
 } from '../time.js';
-import { getNextDay, hasNext } from '../content.js';
 
 const SESSION_DONE_MESSAGES = {
   morning: '오늘 아침 세션을 마쳤습니다.<br/>이 말씀을 마음에 두고 하루를 살아가요.',
@@ -31,46 +28,34 @@ const NEXT_HINT = {
   evening: '내일 아침에 새 말씀이 기다려요',
 };
 
-export default async function renderDone({ navigateTo, param }) {
-  const sessionType = param || 'morning';
+export default async function renderDone({ navigateTo, param, extra }) {
+  const sessionType = param || 'midday';
   const sessionLabel = getSessionLabel(sessionType);
   const message = SESSION_DONE_MESSAGES[sessionType] || '';
+
+  // 다른 일에서 진입한 경우
+  const overrideLesson = extra && extra[0] ? parseInt(extra[0], 10) : null;
+  const overrideDay = extra && extra[1] ? parseInt(extra[1], 10) : null;
+  const isOverride = !!(overrideLesson && overrideDay);
 
   const screen = document.createElement('div');
   screen.className = 'screen';
 
-  // 진도 정보
-  const lessonId = Storage.getCurrentLesson();
-  const dayIndex = Storage.getCurrentDay();
-  const todayISO = getTodayISO();
+  // 세션 완료 처리 (완료 기록 + 진도 진행)
+  const { completeSession } = await import('../session-complete.js?v=' + Date.now());
+  const result = isOverride
+    ? await completeSession(sessionType, { lessonId: overrideLesson, dayIndex: overrideDay })
+    : await completeSession(sessionType);
 
-  // 세션 완료 기록
-  Storage.markSessionDone(todayISO, sessionType);
-
-  // 저녁이면 다음 일로 진도 진행
-  let dayProgressed = false;
-  let isJourneyEnd = false;
-  if (sessionType === 'evening') {
-    const hasMore = await hasNext(lessonId, dayIndex);
-    if (hasMore) {
-      const next = getNextDay(lessonId, dayIndex);
-      Storage.setCurrentLesson(next.lessonId);
-      Storage.setCurrentDay(next.dayIndex);
-      dayProgressed = true;
-    } else {
-      isJourneyEnd = true;
-    }
-  }
-
-  // 다음 세션 안내 (저녁이면 내일 아침)
+  // 다음 세션 안내
   const next = getNextSessionTime();
   const nextLabel = getSessionLabel(next.type);
   const nextTime = formatKoreanShortTime(next.time);
   const nextHint = NEXT_HINT[sessionType] || '';
 
-  // 다음 세션 카드 (여정 끝이면 다른 메시지)
+  // 다음 세션 카드
   let nextCardHtml = '';
-  if (isJourneyEnd) {
+  if (result.isJourneyEnd) {
     nextCardHtml = `
       <div class="done-next-card done-journey-end">
         <p class="done-next-label">여정의 끝</p>
@@ -78,10 +63,9 @@ export default async function renderDone({ navigateTo, param }) {
       </div>
     `;
   } else if (sessionType === 'evening') {
-    // 다음 날 진도가 새 과의 첫째 날이면 안내 추가
     const nextLesson = Storage.getCurrentLesson();
     const nextDay = Storage.getCurrentDay();
-    const isNewLesson = dayProgressed && nextDay === 1 && nextLesson > 1;
+    const isNewLesson = result.progressed && nextDay === 1 && nextLesson > 1;
     nextCardHtml = `
       <div class="done-next-card">
         <p class="done-next-label">다음 만남</p>

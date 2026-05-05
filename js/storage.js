@@ -137,14 +137,36 @@ const Storage = {
     keys.forEach(key => localStorage.removeItem(key));
   },
 
-  // 세션 완료 기록
+  // 세션 완료 기록 (날짜별 - 오늘 무엇을 했는지)
   // sessionType: 'morning' | 'midday' | 'evening'
-  // dateStr: 'YYYY-MM-DD' (오늘 날짜)
+  // dateStr: 'YYYY-MM-DD'
   isSessionDone(dateStr, sessionType) {
     return localStorage.getItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType) === 'done';
   },
   markSessionDone(dateStr, sessionType) {
     localStorage.setItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType, 'done');
+  },
+
+  // 일별 완료 기록 (이 과의 어떤 일을 했는지 - 일 목록 화면용)
+  // 키 형태: firststep:dayDone:1:3:morning  (1과 셋째 날 아침)
+  isDaySessionDone(lessonId, dayIndex, sessionType) {
+    return localStorage.getItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`) === 'done';
+  },
+  markDaySessionDone(lessonId, dayIndex, sessionType) {
+    localStorage.setItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`, 'done');
+  },
+
+  // 어떤 일이 "어느 정도라도" 마쳐졌는지 (세 세션 중 하나라도)
+  isDayStarted(lessonId, dayIndex) {
+    return ['morning', 'midday', 'evening'].some(t =>
+      this.isDaySessionDone(lessonId, dayIndex, t)
+    );
+  },
+  // 어떤 일이 "완전히" 마쳐졌는지 (세 세션 다)
+  isDayFullyDone(lessonId, dayIndex) {
+    return ['morning', 'midday', 'evening'].every(t =>
+      this.isDaySessionDone(lessonId, dayIndex, t)
+    );
   },
 
   // 한 마디 기도 저장

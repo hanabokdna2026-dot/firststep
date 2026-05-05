@@ -22,16 +22,19 @@ const SESSION_LABELS = {
   evening: '저녁',
 };
 
-export default async function renderRead({ navigateTo, param }) {
+export default async function renderRead({ navigateTo, param, extra }) {
   const sessionType = param || 'morning';
   const sessionLabel = SESSION_LABELS[sessionType] || '';
 
   const screen = document.createElement('div');
   screen.className = 'screen';
 
-  // 진도 정보
-  const lessonId = Storage.getCurrentLesson();
-  const dayIndex = Storage.getCurrentDay();
+  // 진도 정보 — extra에 있으면 그걸 쓰고, 없으면 진행 중인 일
+  const overrideLesson = extra && extra[0] ? parseInt(extra[0], 10) : null;
+  const overrideDay = extra && extra[1] ? parseInt(extra[1], 10) : null;
+  const lessonId = overrideLesson || Storage.getCurrentLesson();
+  const dayIndex = overrideDay || Storage.getCurrentDay();
+  const isOverride = !!(overrideLesson && overrideDay);
 
   // 콘텐츠
   let day;
@@ -53,11 +56,11 @@ export default async function renderRead({ navigateTo, param }) {
 
   // 세션 타입별로 다르게 렌더링
   if (sessionType === 'morning') {
-    return renderMorning(screen, navigateTo, day, lessonId, dayIndex);
+    return renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   } else if (sessionType === 'midday') {
-    return renderMidday(screen, navigateTo, day, lessonId, dayIndex);
+    return renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   } else if (sessionType === 'evening') {
-    return renderEvening(screen, navigateTo, day, lessonId, dayIndex);
+    return renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   }
 
   return screen;
@@ -66,9 +69,10 @@ export default async function renderRead({ navigateTo, param }) {
 // ==========================================
 // 아침 본문 화면
 // ==========================================
-function renderMorning(screen, navigateTo, day, lessonId, dayIndex) {
+function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   // 번역 토글 — 세션 안에서만 유지 (기본 새번역)
   let currentTranslation = 'saebeon';
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
 
   const morning = day.morning;
 
@@ -129,7 +133,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex) {
 
   // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'morning', navigateTo, '#silence/morning');
+    saveAndExit(screen, lessonId, dayIndex, 'morning', navigateTo, '#silence/morning' + overridePath);
   });
 
   return screen;
@@ -138,9 +142,10 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex) {
 // ==========================================
 // 낮 통독 화면
 // ==========================================
-function renderMidday(screen, navigateTo, day, lessonId, dayIndex) {
+function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   let currentTranslation = 'saebeon';
   const midday = day.midday;
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
 
   // 단락 본문을 줄바꿈 단위로 split해서 <p>로 감싸기
   function renderPassage(text) {
@@ -186,7 +191,7 @@ function renderMidday(screen, navigateTo, day, lessonId, dayIndex) {
 
   // 읽었어요 → 마침 화면
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    navigateTo('#done/midday');
+    navigateTo('#done/midday' + overridePath);
   });
 
   return screen;
@@ -195,10 +200,11 @@ function renderMidday(screen, navigateTo, day, lessonId, dayIndex) {
 // ==========================================
 // 저녁 묵상 화면
 // ==========================================
-function renderEvening(screen, navigateTo, day, lessonId, dayIndex) {
+function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   let currentTranslation = 'saebeon';
   const evening = day.evening;
   const isWeekClosing = evening.isWeekClosing;
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
 
   // weekSummary가 있으면 (마지막 날) 그것도 렌더
   let weekSummaryHtml = '';
@@ -279,7 +285,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex) {
 
   // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening');
+    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
   });
 
   return screen;

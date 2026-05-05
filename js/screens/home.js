@@ -14,7 +14,7 @@
  */
 
 import Storage from '../storage.js';
-import { getDay } from '../content.js';
+import { getDay, getLesson } from '../content.js';
 import {
   getCurrentSessionType,
   getSessionLabel,
@@ -55,9 +55,10 @@ export default async function renderHome({ navigateTo }) {
   }
 
   // 콘텐츠
-  let day;
+  let day, lesson;
   try {
     day = await getDay(lessonId, dayIndex);
+    lesson = await getLesson(lessonId);
   } catch (e) {
     screen.innerHTML = `<div class="screen-inner-centered">
       <p class="body-large">콘텐츠를 불러오는 중 문제가 있어요.</p>
@@ -141,6 +142,14 @@ export default async function renderHome({ navigateTo }) {
     });
   }
 
+  // 다른 날 보기 버튼
+  const otherDaysBtn = screen.querySelector('#btn-other-days');
+  if (otherDaysBtn) {
+    otherDaysBtn.addEventListener('click', () => {
+      navigateTo('#days/' + lessonId);
+    });
+  }
+
   // 다른 세션 카드들 클릭
   screen.querySelectorAll('.home-other-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -186,21 +195,43 @@ export default async function renderHome({ navigateTo }) {
 
     const buttonLabel = isDone ? `다시 만나기` : `시작하기`;
 
+    // 마침 표시 (헤더에 작은 체크)
+    const sessionLabelWithCheck = isDone ? `
+      <span class="home-card-session-done">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>${sessionLabel} 마침</span>
+      </span>
+    ` : '';
+
     return `
-      <div class="home-card">
+      <div class="home-card ${isDone ? 'home-card-done' : ''}">
         <div class="home-card-header">
-          <span class="home-card-lesson">${Storage.getCurrentLesson()}과 · ${day.dayLabel}</span>
+          <div class="home-card-header-left">
+            <span class="home-card-lesson-num">${lessonId}과</span>
+            <span class="home-card-lesson-title">${lesson.title}</span>
+          </div>
           <span class="home-card-progress">${day.dayIndex} / 6</span>
         </div>
+
+        <p class="home-card-day-label">${day.dayLabel}</p>
+
+        ${sessionLabelWithCheck}
 
         <div class="home-card-divider"></div>
 
         ${previewHtml}
 
         <button class="btn home-card-btn" id="btn-start-main">${buttonLabel}</button>
-
-        ${isDone ? '<p class="home-card-done">이미 마쳤어요. 다시 만나도 좋아요.</p>' : ''}
       </div>
+
+      <button class="home-other-days-btn" id="btn-other-days">
+        <span>${lessonId}과의 다른 날 보기</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     `;
   }
 
@@ -213,14 +244,25 @@ export default async function renderHome({ navigateTo }) {
     const timeLabel = formatKoreanShortTime(sessionTime);
     const hint = SESSION_HINTS[sessionType];
 
+    // 마침 상태 체크 아이콘 (있으면)
+    const checkIcon = isDone ? `
+      <span class="home-other-card-check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    ` : '';
+
     return `
       <button class="home-other-card ${isDone ? 'home-other-card-done' : ''}" data-session="${sessionType}">
         <div class="home-other-card-row">
-          <span class="home-other-card-label">${sessionLabel}</span>
+          <span class="home-other-card-label-group">
+            ${checkIcon}
+            <span class="home-other-card-label">${sessionLabel}</span>
+          </span>
           <span class="home-other-card-time">${timeLabel}</span>
         </div>
         <p class="home-other-card-hint">${hint}</p>
-        ${isDone ? '<p class="home-other-card-status">마침</p>' : ''}
       </button>
     `;
   }

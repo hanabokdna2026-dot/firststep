@@ -48,8 +48,13 @@ function formatSeconds(s) {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
-export default function renderSilence({ navigateTo, param }) {
+export default function renderSilence({ navigateTo, param, extra }) {
   const sessionType = param || 'morning';
+
+  // 다른 일에서 진입한 경우
+  const overrideLesson = extra && extra[0] ? parseInt(extra[0], 10) : null;
+  const overrideDay = extra && extra[1] ? parseInt(extra[1], 10) : null;
+  const isOverride = !!(overrideLesson && overrideDay);
 
   const screen = document.createElement('div');
   screen.className = 'screen';
@@ -255,7 +260,15 @@ export default function renderSilence({ navigateTo, param }) {
   // ============================================
   // 3. 마침 화면
   // ============================================
-  function renderDone() {
+  async function renderDone() {
+    // 세션 완료 처리 (완료 기록 + 진도 진행)
+    const { completeSession } = await import('../session-complete.js?v=' + Date.now());
+    if (isOverride) {
+      await completeSession(sessionType, { lessonId: overrideLesson, dayIndex: overrideDay });
+    } else {
+      await completeSession(sessionType);
+    }
+
     screen.innerHTML = `
       <div class="silence-screen">
         <div class="silence-done">
@@ -284,9 +297,8 @@ export default function renderSilence({ navigateTo, param }) {
     `;
 
     screen.querySelector('#btn-finish').addEventListener('click', () => {
-      // 마침 화면(#done/:type)으로 진입
-      // 거기서 세션 완료 기록과 진도 진행이 일어남
-      navigateTo('#done/' + sessionType);
+      // 바로 홈으로 (별도 마침 화면 거치지 않음)
+      navigateTo('#home');
     });
   }
 

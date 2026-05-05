@@ -2,15 +2,13 @@
  * 세션 시작 인터스티셜
  *
  * URL: #session/:type
- *   :type = morning | midday | evening
+ *      #session/:type/:lesson/:day  (다른 날 보기에서 진입 시)
  *
  * 모든 세션 진입 전 한 박자 쉬는 자리.
  * "먼저 잠시 멈추세요" 메시지 + 시작 버튼.
  *
- * 시작 누르면 → #read/:type
+ * 시작 누르면 → #read/:type 또는 #read/:type/:lesson/:day
  */
-
-import Storage from '../storage.js';
 
 const SESSION_LABELS = {
   morning: '아침 세션',
@@ -33,10 +31,15 @@ const SESSION_INTROS = {
   },
 };
 
-export default function renderSessionStart({ navigateTo, param }) {
+export default function renderSessionStart({ navigateTo, param, extra }) {
   const sessionType = param || 'morning';
   const label = SESSION_LABELS[sessionType] || '세션';
   const intro = SESSION_INTROS[sessionType] || SESSION_INTROS.morning;
+
+  // 다른 날에서 진입한 경우 extra에 [lessonId, dayIndex] 들어있음
+  const lessonOverride = extra && extra[0] ? extra[0] : null;
+  const dayOverride = extra && extra[1] ? extra[1] : null;
+  const overridePath = (lessonOverride && dayOverride) ? `/${lessonOverride}/${dayOverride}` : '';
 
   const screen = document.createElement('div');
   screen.className = 'screen';
@@ -64,7 +67,7 @@ export default function renderSessionStart({ navigateTo, param }) {
   `;
 
   screen.querySelector('#btn-begin').addEventListener('click', () => {
-    navigateTo('#read/' + sessionType);
+    navigateTo('#read/' + sessionType + overridePath);
   });
 
   screen.querySelector('#btn-back').addEventListener('click', () => {

@@ -579,6 +579,76 @@ p.subtle {
   color: var(--text-muted);
 }
 
+/* 메인 카드 헤더 - 과 번호 + 제목 */
+.home-card-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-card-lesson-num {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.home-card-lesson-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.home-card-day-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 8px 0 0;
+}
+
+/* 메인 카드 마침 상태 */
+.home-card-done .home-card-btn {
+  background: transparent;
+  border: 0.5px solid var(--accent);
+  color: var(--text-muted);
+}
+
+.home-card-session-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(186, 117, 23, 0.12);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin: 6px 0 0;
+}
+
+/* "다른 날 보기" 버튼 */
+.home-other-days-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 12px 16px;
+  margin-top: -4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.home-other-days-btn:active {
+  color: var(--accent);
+}
+
 .home-card-title {
   font-size: 15px;
   color: var(--text-primary);
@@ -680,29 +750,53 @@ p.subtle {
   cursor: pointer;
   font-family: inherit;
   text-align: left;
-  position: relative;
-  transition: background 0.15s;
+  transition: background 0.15s, opacity 0.2s;
 }
 
 .home-other-card:active {
   background: var(--bg-card-soft);
 }
 
+/* 마친 카드 - 옅게 + 체크 아이콘 */
 .home-other-card-done {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 0.7;
 }
 
 .home-other-card-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 2px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.home-other-card-label-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-other-card-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  flex-shrink: 0;
 }
 
 .home-other-card-label {
   font-size: 13px;
   color: var(--text-primary);
   font-weight: 500;
+}
+
+.home-other-card-done .home-other-card-label {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .home-other-card-time {
@@ -717,13 +811,8 @@ p.subtle {
   line-height: 1.4;
 }
 
-.home-other-card-status {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 10px;
+.home-other-card-done .home-other-card-hint {
   color: var(--text-muted);
-  font-style: italic;
 }
 
 /* 하단 탭바 */
@@ -1671,4 +1760,152 @@ p.subtle {
 .settings-toast-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================
+   일 목록 화면 (다른 날 보기)
+   ========================================== */
+
+.days-header {
+  padding: 8px 0 16px;
+}
+
+.days-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.days-title-row {
+  margin-bottom: 32px;
+}
+
+.days-lesson-title {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.days-core-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.days-list-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.days-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.days-day-card {
+  width: 100%;
+  background: var(--bg-card-soft);
+  border: 0.5px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.days-day-card:active {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.days-day-card-current {
+  border: 1px solid var(--accent);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.days-day-card-done {
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 0.75;
+}
+
+.days-day-card-started:not(.days-day-card-done) {
+  /* 진행 중이지만 완료는 안 된 일 */
+}
+
+.days-day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.days-day-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.days-day-card-done .days-day-label {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.days-day-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.days-day-status-text {
+  font-size: 10px;
+  color: var(--accent);
+  background: rgba(186, 117, 23, 0.12);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.days-day-verse {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  margin-bottom: 4px;
+}
+
+.days-day-card-done .days-day-verse {
+  color: var(--text-muted);
+}
+
+.days-day-ref {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.days-day-current-mark {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.days-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.6;
 }
