@@ -173,16 +173,25 @@ export default async function renderHome({ navigateTo }) {
 
   // 시간 자동 업데이트 (1분마다)
   // 다음 분 시작에 맞춰 첫 업데이트, 그 후 60초마다
+  // 시간이 흘러서 시간대(아침/낮/저녁)가 바뀌면 화면 다시 그림
   const now = new Date();
   const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
   let intervalId = null;
-  const timeoutId = setTimeout(() => {
+
+  function updateTimeAndCheckSession() {
     const timeEl = screen.querySelector('#current-time');
     if (timeEl) timeEl.textContent = formatCurrentTime();
-    intervalId = setInterval(() => {
-      const el = screen.querySelector('#current-time');
-      if (el) el.textContent = formatCurrentTime();
-    }, 60000);
+    // 시간대가 바뀌었으면 화면 다시 그리기
+    const newSessionType = getCurrentSessionType();
+    if (newSessionType !== currentSessionType) {
+      // 현재 화면 다시 렌더 (라우팅 트리거)
+      navigateTo('#home');
+    }
+  }
+
+  const timeoutId = setTimeout(() => {
+    updateTimeAndCheckSession();
+    intervalId = setInterval(updateTimeAndCheckSession, 60000);
   }, msUntilNextMinute);
 
   // 화면 떠날 때 타이머 cleanup

@@ -11,6 +11,7 @@
  */
 
 import Storage from '../storage.js';
+import { requestNotificationPermission, startNotifyScheduler } from '../notify.js';
 
 // 24시간 → 한국식 표현 (오전/오후 H:MM)
 function formatTime(hhmm) {
@@ -70,23 +71,23 @@ export default function renderNotify({ navigateTo }) {
   });
 
   // 시작 버튼
-  screen.querySelector('#btn-start').addEventListener('click', async () => {
+  screen.querySelector('#btn-start').addEventListener('click', () => {
+    // 먼저 저장 + onboarding 완료 표시
     Storage.setNotifyTimes(currentTimes);
     Storage.setNotifyEnabled(true);
     Storage.setOnboardingDone();
 
-    // 알림 권한 요청 (가능한 환경에서)
-    try {
-      const notifyMod = await import('../notify.js?v=' + Date.now());
-      const result = await notifyMod.requestNotificationPermission();
-      if (result === 'granted') {
-        notifyMod.startNotifyScheduler();
-      }
-      // denied/unsupported는 조용히 넘어감
-    } catch (e) {
-      // 알림 모듈 사용 불가 시 무시
-    }
+    // 알림 권한 요청 — 비동기로 시도하되 결과 기다리지 않고 바로 홈으로
+    // (사용자가 권한 팝업을 무시하거나 거부해도 화면은 진행되어야 함)
+    requestNotificationPermission()
+      .then(r => {
+        if (r === 'granted') startNotifyScheduler();
+      })
+      .catch(() => {
+        // 알림 미지원 환경 - 무시
+      });
 
+    // 즉시 홈으로 (권한 요청과 무관하게)
     navigateTo('#home');
   });
 

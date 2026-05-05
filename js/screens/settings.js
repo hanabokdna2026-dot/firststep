@@ -14,6 +14,7 @@
  */
 
 import Storage from '../storage.js';
+import { requestNotificationPermission, startNotifyScheduler, stopNotifyScheduler } from '../notify.js';
 
 const PACE_LABELS = {
   one: '한 과씩 천천히',
@@ -138,7 +139,7 @@ export default function renderSettings({ navigateTo }) {
   });
 
   // 저장 버튼
-  screen.querySelector('#btn-save').addEventListener('click', async () => {
+  screen.querySelector('#btn-save').addEventListener('click', () => {
     // 이름
     Storage.setUserName(screen.querySelector('#input-name').value.trim());
     // 속도
@@ -154,17 +155,16 @@ export default function renderSettings({ navigateTo }) {
     const isEnabled = screen.querySelector('#input-notify-enabled').checked;
     Storage.setNotifyEnabled(isEnabled);
 
-    // 알림 스케줄러 재시작
+    // 알림 스케줄러 재시작 (정적 import된 함수 사용)
     try {
-      const notifyMod = await import('../notify.js?v=' + Date.now());
       // 알림 권한 새로 요청 (꺼져있다가 켜졌을 때)
       if (isEnabled && !wasEnabled) {
-        await notifyMod.requestNotificationPermission();
+        requestNotificationPermission().catch(() => {});
       }
       if (isEnabled) {
-        notifyMod.startNotifyScheduler();
+        startNotifyScheduler();
       } else {
-        notifyMod.stopNotifyScheduler();
+        stopNotifyScheduler();
       }
     } catch (e) {
       // 알림 모듈 사용 불가 시 무시
