@@ -550,20 +550,21 @@ p.subtle {
    ========================================== */
 
 /* ==========================================
-   자리별 배경 색조 (스와이프로 옆 화면이 살짝 보일 때 구분)
+   자리별 배경 색상 — 세 자리가 명확히 구분되는 결
+   왼편(여정) = 세이지 그린 / 가운데(오늘 홈) = amber / 오른편(다음 날) = 라일락
    ========================================== */
 
-/* 여정 화면 — 따뜻한 sand 톤 (깊고 차분) */
+/* 여정 화면 — 세이지 그린 (자연·차분·전체를 보는 결) */
 .screen.journey-screen {
-  background: #EFE4D2;
+  background: #C5D5C5;
 }
 
-/* 미리보기 홈 — 옅은 cream-ivory (다가올 자리) */
+/* 미리보기 홈 — 달빛 라일락 (다가올 자리·살짝 보랏빛) */
 .screen.home-preview {
-  background: #F2EBDD;
+  background: #D9D2E4;
 }
 
-/* 시간대별 배경 — 미묘한 변화 */
+/* 시간대별 배경 — 미묘한 변화 (오늘 홈) */
 .screen.home-dawn {
   background: linear-gradient(180deg, #FEF3DD 0%, #FAEEDA 280px);
 }
@@ -580,12 +581,12 @@ p.subtle {
   background: linear-gradient(180deg, #F0DFC0 0%, #FAEEDA 280px);
 }
 
-/* 미리보기 모드는 시간대 배경 무시하고 옅은 cream으로 통일 */
+/* 미리보기 모드는 시간대 배경 무시하고 라일락으로 통일 */
 .screen.home-preview.home-dawn,
 .screen.home-preview.home-day,
 .screen.home-preview.home-dusk,
 .screen.home-preview.home-night {
-  background: #F2EBDD;
+  background: #D9D2E4;
 }
 
 /* ==========================================
@@ -638,46 +639,31 @@ p.subtle {
   margin-bottom: 24px;
 }
 
-/* 진도 점 영역 */
-.home-progress {
+/* 3면 페이저 인디케이터 — 현재 어느 자리에 있는지 (왼편 여정 / 가운데 오늘 / 오른편 다음 날) */
+.home-page-indicator {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  justify-content: center;
   margin-top: 4px;
 }
 
-.home-progress-dots {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.home-progress-dot {
-  width: 8px;
-  height: 8px;
+.home-page-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(186, 117, 23, 0.18);
+  background: rgba(133, 79, 11, 0.22);  /* 흐릿한 amber */
   transition: all 0.3s ease;
 }
 
-.home-progress-dot.home-progress-dot-done {
+.home-page-dot.home-page-dot-current {
+  width: 18px;
+  border-radius: 999px;     /* 캡슐 결 */
   background: var(--accent);
-  opacity: 0.65;
 }
 
-.home-progress-dot.home-progress-dot-current {
-  width: 14px;
-  height: 14px;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(186, 117, 23, 0.15);
-}
-
-.home-progress-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.3px;
-  margin: 0;
+.home-page-dot.home-page-dot-hidden {
+  visibility: hidden;
 }
 
 .home-main {

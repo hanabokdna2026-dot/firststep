@@ -118,8 +118,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
     evening: notifyTimes.evening,
   };
 
-  // 진도 점 (활성 자리 수만큼) — 미리보기 모드는 그 자리까지 표시
-  const progressDots = renderProgressDots();
+  // 3면 페이저 인디케이터 — 현재 어느 자리에 있는지 (왼편 여정 / 오늘 / 오른편 다음 날)
+  const pageIndicator = renderPageIndicator();
 
   // 세 세션 카드
   const sessionsHtml = SESSION_ORDER.map(type => {
@@ -201,7 +201,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
     <div class="home-greeting">
       <h1 class="home-greeting-title">${greetingMain}</h1>
       <p class="home-greeting-sub">${greetingSub}</p>
-      ${progressDots}
+      ${pageIndicator}
     </div>
 
     <div class="home-sessions">
@@ -313,8 +313,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
   // ============= 좌우 스와이프 =============
   // 두 화면이 동시에 슬라이드되는 결 (placeholder 사용)
   setupSwipePager(screen, {
-    leftBg: '#EFE4D2',     // 여정 자리 색
-    rightBg: '#F2EBDD',    // 다음 자리 색
+    leftBg: '#C5D5C5',     // 여정 (세이지 그린)
+    rightBg: '#D9D2E4',    // 다음 자리 (라일락)
     leftLabel: isPreview ? '오늘' : '여정',
     rightLabel: isPreview ? '다음 자리' : '다음 날',
     onCommitLeft: () => {
@@ -332,22 +332,31 @@ export default async function renderHome({ navigateTo, param, extra }) {
   return screen;
 
   // ============================================
-  // 진도 점 (활성 자리 수만큼)
+  // 3면 페이저 인디케이터
+  // 왼편(여정) ─ 가운데(오늘) ─ 오른편(다음 날)
+  // 미리보기 모드면 가운데 자리가 미리보기 자리
   // ============================================
-  function renderProgressDots() {
-    let dots = '';
-    for (let i = 1; i <= totalDaysThisWeek; i++) {
-      let cls = 'home-progress-dot';
-      if (i < currentSlot) cls += ' home-progress-dot-done';
-      else if (i === currentSlot) cls += ' home-progress-dot-current';
-      dots += `<span class="${cls}"></span>`;
+  function renderPageIndicator() {
+    // 현재 자리 — 어느 면에 있는지
+    // 오늘 모드: 가운데 (1)
+    // 미리보기 모드: 오른편 (2)
+    // (왼편 = 0은 여정 화면이라 home에서는 안 나옴)
+    const currentPage = isPreview ? 2 : 1;
+
+    // 오른편이 보일지 여부 — 다음 활성 자리가 있을 때만
+    const hasRight = !!nextActiveDay;
+
+    // 왼편(여정)은 항상 있음
+    const dots = [];
+    for (let i = 0; i < 3; i++) {
+      let cls = 'home-page-dot';
+      if (i === currentPage) cls += ' home-page-dot-current';
+      // 오른편 점은 다음 자리 없으면 안 보임 — 단 미리보기 모드에서는 자기 자리니까 보임
+      if (i === 2 && !hasRight && currentPage !== 2) cls += ' home-page-dot-hidden';
+      dots.push(`<span class="${cls}"></span>`);
     }
-    return `
-      <div class="home-progress">
-        <div class="home-progress-dots">${dots}</div>
-        <p class="home-progress-label">${lessonId}과 · ${currentSlot} / ${totalDaysThisWeek}</p>
-      </div>
-    `;
+
+    return `<div class="home-page-indicator">${dots.join('')}</div>`;
   }
 
   // ============================================
