@@ -1193,6 +1193,38 @@ p.subtle {
   opacity: 0.75;
 }
 
+/* ==========================================
+   입술 고백 카드 (5과부터 사용)
+   ========================================== */
+.read-confess-card {
+  background: linear-gradient(
+    180deg,
+    rgba(186, 117, 23, 0.08) 0%,
+    rgba(186, 117, 23, 0.04) 100%
+  );
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 18px 20px;
+  margin: 16px 0 8px;
+}
+
+.read-confess-line {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.read-confess-ref {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  letter-spacing: 0.3px;
+}
+
 .read-guide-card {
   background: var(--bg-card-softer);
   border-radius: var(--radius-md);

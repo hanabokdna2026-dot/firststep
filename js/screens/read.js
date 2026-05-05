@@ -103,6 +103,18 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <p class="read-guide-body">${morning.ponderQuestion}</p>
       `}
 
+      ${morning.confessLine ? `
+        <div class="read-divider"></div>
+
+        <p class="read-section-label">입술로 드리는 고백</p>
+        ${morning.confessIntro ? `<p class="read-guide-body">${morning.confessIntro}</p>` : ''}
+
+        <div class="read-confess-card">
+          <p class="read-confess-line">"${morning.confessLine}"</p>
+          ${morning.confessRef ? `<p class="read-confess-ref">— ${morning.confessRef}</p>` : ''}
+        </div>
+      ` : ''}
+
       <div class="read-divider"></div>
 
       <p class="read-section-label">하나님께 한 마디</p>
