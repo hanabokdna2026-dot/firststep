@@ -14,6 +14,7 @@
  */
 
 import Storage from '../storage.js';
+import { getLesson, getActiveDayIndices } from '../content.js';
 
 const PACE_LABELS = {
   one: '한 과씩 천천히',
@@ -149,17 +150,38 @@ export default function renderSettings({ navigateTo }) {
   });
 
   // 저장 버튼
-  screen.querySelector('#btn-save').addEventListener('click', () => {
+  screen.querySelector('#btn-save').addEventListener('click', async () => {
     // 이름
     Storage.setUserName(screen.querySelector('#input-name').value.trim());
-    // 속도
+    // 속도 — 기본 속도와 이번 주 속도 모두 갱신 (즉시 반영)
     Storage.setDefaultPace(selectedPace);
+    Storage.setWeekPace(selectedPace);
     // 만날 시간
     Storage.setNotifyTimes({
       morning: screen.querySelector('#input-morning').value,
       midday: screen.querySelector('#input-midday').value,
       evening: screen.querySelector('#input-evening').value,
     });
+
+    // 현재 자리가 새 속도에서 비활성이면 가장 가까운 활성 자리로 보정
+    try {
+      const currentLesson = Storage.getCurrentLesson();
+      const currentDay = Storage.getCurrentDay();
+      const lesson = await getLesson(currentLesson);
+      if (lesson) {
+        const activeDays = getActiveDayIndices(lesson, selectedPace);
+        if (!activeDays.includes(currentDay)) {
+          // 현재 자리가 비활성 — 가장 가까운 활성 자리로 (앞쪽 우선, 없으면 뒤)
+          let target = activeDays.find(d => d >= currentDay);
+          if (target === undefined) target = activeDays[activeDays.length - 1];
+          if (target !== undefined) {
+            Storage.setCurrentDay(target);
+          }
+        }
+      }
+    } catch (e) {
+      // 보정 실패 시 무시 (저장은 이미 됨)
+    }
 
     showToast(screen, '저장되었어요');
     setTimeout(() => navigateTo('#home'), 800);
