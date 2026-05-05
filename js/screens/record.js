@@ -86,15 +86,23 @@ export default async function renderRecord({ navigateTo }) {
 
     <nav class="home-tabbar">
       <button class="home-tab" data-tab="today">
-        <span class="home-tab-dot"></span>
+        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <path d="M12 3V5M12 19V21M3 12H5M19 12H21M5.6 5.6L7 7M17 17L18.4 18.4M5.6 18.4L7 17M17 7L18.4 5.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
         <span class="home-tab-label">오늘</span>
       </button>
       <button class="home-tab home-tab-active" data-tab="record">
-        <span class="home-tab-dot"></span>
+        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M4 5C4 3.89543 4.89543 3 6 3H18C19.1046 3 20 3.89543 20 5V21L12 17L4 21V5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
         <span class="home-tab-label">기록</span>
       </button>
       <button class="home-tab" data-tab="settings">
-        <span class="home-tab-dot"></span>
+        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 21C4 16.5817 7.58172 13 12 13C16.4183 13 20 16.5817 20 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
         <span class="home-tab-label">설정</span>
       </button>
     </nav>

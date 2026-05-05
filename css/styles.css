@@ -614,15 +614,30 @@ p.subtle {
   margin: 8px 0 0;
 }
 
-/* 메인 카드 마침 - 다른 카드들과 통일 */
+/* 메인 카드 마침 - 카드 자체는 그대로, 텍스트만 옅게 */
 .home-card-done {
-  opacity: 0.75;
+  /* opacity 빼서 텍스트가 죽지 않게 */
 }
 
-.home-card-done .home-card-btn {
-  background: transparent;
-  border: 0.5px solid var(--accent);
+.home-card-done .home-card-lesson-title,
+.home-card-done .home-card-day-label,
+.home-card-done .card-section-label,
+.home-card-done .card-verse-text,
+.home-card-done .card-verse-ref,
+.home-card-done .card-passage-ref,
+.home-card-done .card-passage-hint {
   color: var(--text-muted);
+}
+
+/* 마침 시 버튼 — amber 색상 유지하되 살짝 옅은 톤으로 */
+.home-card-done .home-card-btn {
+  background: rgba(186, 117, 23, 0.55);
+  border: none;
+  color: var(--bg-primary);
+}
+
+.home-card-done .home-card-btn:active {
+  background: rgba(186, 117, 23, 0.7);
 }
 
 .home-card-check {
@@ -713,14 +728,6 @@ p.subtle {
   padding: 14px;
 }
 
-.home-card-done {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 10px;
-  font-style: italic;
-}
-
 /* 다음 세션 안내 (예전 - 더 이상 사용 안 함, 호환을 위해 남겨둠) */
 .home-next-row {
   padding: 0 20px 12px;
@@ -780,10 +787,9 @@ p.subtle {
   background: var(--bg-card-soft);
 }
 
-/* 마친 카드 - 옅게 + 체크 아이콘 */
+/* 마친 카드 - 텍스트만 옅게, 옅은 amber 배경 */
 .home-other-card-done {
-  background: rgba(255, 255, 255, 0.18);
-  opacity: 0.7;
+  background: rgba(186, 117, 23, 0.06);
 }
 
 .home-other-card-row {
@@ -841,10 +847,14 @@ p.subtle {
 /* 하단 탭바 */
 .home-tabbar {
   display: flex;
-  border-top: 0.5px solid rgba(186, 117, 23, 0.2);
-  padding: 12px 0 16px;
+  border-top: 0.5px solid rgba(186, 117, 23, 0.25);
+  padding: 10px 0 calc(env(safe-area-inset-bottom) + 12px);
   margin-top: auto;
-  background: var(--bg-primary);
+  background: rgba(250, 238, 218, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: sticky;
+  bottom: 0;
 }
 
 .home-tab {
@@ -857,28 +867,45 @@ p.subtle {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 4px 0;
+  padding: 6px 0;
+  color: var(--text-muted);
+  transition: color 0.15s;
 }
 
-.home-tab-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: transparent;
+.home-tab:active {
+  background: rgba(186, 117, 23, 0.05);
 }
 
-.home-tab-active .home-tab-dot {
-  background: var(--accent);
+.home-tab-icon {
+  display: block;
+  color: inherit;
+  opacity: 0.65;
+  transition: opacity 0.15s;
 }
 
 .home-tab-label {
   font-size: 11px;
-  color: var(--text-muted);
+  color: inherit;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* 활성 탭 - amber로 강조 */
+.home-tab-active {
+  color: var(--accent);
+}
+
+.home-tab-active .home-tab-icon {
+  opacity: 1;
 }
 
 .home-tab-active .home-tab-label {
-  color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+/* 옛 dot 스타일 - 사용 안 함 */
+.home-tab-dot {
+  display: none;
 }
 
 /* 홈 화면은 화면 전체를 채워야 함 */
