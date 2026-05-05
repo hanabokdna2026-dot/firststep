@@ -2,7 +2,7 @@
  * 풍성한 삶으로 첫걸음 - 로컬 저장소 래퍼
  *
  * 두 가지 저장소를 사용:
- * - localStorage: 작은 설정값 (이름, 보통 속도, 알림 시간)
+ * - localStorage: 작은 설정값 (이름, 기본 속도, 알림 시간)
  * - IndexedDB: 큰 데이터 (한 마디 기도들, 잠잠히 기록)
  *
  * MVP에서는 localStorage만 사용 (단순하게 시작).
@@ -45,7 +45,7 @@ const Storage = {
     localStorage.setItem(STORAGE_KEYS.USER_NAME, name);
   },
 
-  // 보통 속도
+  // 기본 속도
   getDefaultPace() {
     return localStorage.getItem(STORAGE_KEYS.DEFAULT_PACE) || 'one';
   },
@@ -154,6 +154,14 @@ const Storage = {
   },
   markDaySessionDone(lessonId, dayIndex, sessionType) {
     localStorage.setItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`, 'done');
+  },
+  // 마침 해제 (사용자가 직접 풀거나, 다시 하고 싶을 때)
+  unmarkDaySessionDone(lessonId, dayIndex, sessionType) {
+    localStorage.removeItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`);
+  },
+  // 오늘 날짜 기준 마침도 함께 해제 (오늘 마쳤던 세션만 의미 있음)
+  unmarkTodaySession(dateStr, sessionType) {
+    localStorage.removeItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType);
   },
 
   // 어떤 일이 "어느 정도라도" 마쳐졌는지 (세 세션 중 하나라도)

@@ -41,7 +41,7 @@ export default async function renderHome({ navigateTo }) {
   const dayIndex = Storage.getCurrentDay();
 
   // 새 과 시작 시점 체크 — 첫째 날인데 아직 속도 확인 안 했으면 pace-check로
-  // (1과 첫째 날은 온보딩에서 보통 속도를 정했으니 LAST_PACE_CHECK_LESSON이 1로 자동 설정됨)
+  // (1과 첫째 날은 온보딩에서 기본 속도를 정했으니 LAST_PACE_CHECK_LESSON이 1로 자동 설정됨)
   const lastPaceCheck = Storage.getLastPaceCheckLesson();
   if (dayIndex === 1 && lessonId > lastPaceCheck) {
     // 1과인 경우 — 온보딩에서 속도를 정했으므로 자동으로 OK

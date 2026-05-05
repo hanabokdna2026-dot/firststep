@@ -171,6 +171,13 @@ function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
         <p class="read-guide-card-text">${midday.guide}</p>
       </div>
 
+      ${midday.prayerExample ? `
+        <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+        <div class="read-prayer-example">
+          <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
+        </div>
+      ` : ''}
+
       <button class="btn read-cta" id="btn-next">읽었어요</button>
     </div>
   `;

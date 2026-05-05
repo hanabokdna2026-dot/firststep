@@ -202,6 +202,27 @@ p.subtle {
   width: 100%;
 }
 
+/* 더 옅은 보조 버튼 (마침 해제 같은 가벼운 액션용) */
+.btn-tertiary {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  opacity: 0.7;
+  text-decoration: underline;
+  text-decoration-color: rgba(186, 117, 23, 0.3);
+  text-underline-offset: 3px;
+}
+
+.btn-tertiary:active {
+  opacity: 1;
+  color: var(--accent);
+}
+
 .btn-outline {
   background: transparent;
   color: var(--text-muted);
