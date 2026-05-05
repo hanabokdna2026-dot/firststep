@@ -19,11 +19,14 @@ const SILENCE_STEP = 30;              // ± 30초
 const SILENCE_MIN = 30;               // 최소 30초
 const SILENCE_MAX = 600;              // 최대 10분
 
+// 종소리 파일 — 잔향 살린 버전 (5초)
+const BELL_PATH = 'assets/sounds/bell-medium.mp3';
+
 // 종소리 (preload)
 let bellAudio = null;
 function getBellAudio() {
   if (!bellAudio) {
-    bellAudio = new Audio('assets/sounds/bell-short.mp3');
+    bellAudio = new Audio(BELL_PATH);
     bellAudio.preload = 'auto';
   }
   return bellAudio;
@@ -31,7 +34,7 @@ function getBellAudio() {
 
 // 종 울리기 — 새 Audio 객체로 매번 (이전 재생이 안 끝나도 새로 시작)
 function playBell() {
-  const audio = new Audio('assets/sounds/bell-short.mp3');
+  const audio = new Audio(BELL_PATH);
   audio.play().catch(e => {
     // 자동 재생 정책 등으로 실패할 수 있음 — 조용히 무시
     console.warn('종소리 재생 실패:', e);
@@ -149,6 +152,9 @@ export default function renderSilence({ navigateTo, param }) {
     // 시작 종 울림
     playBell();
 
+    // 집중 모드 (앱 이름 라벨 더 옅어짐)
+    document.body.classList.add('silence-deep');
+
     renderCounting();
 
     // 1초마다 업데이트 (실제 시간 기반)
@@ -161,6 +167,8 @@ export default function renderSilence({ navigateTo, param }) {
         intervalId = null;
         // 마침 종 울리고 done 상태로
         playBell();
+        // 집중 모드 해제
+        document.body.classList.remove('silence-deep');
         state = 'done';
         renderDone();
       } else {
@@ -220,6 +228,8 @@ export default function renderSilence({ navigateTo, param }) {
         clearInterval(intervalId);
         intervalId = null;
       }
+      // 집중 모드 해제
+      document.body.classList.remove('silence-deep');
       playBell();
       state = 'done';
       renderDone();
@@ -292,6 +302,8 @@ export default function renderSilence({ navigateTo, param }) {
       clearInterval(intervalId);
       intervalId = null;
     }
+    // 집중 모드 해제 (혹시 카운트다운 중에 떠난 경우)
+    document.body.classList.remove('silence-deep');
     window.removeEventListener('hashchange', cleanupOnHashChange);
   };
   window.addEventListener('hashchange', cleanupOnHashChange);

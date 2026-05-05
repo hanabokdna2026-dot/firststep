@@ -40,6 +40,20 @@ export default async function renderHome({ navigateTo }) {
   const lessonId = Storage.getCurrentLesson();
   const dayIndex = Storage.getCurrentDay();
 
+  // 새 과 시작 시점 체크 — 첫째 날인데 아직 속도 확인 안 했으면 pace-check로
+  // (1과 첫째 날은 온보딩에서 보통 속도를 정했으니 LAST_PACE_CHECK_LESSON이 1로 자동 설정됨)
+  const lastPaceCheck = Storage.getLastPaceCheckLesson();
+  if (dayIndex === 1 && lessonId > lastPaceCheck) {
+    // 1과인 경우 — 온보딩에서 속도를 정했으므로 자동으로 OK
+    if (lessonId === 1) {
+      Storage.setLastPaceCheckLesson(1);
+    } else {
+      // 2과 이상 — 속도 확인 필요
+      navigateTo('#pace-check');
+      return screen;
+    }
+  }
+
   // 콘텐츠
   let day;
   try {
@@ -140,14 +154,8 @@ export default async function renderHome({ navigateTo }) {
     tab.addEventListener('click', () => {
       const tabName = tab.dataset.tab;
       if (tabName === 'today') return;
-      if (tabName === 'record') {
-        alert('기록 화면은 다음 단계에 만들어요.');
-      } else if (tabName === 'settings') {
-        if (confirm('설정 화면은 다음 단계에 만들어요.\n\n지금은 데이터 초기화만 가능해요. 초기화할까요?')) {
-          Storage.clearAll();
-          navigateTo('#welcome');
-        }
-      }
+      if (tabName === 'record') navigateTo('#record');
+      else if (tabName === 'settings') navigateTo('#settings');
     });
   });
 

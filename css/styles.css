@@ -57,6 +57,8 @@ body {
   min-height: 100vh;
   /* iOS Safari notch 대응 */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* 상단에 앱 이름 라벨 자리 */
+  padding-top: calc(env(safe-area-inset-top) + 28px);
 }
 
 /* 앱 컨테이너 - 모바일에서는 풀스크린, 데스크톱에서는 가운데 */
@@ -66,6 +68,31 @@ body {
   min-height: 100vh;
   background: var(--bg-primary);
   position: relative;
+}
+
+/* 모든 화면 위 앱 이름 - 작고 세련되게 */
+#app::before {
+  content: '풍성한 첫걸음';
+  position: fixed;
+  top: env(safe-area-inset-top);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  z-index: 100;
+  pointer-events: none;
+  /* 살짝 옅게 */
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+/* 잠잠히 카운트다운 중에는 더 옅게 (집중 위해) */
+body.silence-deep #app::before {
+  opacity: 0.25;
 }
 
 /* 화면 공통 */
@@ -1298,4 +1325,350 @@ p.subtle {
 
 .silence-done-message {
   margin-bottom: 56px;
+}
+
+/* ==========================================
+   새 과 시작 - 속도 확인 화면
+   ========================================== */
+
+.pace-check-lesson-title {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.pace-check-core-message {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.pace-check-divider {
+  height: 0.5px;
+  background: var(--border-mid);
+  margin: 0 0 28px;
+}
+
+.pace-check-question {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.pace-check-default-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.pace-check-default-btn:active {
+  transform: scale(0.98);
+}
+
+.pace-check-btn-main {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.pace-check-btn-sub {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.pace-check-other-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+  margin: 16px 0 12px;
+}
+
+.pace-check-other-card {
+  padding: 14px 16px;
+  background: var(--bg-card-soft);
+  border: 0.5px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
+}
+
+.pace-check-other-card:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.pace-check-other-card .option-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.pace-check-other-card .option-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pace-check-hint {
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ==========================================
+   기록 화면
+   ========================================== */
+
+.screen-inner-with-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px 16px;
+  overflow-y: auto;
+}
+
+.title-small {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.record-header {
+  margin-bottom: 16px;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.record-empty {
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.record-empty-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.record-empty-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.record-card {
+  background: var(--bg-card-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.record-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.record-card-lesson {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.record-card-session {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.record-card-verse {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.record-card-prayer {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.65;
+}
+
+/* ==========================================
+   설정 화면
+   ========================================== */
+
+.settings-header {
+  margin-bottom: 16px;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+  margin-bottom: 12px;
+}
+
+.settings-pace-option {
+  display: block;
+  width: 100%;
+  background: var(--bg-card-soft);
+  border: 0.5px solid var(--border-soft);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings-pace-option.selected {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--accent);
+  font-weight: 500;
+}
+
+.settings-pace-option:active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* 토글 행 */
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg-card-soft);
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  cursor: pointer;
+  position: relative;
+}
+
+.settings-toggle-row input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-toggle-label {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.settings-toggle-switch {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: rgba(186, 117, 23, 0.25);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.settings-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  transition: left 0.2s;
+}
+
+.settings-toggle-row input[type="checkbox"]:checked + .settings-toggle-switch {
+  background: var(--accent);
+}
+
+.settings-toggle-row input[type="checkbox"]:checked + .settings-toggle-switch::after {
+  left: 20px;
+}
+
+.settings-save-btn {
+  margin-top: 8px;
+}
+
+.settings-divider {
+  height: 0.5px;
+  background: var(--border-mid);
+  margin: 32px 0 24px;
+}
+
+.settings-danger-btn {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0.5px solid rgba(186, 117, 23, 0.3);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.settings-danger-btn:active {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.settings-danger-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* 토스트 */
+.settings-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.settings-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }

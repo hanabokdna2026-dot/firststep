@@ -21,6 +21,9 @@ const STORAGE_KEYS = {
   WEEK_START_DATE: 'firststep:weekStartDate',  // ISO 날짜 문자열
   WEEK_PACE: 'firststep:weekPace',  // 이번 주 속도 ('one' | 'two' | 'three')
 
+  // 마지막으로 속도 확인한 과 (이 과가 현재 과보다 작으면 새 과 시작이라 속도 묻기)
+  LAST_PACE_CHECK_LESSON: 'firststep:lastPaceCheckLesson',
+
   // 세션 완료 기록 (날짜별)
   // 예: firststep:session:2026-05-05:morning = 'done'
   SESSION_PREFIX: 'firststep:session:',
@@ -110,6 +113,15 @@ const Storage = {
   },
   setWeekPace(pace) {
     localStorage.setItem(STORAGE_KEYS.WEEK_PACE, pace);
+  },
+
+  // 마지막 속도 확인한 과
+  getLastPaceCheckLesson() {
+    const stored = localStorage.getItem(STORAGE_KEYS.LAST_PACE_CHECK_LESSON);
+    return stored ? parseInt(stored, 10) : 0;
+  },
+  setLastPaceCheckLesson(lessonId) {
+    localStorage.setItem(STORAGE_KEYS.LAST_PACE_CHECK_LESSON, String(lessonId));
   },
 
   // 디버그 - 모든 데이터 초기화

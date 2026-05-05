@@ -70,10 +70,23 @@ export default function renderNotify({ navigateTo }) {
   });
 
   // 시작 버튼
-  screen.querySelector('#btn-start').addEventListener('click', () => {
+  screen.querySelector('#btn-start').addEventListener('click', async () => {
     Storage.setNotifyTimes(currentTimes);
     Storage.setNotifyEnabled(true);
     Storage.setOnboardingDone();
+
+    // 알림 권한 요청 (가능한 환경에서)
+    try {
+      const notifyMod = await import('../notify.js?v=' + Date.now());
+      const result = await notifyMod.requestNotificationPermission();
+      if (result === 'granted') {
+        notifyMod.startNotifyScheduler();
+      }
+      // denied/unsupported는 조용히 넘어감
+    } catch (e) {
+      // 알림 모듈 사용 불가 시 무시
+    }
+
     navigateTo('#home');
   });
 

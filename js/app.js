@@ -27,6 +27,14 @@ const v = '?v=' + Date.now();
 // Storage는 다른 모듈들도 사용하니 먼저 import
 const { default: Storage } = await import('./storage.js' + v);
 
+// 알림 스케줄러 (선택적 — 환경 미지원 시 조용히 작동 안 함)
+let notifyModule = null;
+try {
+  notifyModule = await import('./notify.js' + v);
+} catch (e) {
+  // 알림 모듈 로드 실패 시 무시
+}
+
 // 라우트 매핑 — 정적 라우트와 동적 라우트(prefix 매칭)
 // 정적 라우트는 정확히 일치, 동적은 'prefix/:param' 형태
 const routes = [
@@ -36,6 +44,9 @@ const routes = [
   { pattern: '#intro', loader: () => import('./screens/intro.js' + v) },
   { pattern: '#notify', loader: () => import('./screens/notify.js' + v) },
   { pattern: '#home', loader: () => import('./screens/home.js' + v) },
+  { pattern: '#record', loader: () => import('./screens/record.js' + v) },
+  { pattern: '#settings', loader: () => import('./screens/settings.js' + v) },
+  { pattern: '#pace-check', loader: () => import('./screens/pace-check.js' + v) },
   { pattern: '#session/', loader: () => import('./screens/session-start.js' + v) },
   { pattern: '#read/', loader: () => import('./screens/read.js' + v) },
   { pattern: '#silence/', loader: () => import('./screens/silence.js' + v) },
@@ -108,6 +119,11 @@ function init() {
   }
   window.addEventListener('hashchange', render);
   render();
+
+  // 알림 스케줄러 시작 (지원하는 환경에서만)
+  if (notifyModule && Storage.isOnboardingDone()) {
+    notifyModule.startNotifyScheduler();
+  }
 }
 
 init();
