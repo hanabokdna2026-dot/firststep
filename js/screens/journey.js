@@ -20,7 +20,7 @@ import { getLesson, CURRICULUM_OUTLINE, getActiveDayIndices, getDisplayDayLabel 
 
 export default async function renderJourney({ navigateTo }) {
   const screen = document.createElement('div');
-  screen.className = 'screen';
+  screen.className = 'screen journey-screen';
 
   const currentLesson = Storage.getCurrentLesson();
   const currentDay = Storage.getCurrentDay();
@@ -285,5 +285,20 @@ export default async function renderJourney({ navigateTo }) {
   }
 
   await render();
+
+  // 좌우 스와이프 — 왼쪽으로 밀면 홈으로
+  const { setupSwipePager } = await import('../swipe-pager.js');
+  setupSwipePager(screen, {
+    onLeft: null,  // 여정 왼편엔 아무것도 없음
+    onCommitLeft: null,
+    onRight: async () => {
+      const renderHome = (await import('./home.js')).default;
+      return await renderHome({ navigateTo });
+    },
+    onCommitRight: () => {
+      navigateTo('#home');
+    },
+  });
+
   return screen;
 }

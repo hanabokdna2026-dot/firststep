@@ -22,6 +22,7 @@ import {
   getTimeGreeting,
   getTimeOfDayClass,
 } from '../time.js';
+import { setupSwipePager } from '../swipe-pager.js';
 
 const SESSION_ORDER = ['morning', 'midday', 'evening'];
 
@@ -87,6 +88,9 @@ export default async function renderHome({ navigateTo, param, extra }) {
   // 시간대 분류 (배경 색조)
   const timeClass = getTimeOfDayClass();
   screen.classList.add('home-' + timeClass);
+  if (isPreview) {
+    screen.classList.add('home-preview');
+  }
 
   // 현재 시간대 (강조될 세션) — 미리보기 모드는 항상 morning을 메인으로
   const currentSessionType = isPreview ? 'morning' : getCurrentSessionType();
@@ -126,24 +130,9 @@ export default async function renderHome({ navigateTo, param, extra }) {
     }
   }).join('');
 
-  // 미리보기 모드면 "오늘로 돌아가기" 버튼, 아니면 "여정 전체 보기"
-  const bottomActionHtml = isPreview ? `
-    <button class="home-other-days-btn" id="btn-back-today">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right: 6px;">
-        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>오늘로 돌아가기</span>
-    </button>
-  ` : `
-    <button class="home-other-days-btn" id="btn-other-days">
-      <span>여정 전체 보기</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-  `;
+  // 위쪽 힌트 바에 이미 결이 있으니 아래 버튼은 안 둠 (중복 방지)
 
-  // 탭바 — 미리보기 모드에서는 안 보임 (오늘로 돌아가기 버튼만)
+  // 탭바 — 미리보기 모드에서는 안 보임 (위쪽 힌트의 "오늘"이 그 역할)
   const tabbarHtml = isPreview ? '' : `
     <nav class="home-tabbar">
       <button class="home-tab home-tab-active" data-tab="today">
@@ -169,7 +158,46 @@ export default async function renderHome({ navigateTo, param, extra }) {
     </nav>
   `;
 
+  // 좌우 힌트 바
+  // 오늘 모드: 왼쪽 "여정" / 오른쪽 "다음 날"
+  // 미리보기 모드: 왼쪽 "오늘" / 오른쪽 "다음 자리" (다음 활성 자리가 있으면)
+  let nextActiveDay = null;
+  if (!isPreview) {
+    try {
+      nextActiveDay = await getNextActiveDay(lessonId, dayIndex, weekPace);
+    } catch (e) {
+      nextActiveDay = null;
+    }
+  } else {
+    try {
+      nextActiveDay = await getNextActiveDay(lessonId, dayIndex, weekPace);
+    } catch (e) {
+      nextActiveDay = null;
+    }
+  }
+
+  const swipeHintHtml = `
+    <div class="home-swipe-hints">
+      <button class="home-swipe-hint home-swipe-hint-left" id="hint-left" aria-label="${isPreview ? '오늘로 돌아가기' : '여정 보기'}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="home-swipe-hint-label">${isPreview ? '오늘' : '여정'}</span>
+      </button>
+      ${nextActiveDay ? `
+        <button class="home-swipe-hint home-swipe-hint-right" id="hint-right" aria-label="다음 자리">
+          <span class="home-swipe-hint-label">${isPreview ? '다음 자리' : '다음 날'}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      ` : ''}
+    </div>
+  `;
+
   screen.innerHTML = `
+    ${swipeHintHtml}
+
     <div class="home-greeting">
       <h1 class="home-greeting-title">${greetingMain}</h1>
       <p class="home-greeting-sub">${greetingSub}</p>
@@ -179,8 +207,6 @@ export default async function renderHome({ navigateTo, param, extra }) {
     <div class="home-sessions">
       ${sessionsHtml}
     </div>
-
-    ${bottomActionHtml}
 
     ${tabbarHtml}
   `;
@@ -199,19 +225,24 @@ export default async function renderHome({ navigateTo, param, extra }) {
     });
   }
 
-  // 여정 전체 보기 버튼 (오늘 모드에서만)
-  const otherDaysBtn = screen.querySelector('#btn-other-days');
-  if (otherDaysBtn) {
-    otherDaysBtn.addEventListener('click', () => {
-      navigateTo('#journey');
+  // 위쪽 힌트 바 — 좌우 버튼
+  const hintLeft = screen.querySelector('#hint-left');
+  if (hintLeft) {
+    hintLeft.addEventListener('click', () => {
+      if (isPreview) {
+        navigateTo('#home');
+      } else {
+        navigateTo('#journey');
+      }
     });
   }
 
-  // 오늘로 돌아가기 버튼 (미리보기 모드에서만)
-  const backTodayBtn = screen.querySelector('#btn-back-today');
-  if (backTodayBtn) {
-    backTodayBtn.addEventListener('click', () => {
-      navigateTo('#home');
+  const hintRight = screen.querySelector('#hint-right');
+  if (hintRight) {
+    hintRight.addEventListener('click', () => {
+      if (nextActiveDay) {
+        navigateTo(`#home/preview/${nextActiveDay.lessonId}/${nextActiveDay.dayIndex}`);
+      }
     });
   }
 
@@ -280,21 +311,36 @@ export default async function renderHome({ navigateTo, param, extra }) {
   }
 
   // ============= 좌우 스와이프 =============
-  setupSwipe(screen, async (direction) => {
-    if (direction === 'left') {
-      // 왼쪽으로 밀면 — 여정 화면으로 (오늘 모드에서만)
-      if (!isPreview) {
-        slideOutTo(screen, 'left');
-        setTimeout(() => navigateTo('#journey'), 280);
+  // 두 화면이 동시에 슬라이드되는 결로
+  setupSwipePager(screen, {
+    // 왼편 화면 (오른쪽 스와이프 시 들어옴)
+    onLeft: async () => {
+      if (isPreview) {
+        // 미리보기 모드 → 왼편은 오늘 홈
+        return await loadAdjacentHomeScreen(navigateTo, null, null);
+      } else {
+        // 오늘 모드 → 왼편은 여정
+        return await loadAdjacentJourneyScreen(navigateTo);
       }
-    } else if (direction === 'right') {
-      // 오른쪽으로 밀면 — 다음 활성 자리 미리보기로
-      const next = await getNextActiveDay(lessonId, dayIndex, weekPace);
-      if (next) {
-        slideOutTo(screen, 'right');
-        setTimeout(() => navigateTo(`#home/preview/${next.lessonId}/${next.dayIndex}`), 280);
+    },
+    onCommitLeft: () => {
+      if (isPreview) {
+        navigateTo('#home');
+      } else {
+        navigateTo('#journey');
       }
-    }
+    },
+    // 오른편 화면 (왼쪽 스와이프 시 들어옴)
+    onRight: async () => {
+      if (!nextActiveDay) return null;
+      // 다음 활성 자리의 미리보기
+      return await loadAdjacentHomeScreen(navigateTo, nextActiveDay.lessonId, nextActiveDay.dayIndex);
+    },
+    onCommitRight: () => {
+      if (nextActiveDay) {
+        navigateTo(`#home/preview/${nextActiveDay.lessonId}/${nextActiveDay.dayIndex}`);
+      }
+    },
   });
 
   return screen;
@@ -407,118 +453,34 @@ export default async function renderHome({ navigateTo, param, extra }) {
 }
 
 // ============================================
-// 좌우 스와이프 처리 헬퍼
+// 인접 화면 로드 (스와이프 페이저용)
 // ============================================
 
 /**
- * 화면에 좌우 스와이프 이벤트 등록.
- *
- * - 화면 너비의 25% 이상 + 가로가 세로보다 큰 결일 때만 인식
- * - 카드 안의 버튼 등 다른 요소의 click이 부드럽게 작동하도록 — 작은 움직임은 무시
- * - 스와이프 도중 화면이 손가락 따라 살짝 움직이는 결로 자연스럽게
+ * 옆에 보일 home 화면을 로드.
+ * 본 화면 그릴 때와 같은 모듈을 다시 호출.
  */
-function setupSwipe(screen, onSwipe) {
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchStartTime = 0;
-  let isTracking = false;
-  let isDragging = false;
+async function loadAdjacentHomeScreen(navigateTo, lessonId, dayIndex) {
+  // 미리보기 모드로 home 그리기 (lessonId/dayIndex 있으면)
+  // 또는 그냥 home 그리기 (없으면 — 미리보기 모드에서 오늘로 돌아갈 때)
+  const renderHome = (await import('./home.js')).default;
 
-  const SWIPE_THRESHOLD_RATIO = 0.25;  // 화면 너비의 25%
-  const MAX_VERTICAL_DRIFT = 80;       // 세로로 너무 많이 움직이면 스와이프 아님
-  const MAX_DURATION = 600;            // ms — 너무 느리게 끌면 스와이프 아님
+  const param = (lessonId && dayIndex) ? 'preview' : null;
+  const extra = (lessonId && dayIndex) ? [String(lessonId), String(dayIndex)] : null;
 
-  screen.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    // textarea, button, input 안에서는 스와이프 안 함
-    const target = e.target;
-    if (target.matches('textarea, input, button, .home-card-btn, .home-other-card')) {
-      // 카드 안에서도 스와이프는 가능해야 함
-      // 다만 이런 요소 자체의 동작을 방해하면 안 됨
-      // → 시작은 추적하되, 큰 가로 움직임이 있을 때만 dragging으로 전환
-    }
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchStartTime = Date.now();
-    isTracking = true;
-    isDragging = false;
-  }, { passive: true });
-
-  screen.addEventListener('touchmove', (e) => {
-    if (!isTracking || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - touchStartX;
-    const dy = e.touches[0].clientY - touchStartY;
-
-    // 가로 이동이 세로보다 클 때만 dragging
-    if (!isDragging && Math.abs(dx) > 16 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      isDragging = true;
-    }
-
-    if (isDragging) {
-      // 스크롤 방지
-      // (passive: true라 직접 preventDefault는 못 하지만, 이미 가로 결로 인식됐으면 OK)
-      // 화면이 손가락 따라 살짝 움직이는 결
-      const damped = dx * 0.5;
-      screen.style.transform = `translateX(${damped}px)`;
-      screen.style.transition = 'none';
-    }
-  }, { passive: true });
-
-  screen.addEventListener('touchend', (e) => {
-    if (!isTracking) return;
-    isTracking = false;
-
-    const touch = (e.changedTouches && e.changedTouches[0]) || null;
-    if (!touch) {
-      resetTransform(screen);
-      return;
-    }
-
-    const dx = touch.clientX - touchStartX;
-    const dy = touch.clientY - touchStartY;
-    const duration = Date.now() - touchStartTime;
-    const screenWidth = window.innerWidth;
-    const threshold = screenWidth * SWIPE_THRESHOLD_RATIO;
-
-    // 스와이프 조건
-    const isHorizontal = Math.abs(dx) > Math.abs(dy);
-    const isFarEnough = Math.abs(dx) >= threshold;
-    const notTooMuchVertical = Math.abs(dy) <= MAX_VERTICAL_DRIFT;
-    const fastEnough = duration <= MAX_DURATION;
-
-    if (isDragging && isHorizontal && isFarEnough && notTooMuchVertical && fastEnough) {
-      // 스와이프 인식 — 방향
-      const direction = dx < 0 ? 'left' : 'right';
-      // transform은 그대로 두고 onSwipe 호출 (slideOutTo가 마저 처리)
-      onSwipe(direction);
-    } else {
-      // 원래 자리로 (애니메이션)
-      resetTransform(screen);
-    }
-
-    isDragging = false;
-  }, { passive: true });
-
-  screen.addEventListener('touchcancel', () => {
-    isTracking = false;
-    isDragging = false;
-    resetTransform(screen);
-  }, { passive: true });
-}
-
-function resetTransform(screen) {
-  screen.style.transition = 'transform 0.25s ease-out';
-  screen.style.transform = '';
+  const screen = await renderHome({
+    navigateTo,
+    param,
+    extra,
+  });
+  return screen;
 }
 
 /**
- * 화면을 한쪽으로 슬라이드시키며 사라지게.
- * direction: 'left' 또는 'right'
+ * 옆에 보일 journey 화면을 로드.
  */
-function slideOutTo(screen, direction) {
-  const distance = window.innerWidth;
-  const target = direction === 'left' ? -distance : distance;
-  screen.style.transition = 'transform 0.28s ease-out, opacity 0.28s ease-out';
-  screen.style.transform = `translateX(${target}px)`;
-  screen.style.opacity = '0';
+async function loadAdjacentJourneyScreen(navigateTo) {
+  const renderJourney = (await import('./journey.js')).default;
+  const screen = await renderJourney({ navigateTo });
+  return screen;
 }
