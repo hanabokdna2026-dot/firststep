@@ -103,54 +103,6 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <p class="read-guide-body">${morning.ponderQuestion}</p>
       `}
 
-      ${morning.confessLine ? `
-        <div class="read-divider"></div>
-
-        <p class="read-section-label">입술로 드리는 고백</p>
-        ${morning.confessIntro ? `<p class="read-guide-body">${morning.confessIntro}</p>` : ''}
-
-        <div class="read-confess-card">
-          <p class="read-confess-line">"${morning.confessLine}"</p>
-          ${morning.confessRef ? `<p class="read-confess-ref">— ${morning.confessRef}</p>` : ''}
-        </div>
-      ` : ''}
-
-      ${morning.lordsPart ? `
-        <div class="read-divider"></div>
-
-        <p class="read-section-label">주기도 따라 드리기</p>
-        ${morning.lordsIntro ? `<p class="read-guide-body">${morning.lordsIntro}</p>` : ''}
-
-        <div class="read-lords-card">
-          <p class="read-lords-part">"${morning.lordsPart}"</p>
-
-          ${morning.lordsKeywords && morning.lordsKeywords.length ? `
-            <div class="read-lords-keywords">
-              ${morning.lordsKeywords.map(kw => `
-                <div class="read-lords-keyword-row">
-                  <span class="read-lords-keyword-key">${kw.key}</span>
-                  <span class="read-lords-keyword-meaning">${kw.meaning}</span>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          ${morning.lordsExample ? `
-            <p class="read-lords-example-label">예시 기도</p>
-            <p class="read-lords-example">"${morning.lordsExample}"</p>
-          ` : ''}
-        </div>
-
-        <textarea
-          class="read-prayer-input read-lords-input"
-          id="lords-input"
-          placeholder="${morning.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
-      ` : ''}
-
       <div class="read-divider"></div>
 
       <p class="read-section-label">하나님께 한 마디</p>
@@ -503,8 +455,56 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
       ${weekSummaryHtml}
 
+      ${evening.confessLine ? `
+        <p class="read-section-label">입술로 드리는 고백</p>
+        ${evening.confessIntro ? `<p class="read-guide-body">${evening.confessIntro}</p>` : ''}
+
+        <div class="read-confess-card">
+          <p class="read-confess-line">"${evening.confessLine}"</p>
+          ${evening.confessRef ? `<p class="read-confess-ref">— ${evening.confessRef}</p>` : ''}
+        </div>
+
+        <div class="read-divider"></div>
+      ` : ''}
+
       <p class="read-section-label">하루를 돌아보며</p>
       <p class="read-guide-body">${evening.reflectQuestion}</p>
+
+      ${evening.lordsPart ? `
+        <div class="read-divider"></div>
+
+        <p class="read-section-label">주기도로 마치기</p>
+        ${evening.lordsIntro ? `<p class="read-guide-body">${evening.lordsIntro}</p>` : ''}
+
+        <div class="read-lords-card">
+          <p class="read-lords-part">"${evening.lordsPart}"</p>
+
+          ${evening.lordsKeywords && evening.lordsKeywords.length ? `
+            <div class="read-lords-keywords">
+              ${evening.lordsKeywords.map(kw => `
+                <div class="read-lords-keyword-row">
+                  <span class="read-lords-keyword-key">${kw.key}</span>
+                  <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${evening.lordsExample ? `
+            <p class="read-lords-example-label">예시 기도</p>
+            <p class="read-lords-example">"${evening.lordsExample}"</p>
+          ` : ''}
+        </div>
+
+        <textarea
+          class="read-prayer-input read-lords-input"
+          id="lords-input"
+          placeholder="${evening.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+      ` : ''}
 
       <div class="read-divider"></div>
 
