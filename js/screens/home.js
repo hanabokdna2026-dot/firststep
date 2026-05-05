@@ -142,11 +142,11 @@ export default async function renderHome({ navigateTo }) {
     });
   }
 
-  // 다른 날 보기 버튼
+  // 여정 전체 보기 버튼
   const otherDaysBtn = screen.querySelector('#btn-other-days');
   if (otherDaysBtn) {
     otherDaysBtn.addEventListener('click', () => {
-      navigateTo('#days/' + lessonId);
+      navigateTo('#journey');
     });
   }
 
@@ -195,13 +195,12 @@ export default async function renderHome({ navigateTo }) {
 
     const buttonLabel = isDone ? `다시 만나기` : `시작하기`;
 
-    // 마침 표시 (헤더에 작은 체크)
-    const sessionLabelWithCheck = isDone ? `
-      <span class="home-card-session-done">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+    // 마침 시 헤더 우측에 작은 체크 (다른 카드들과 통일)
+    const doneCheck = isDone ? `
+      <span class="home-card-check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span>${sessionLabel} 마침</span>
       </span>
     ` : '';
 
@@ -212,12 +211,13 @@ export default async function renderHome({ navigateTo }) {
             <span class="home-card-lesson-num">${lessonId}과</span>
             <span class="home-card-lesson-title">${lesson.title}</span>
           </div>
-          <span class="home-card-progress">${day.dayIndex} / 6</span>
+          <div class="home-card-header-right">
+            ${doneCheck}
+            <span class="home-card-progress">${day.dayIndex} / 6</span>
+          </div>
         </div>
 
         <p class="home-card-day-label">${day.dayLabel}</p>
-
-        ${sessionLabelWithCheck}
 
         <div class="home-card-divider"></div>
 
@@ -227,7 +227,7 @@ export default async function renderHome({ navigateTo }) {
       </div>
 
       <button class="home-other-days-btn" id="btn-other-days">
-        <span>${lessonId}과의 다른 날 보기</span>
+        <span>여정 전체 보기</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>

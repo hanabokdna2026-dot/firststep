@@ -586,6 +586,12 @@ p.subtle {
   gap: 2px;
 }
 
+.home-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .home-card-lesson-num {
   font-size: 11px;
   color: var(--text-muted);
@@ -607,24 +613,27 @@ p.subtle {
   margin: 8px 0 0;
 }
 
-/* 메인 카드 마침 상태 */
+/* 메인 카드 마침 - 다른 카드들과 통일 */
+.home-card-done {
+  opacity: 0.75;
+}
+
 .home-card-done .home-card-btn {
   background: transparent;
   border: 0.5px solid var(--accent);
   color: var(--text-muted);
 }
 
-.home-card-session-done {
+.home-card-check {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(186, 117, 23, 0.12);
-  color: var(--accent);
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  margin: 6px 0 0;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  flex-shrink: 0;
 }
 
 /* "다른 날 보기" 버튼 */
@@ -1763,8 +1772,279 @@ p.subtle {
 }
 
 /* ==========================================
-   일 목록 화면 (다른 날 보기)
+   여정 전체 보기 (커리큘럼 - 아코디언)
    ========================================== */
+
+.journey-header {
+  padding: 8px 0 16px;
+}
+
+.journey-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.journey-title-row {
+  margin-bottom: 28px;
+}
+
+.journey-intro {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+.journey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* 과 카드 */
+.journey-lesson-card {
+  background: var(--bg-card-soft);
+  border: 0.5px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all 0.15s;
+}
+
+.journey-lesson-card-current {
+  border: 1px solid var(--accent);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.journey-lesson-card-done {
+  opacity: 0.7;
+}
+
+.journey-lesson-card-unavailable {
+  opacity: 0.55;
+}
+
+.journey-lesson-card-expanded {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* 과 카드 헤더 (클릭 가능) */
+.journey-lesson-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.journey-lesson-header:active {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.journey-lesson-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.journey-lesson-num {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.journey-lesson-title {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.journey-lesson-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.journey-lesson-chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.journey-lesson-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.journey-lesson-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.journey-lesson-progress {
+  font-size: 10px;
+  color: var(--accent);
+  background: rgba(186, 117, 23, 0.12);
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-lesson-current-mark {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.journey-lesson-unavailable {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* 펼친 일 목록 */
+.journey-days-list {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journey-core-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-style: italic;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+}
+
+.journey-unavailable-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px;
+  line-height: 1.6;
+}
+
+/* 일 카드 (펼친 과 안에서) */
+.journey-day-card {
+  width: 100%;
+  background: var(--bg-card);
+  border: 0.5px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.journey-day-card:active {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.journey-day-card-current {
+  border: 1px solid var(--accent);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.journey-day-card-done {
+  opacity: 0.7;
+}
+
+.journey-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.journey-day-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.journey-day-card-done .journey-day-label {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.journey-day-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.journey-day-status {
+  font-size: 9px;
+  color: var(--accent);
+  background: rgba(186, 117, 23, 0.12);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.journey-day-verse {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+.journey-day-card-done .journey-day-verse {
+  color: var(--text-muted);
+}
+
+.journey-day-ref {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.journey-day-current-mark {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.journey-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* (옛 days-* 스타일은 사용 안 함 — 호환을 위해 그대로 둠) */
 
 .days-header {
   padding: 8px 0 16px;
