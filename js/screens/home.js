@@ -303,8 +303,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
     let previewHtml;
     if (sessionType === 'midday') {
       previewHtml = `
-        <p class="card-section-label">오늘의 ${sessionLabel} 세션</p>
-        <p class="card-passage-ref">${day.midday.passageRef || '오늘 통독을 이어갑니다'}</p>
+        <p class="card-section-label">${isPreview ? '미리보는 ' : '오늘의 '}${sessionLabel} 세션</p>
+        <p class="card-passage-ref">${day.midday.homeHint || day.midday.passageRef || '오늘 통독을 이어갑니다'}</p>
         <p class="card-passage-hint">짧은 단락을 흘려 읽습니다.</p>
       `;
     } else {
@@ -355,7 +355,8 @@ export default async function renderHome({ navigateTo, param, extra }) {
     const sessionLabel = getSessionLabel(sessionType);
     const isDone = isPreview ? false : Storage.isSessionDone(todayISO, sessionType);
     const timeLabel = formatKoreanShortTime(sessionTime);
-    const hint = SESSION_HINTS[sessionType];
+    // hint — 그 날의 그 세션 결을 우선, 없으면 기본 hint
+    const hint = (day[sessionType] && day[sessionType].homeHint) || SESSION_HINTS[sessionType];
 
     const checkIcon = isDone ? `
       <span class="home-other-card-check">
