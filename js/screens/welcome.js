@@ -28,6 +28,14 @@ export default function renderWelcome({ navigateTo }) {
         <button class="btn" id="btn-start">시작하기</button>
         <button class="btn-secondary" id="btn-existing">이미 시작한 적이 있어요</button>
       </div>
+
+      <div class="hanabok-credit">
+        <img src="icons/hanabok-mark.svg" alt="하나님나라복음 DNA Network" class="hanabok-mark"/>
+        <div class="hanabok-text">
+          <p class="hanabok-text-ko">하나님나라복음</p>
+          <p class="hanabok-text-en">DNA NETWORK</p>
+        </div>
+      </div>
     </div>
   `;
 
@@ -36,7 +44,6 @@ export default function renderWelcome({ navigateTo }) {
   });
 
   screen.querySelector('#btn-existing').addEventListener('click', () => {
-    // v2 기능 - MVP에서는 알림만
     alert('데이터 복원 기능은 다음 버전에 준비됩니다.');
   });
 

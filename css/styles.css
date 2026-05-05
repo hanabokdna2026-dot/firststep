@@ -1225,6 +1225,55 @@ p.subtle {
   letter-spacing: 0.3px;
 }
 
+/* ==========================================
+   하나복 credit (환영 화면 + 설정 화면 footer)
+   ========================================== */
+.hanabok-credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 56px;
+  padding: 12px 16px;
+  opacity: 0.7;
+}
+
+.hanabok-credit-settings {
+  margin-top: 32px;
+  margin-bottom: 24px;
+  opacity: 0.6;
+}
+
+.hanabok-mark {
+  width: 36px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.hanabok-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.hanabok-text-ko {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: #3D7359;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.hanabok-text-en {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  font-weight: 500;
+  color: #5A9DC4;
+  letter-spacing: 1.5px;
+  margin: 0;
+}
+
 .read-guide-card {
   background: var(--bg-card-softer);
   border-radius: var(--radius-md);

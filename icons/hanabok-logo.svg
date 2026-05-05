@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <!-- 작은 로고 마크 (산+강) -->
+  <g transform="translate(0, 8)">
+    <!-- 뒷산 -->
+    <path d="M 5,38 L 18,18 L 30,30 L 42,15 L 54,38 Z" fill="#7BA88A" opacity="0.85"/>
+    <!-- 앞산 -->
+    <path d="M 0,42 L 12,28 L 24,38 L 35,22 L 48,42 Z" fill="#3D7359"/>
+    <!-- 강물 -->
+    <path d="M 0,46 Q 12,44 24,46 T 48,46" stroke="#5A9DC4" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M 0,49 Q 12,47 24,49 T 48,49" stroke="#5A9DC4" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- 한글 텍스트 -->
+  <text x="62" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', sans-serif"
+        font-size="14" font-weight="600" fill="#3D7359" letter-spacing="-0.3">하나님나라복음</text>
+
+  <!-- 영문 텍스트 -->
+  <text x="62" y="44" font-family="-apple-system, BlinkMacSystemFont, sans-serif"
+        font-size="9" font-weight="500" fill="#5A9DC4" letter-spacing="2">DNA NETWORK</text>
+</svg>

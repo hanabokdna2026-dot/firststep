@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 50" width="60" height="50">
+  <!-- 뒷산 (옅게) -->
+  <path d="M 5,32 L 18,12 L 30,24 L 42,9 L 54,32 Z" fill="#7BA88A" opacity="0.85"/>
+  <!-- 앞산 -->
+  <path d="M 0,36 L 12,22 L 24,32 L 35,16 L 48,36 Z" fill="#3D7359"/>
+  <!-- 강물 -->
+  <path d="M 0,40 Q 12,38 24,40 T 48,40" stroke="#5A9DC4" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M 0,43 Q 12,41 24,43 T 48,43" stroke="#5A9DC4" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/>
+</svg>

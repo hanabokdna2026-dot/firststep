@@ -110,6 +110,15 @@ export default function renderSettings({ navigateTo }) {
         <button class="settings-danger-btn" id="btn-reset">처음부터 다시 시작</button>
         <p class="settings-danger-hint">저장된 모든 기록이 사라집니다.</p>
       </div>
+
+      <!-- 하나복 footer -->
+      <div class="hanabok-credit hanabok-credit-settings">
+        <img src="icons/hanabok-mark.svg" alt="하나님나라복음 DNA Network" class="hanabok-mark"/>
+        <div class="hanabok-text">
+          <p class="hanabok-text-ko">하나님나라복음</p>
+          <p class="hanabok-text-en">DNA NETWORK</p>
+        </div>
+      </div>
     </div>
 
     <nav class="home-tabbar">
