@@ -25,8 +25,8 @@ export default async function renderJourney({ navigateTo }) {
   const currentLesson = Storage.getCurrentLesson();
   const currentDay = Storage.getCurrentDay();
 
-  // 어떤 과가 펼쳐져 있는지 (기본: 현재 과)
-  let expandedLessonId = currentLesson;
+  // 어떤 과가 펼쳐져 있는지 (기본: 모두 닫힘)
+  let expandedLessonId = null;
 
   // 각 과의 콘텐츠를 한 번만 가져오는 캐시
   const lessonCache = {};

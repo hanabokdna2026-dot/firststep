@@ -22,6 +22,43 @@ const SESSION_LABELS = {
   evening: '저녁',
 };
 
+// ==========================================
+// 번역 토글 (segmented control)
+// ==========================================
+// 양쪽 옵션이 다 보이는 결 — 사용자가 한눈에 "이건 두 번역으로 볼 수 있구나" 인지
+function renderTranslationToggle(currentTranslation = 'saebeon') {
+  return `
+    <div class="read-header-segment" role="tablist">
+      <button class="read-header-segment-option ${currentTranslation === 'saebeon' ? 'is-active' : ''}"
+              data-translation="saebeon"
+              role="tab"
+              aria-selected="${currentTranslation === 'saebeon'}">새번역</button>
+      <button class="read-header-segment-option ${currentTranslation === 'gaeyeok' ? 'is-active' : ''}"
+              data-translation="gaeyeok"
+              role="tab"
+              aria-selected="${currentTranslation === 'gaeyeok'}">개역개정</button>
+    </div>
+  `;
+}
+
+// 토글 옵션을 누를 때 처리
+// onChange: 새 번역 키 ('saebeon' | 'gaeyeok')를 받아 화면 갱신
+function bindTranslationToggle(screen, onChange) {
+  const segment = screen.querySelector('.read-header-segment');
+  if (!segment) return;
+  segment.querySelectorAll('.read-header-segment-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const newTranslation = btn.dataset.translation;
+      // 활성 클래스 갱신
+      segment.querySelectorAll('.read-header-segment-option').forEach(b => {
+        b.classList.toggle('is-active', b === btn);
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+      onChange(newTranslation);
+    });
+  });
+}
+
 export default async function renderRead({ navigateTo, param, extra }) {
   const sessionType = param || 'morning';
   const sessionLabel = SESSION_LABELS[sessionType] || '';
@@ -97,7 +134,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">아침 · ${day.displayDayLabel}</p>
-      <button class="read-header-toggle" id="btn-toggle">새번역</button>
+      ${renderTranslationToggle(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -149,12 +186,10 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   `;
 
   // 번역 토글
-  const toggleBtn = screen.querySelector('#btn-toggle');
   const verseEl = screen.querySelector('#verse-text');
-  toggleBtn.addEventListener('click', () => {
-    currentTranslation = currentTranslation === 'saebeon' ? 'gaeyeok' : 'saebeon';
+  bindTranslationToggle(screen, (newTranslation) => {
+    currentTranslation = newTranslation;
     verseEl.textContent = day.verses[currentTranslation];
-    toggleBtn.textContent = currentTranslation === 'saebeon' ? '새번역' : '개역개정';
   });
 
   // 닫기
@@ -200,7 +235,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
-      <button class="read-header-toggle" id="btn-toggle">새번역</button>
+      ${renderTranslationToggle(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -227,12 +262,10 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
   `;
 
   // 번역 토글
-  const toggleBtn = screen.querySelector('#btn-toggle');
   const passageEl = screen.querySelector('#passage-text');
-  toggleBtn.addEventListener('click', () => {
-    currentTranslation = currentTranslation === 'saebeon' ? 'gaeyeok' : 'saebeon';
+  bindTranslationToggle(screen, (newTranslation) => {
+    currentTranslation = newTranslation;
     passageEl.innerHTML = renderPassage(midday.passageText[currentTranslation]);
-    toggleBtn.textContent = currentTranslation === 'saebeon' ? '새번역' : '개역개정';
   });
 
   // 닫기
@@ -356,7 +389,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
         <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
-        <button class="read-header-toggle" id="btn-toggle">${currentTranslation === 'saebeon' ? '새번역' : '개역개정'}</button>
+        ${renderTranslationToggle(currentTranslation)}
       </div>
 
       <div class="read-body">
@@ -398,8 +431,8 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     });
 
     // 번역 토글
-    screen.querySelector('#btn-toggle').addEventListener('click', () => {
-      currentTranslation = currentTranslation === 'saebeon' ? 'gaeyeok' : 'saebeon';
+    bindTranslationToggle(screen, (newTranslation) => {
+      currentTranslation = newTranslation;
       paint();
     });
 
@@ -464,7 +497,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
-      <button class="read-header-toggle" id="btn-toggle">새번역</button>
+      ${renderTranslationToggle(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -551,12 +584,10 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   `;
 
   // 번역 토글
-  const toggleBtn = screen.querySelector('#btn-toggle');
   const verseEl = screen.querySelector('#verse-text');
-  toggleBtn.addEventListener('click', () => {
-    currentTranslation = currentTranslation === 'saebeon' ? 'gaeyeok' : 'saebeon';
+  bindTranslationToggle(screen, (newTranslation) => {
+    currentTranslation = newTranslation;
     verseEl.textContent = day.verses[currentTranslation];
-    toggleBtn.textContent = currentTranslation === 'saebeon' ? '새번역' : '개역개정';
   });
 
   // 닫기
