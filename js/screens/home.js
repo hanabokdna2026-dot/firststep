@@ -297,9 +297,18 @@ export default async function renderHome({ navigateTo, param, extra }) {
       intervalId = setInterval(checkSessionAndGreeting, 60000);
     }, msUntilNextMinute);
 
+    // 앱이 background에서 돌아올 때도 즉시 체크 (iOS는 background에서 setInterval 멈춤)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSessionAndGreeting();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     const cleanup = () => {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('hashchange', cleanup);
     };
     window.addEventListener('hashchange', cleanup);

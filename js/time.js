@@ -87,32 +87,27 @@ export function formatKoreanDate(date = new Date()) {
 }
 
 // 현재 시간대 판별
-// 알림 시간 기준으로:
-// - 아침 알림 ~ 낮 알림 - 1분 → 'morning'
-// - 낮 알림 ~ 저녁 알림 - 1분 → 'midday'
-// - 저녁 알림 ~ 다음 날 아침 알림 - 1분 → 'evening'
+// 고정 시간대로 어느 자리가 활성화될지 결정 (사용자의 만날 시간과 무관)
+// - 04:30 ~ 11:59 → 'morning' (아침)
+// - 12:00 ~ 17:59 → 'midday' (낮)
+// - 18:00 ~ 04:29 → 'evening' (저녁)
+//
+// 사용자의 '만날 시간'은 자기 약속의 결로만 기록됨 — 활성 자리에는 영향 없음
 export function getCurrentSessionType() {
-  const times = Storage.getNotifyTimes();
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
-  const morning = timeToMinutes(times.morning);
-  const midday = timeToMinutes(times.midday);
-  const evening = timeToMinutes(times.evening);
+  const morningStart = 4 * 60 + 30;   // 04:30
+  const middayStart = 12 * 60;        // 12:00
+  const eveningStart = 18 * 60;       // 18:00
 
-  // 자정 ~ 아침: evening (전날 저녁 세션이 아직 유효)
-  if (nowMin < morning) {
-    return 'evening';
-  }
-  // 아침 ~ 낮 - 1분
-  if (nowMin < midday) {
+  if (nowMin >= morningStart && nowMin < middayStart) {
     return 'morning';
   }
-  // 낮 ~ 저녁 - 1분
-  if (nowMin < evening) {
+  if (nowMin >= middayStart && nowMin < eveningStart) {
     return 'midday';
   }
-  // 저녁 ~ 자정
+  // 18:00 ~ 다음 날 04:29 (자정 넘는 자리도 포함)
   return 'evening';
 }
 
