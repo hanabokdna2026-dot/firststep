@@ -1092,8 +1092,9 @@ p.subtle {
 .read-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px 12px;
+  align-items: flex-start;  /* 오른쪽 영역이 위아래로 두 자리 차지 */
+  padding: 16px 24px 16px;
+  gap: 12px;
 }
 
 .read-header-back {
@@ -1104,12 +1105,22 @@ p.subtle {
   cursor: pointer;
   padding: 0;
   font-family: inherit;
+  margin-top: 6px;  /* 오른쪽 영역과 시각적 균형 */
 }
 
 .read-header-title {
   font-size: 11px;
   color: var(--text-muted);
   letter-spacing: 0.5px;
+  margin-top: 8px;  /* 오른쪽 영역과 시각적 균형 */
+}
+
+/* 헤더 오른쪽 — 번역 토글(위) + 글씨 크기 버튼(아래) */
+.read-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 /* 번역 토글 — segmented control 결
@@ -1234,12 +1245,11 @@ body[data-text-size="5"] .read-guide-card-text,
 body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* ==========================================
-   본문 화면 헤더의 A- A+ 버튼 (토글 아래)
+   본문 화면 헤더의 A- A+ 버튼 (토글 아래, read-header-right 안)
    ========================================== */
 .read-header-text-size {
   display: flex;
   gap: 4px;
-  margin-top: 6px;
   justify-content: flex-end;
 }
 
@@ -1457,6 +1467,42 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
   padding: 18px 20px;
   margin: 16px 0 16px;
 }
+
+/* 7~10과 — 주기도의 한 부분에 머물기 (간단한 결) */
+.read-lords-focus-card {
+  background: rgba(186, 117, 23, 0.05);
+  border-left: 3px solid rgba(186, 117, 23, 0.35);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px;
+  margin: 16px 0 16px;
+}
+
+.read-lords-focus-line {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.read-lords-focus-prayer {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 글씨 크기 단계별 적용 */
+body[data-text-size="1"] .read-lords-focus-line { font-size: 14px; }
+body[data-text-size="1"] .read-lords-focus-prayer { font-size: 13px; }
+body[data-text-size="2"] .read-lords-focus-line { font-size: 15px; }
+body[data-text-size="2"] .read-lords-focus-prayer { font-size: 14px; }
+body[data-text-size="4"] .read-lords-focus-line { font-size: 18px; }
+body[data-text-size="4"] .read-lords-focus-prayer { font-size: 16px; }
+body[data-text-size="5"] .read-lords-focus-line { font-size: 20px; }
+body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .read-lords-part {
   font-family: var(--font-serif);

@@ -60,6 +60,17 @@ function bindTranslationToggle(screen, onChange) {
 }
 
 // ==========================================
+// 헤더 오른쪽 영역 — 번역 토글 + 글씨 크기 버튼 (위아래로)
+// ==========================================
+function renderHeaderRight(currentTranslation) {
+  return `
+    <div class="read-header-right">
+      ${renderHeaderRight(currentTranslation)}
+    </div>
+  `;
+}
+
+// ==========================================
 // 글씨 크기 조절 (A- A+) — 토글 아래 한 줄
 // ==========================================
 function renderTextSizeControl() {
@@ -179,8 +190,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">아침 · ${day.displayDayLabel}</p>
-      ${renderTranslationToggle(currentTranslation)}
-      ${renderTextSizeControl()}
+      ${renderHeaderRight(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -197,7 +207,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <p class="read-guide-body">${morning.observeQuestion}</p>
 
         ${morning.kingdomQuestion ? `
-          <p class="read-section-label" style="margin-top: 24px;">하나님 나라의 결로</p>
+          <p class="read-section-label" style="margin-top: 24px;">하나님 나라의 눈으로</p>
           ${morning.kingdomIntro ? `<p class="read-guide-body">${morning.kingdomIntro}</p>` : ''}
           <p class="read-guide-body" style="margin-top: 8px;">${morning.kingdomQuestion}</p>
         ` : ''}
@@ -282,8 +292,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
-      ${renderTranslationToggle(currentTranslation)}
-      ${renderTextSizeControl()}
+      ${renderHeaderRight(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -438,8 +447,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
         <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
-        ${renderTranslationToggle(currentTranslation)}
-      ${renderTextSizeControl()}
+        ${renderHeaderRight(currentTranslation)}
       </div>
 
       <div class="read-body">
@@ -548,8 +556,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
-      ${renderTranslationToggle(currentTranslation)}
-      ${renderTextSizeControl()}
+      ${renderHeaderRight(currentTranslation)}
     </div>
 
     <div class="read-body">
@@ -578,7 +585,8 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
       <p class="read-section-label">하루를 돌아보며</p>
       <p class="read-guide-body">${evening.reflectQuestion}</p>
 
-      ${evening.lordsPart ? `
+      ${evening.lordsPart && evening.lordsKeywords ? `
+        <!-- 5·6과: 주기도 자세히 배우기 결 -->
         <div class="read-divider"></div>
 
         <p class="read-section-label">주기도로 마치기</p>
@@ -587,16 +595,14 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <div class="read-lords-card">
           <p class="read-lords-part">"${evening.lordsPart}"</p>
 
-          ${evening.lordsKeywords && evening.lordsKeywords.length ? `
-            <div class="read-lords-keywords">
-              ${evening.lordsKeywords.map(kw => `
-                <div class="read-lords-keyword-row">
-                  <span class="read-lords-keyword-key">${kw.key}</span>
-                  <span class="read-lords-keyword-meaning">${kw.meaning}</span>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
+          <div class="read-lords-keywords">
+            ${evening.lordsKeywords.map(kw => `
+              <div class="read-lords-keyword-row">
+                <span class="read-lords-keyword-key">${kw.key}</span>
+                <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+              </div>
+            `).join('')}
+          </div>
 
           ${evening.lordsExample ? `
             <p class="read-lords-example-label">예시 기도</p>
@@ -612,6 +618,17 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
           autocorrect="off"
           spellcheck="false"
         >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+      ` : evening.lordsFocus ? `
+        <!-- 7~10과: 주기도의 한 부분에 머물기 결 -->
+        <div class="read-divider"></div>
+
+        <p class="read-section-label">주기도의 흐름으로</p>
+        ${evening.lordsIntro ? `<p class="read-guide-body">${evening.lordsIntro}</p>` : ''}
+
+        <div class="read-lords-focus-card">
+          ${evening.lordsLine ? `<p class="read-lords-focus-line">"${evening.lordsLine}"</p>` : ''}
+          ${evening.lordsPrayerExample ? `<p class="read-lords-focus-prayer">${evening.lordsPrayerExample.replace(/\n/g, '<br/>')}</p>` : ''}
+        </div>
       ` : ''}
 
       <div class="read-divider"></div>

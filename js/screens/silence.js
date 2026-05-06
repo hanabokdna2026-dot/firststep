@@ -5,19 +5,33 @@
  *   :type = morning | evening (낮은 잠잠히 없음)
  *
  * 한 화면 안에서 세 상태를 전환:
- *   1. setup    — 시간 설정 (기본 1분, ± 30초씩)
+ *   1. setup    — 시간 설정 (기본 시간은 과별로 다름, ± 30초씩 조정 가능)
  *   2. counting — 카운트다운 진행 중 (호 + 숫자)
  *   3. done     — 마침 종 후 ("잘 마쳤어요")
  *
  * 시작 종이 울리고 카운트다운 시작.
  * 0:00 되면 마침 종 울리고 화면 부드럽게 변형.
  * 사용자가 "홈으로" 누르면 #done/:type 으로.
+ *
+ * 아침 머무름 기본 시간 (과별 차등):
+ *   - 1~6과: 1분 (60초)
+ *   - 7~8과: 2분 (120초)
+ *   - 9~10과: 3분 (180초)
+ *   저녁 머무름은 lessons.json의 silenceSeconds로 차등 적용 (10~30초)
  */
 
-const SILENCE_DEFAULT_SECONDS = 60;  // 기본 1분
+import Storage from '../storage.js';
+
 const SILENCE_STEP = 30;              // ± 30초
 const SILENCE_MIN = 30;               // 최소 30초
 const SILENCE_MAX = 600;              // 최대 10분
+
+// 아침 머무름 기본 시간 — 과별로 점점 깊어지는 흐름
+function getMorningSilenceDefault(lessonId) {
+  if (lessonId >= 9) return 180;  // 9·10과: 3분
+  if (lessonId >= 7) return 120;  // 7·8과: 2분
+  return 60;                      // 1~6과: 1분
+}
 
 // 종소리 파일 — 잔향 살린 버전 (5초)
 const BELL_PATH = 'assets/sounds/bell-medium.mp3';
@@ -59,9 +73,15 @@ export default function renderSilence({ navigateTo, param, extra }) {
   const screen = document.createElement('div');
   screen.className = 'screen';
 
+  // 현재 lessonId 가져오기 (override 우선, 없으면 storage)
+  const lessonId = overrideLesson || Storage.getCurrentLesson() || 1;
+
   // 상태
   let state = 'setup';        // setup | counting | done
-  let totalSeconds = SILENCE_DEFAULT_SECONDS;
+  // 아침 머무름 — 과별로 다른 기본 시간 / 저녁 머무름 — 1분 (저녁은 lessons.json silenceSeconds로 별도 처리됨)
+  let totalSeconds = sessionType === 'morning'
+    ? getMorningSilenceDefault(lessonId)
+    : 60;
   let remainingSeconds = totalSeconds;
   let intervalId = null;
   let startTime = null;        // 정확한 카운트다운을 위해 setInterval 대신 시계 사용
