@@ -46,13 +46,19 @@ function getBellAudio() {
   return bellAudio;
 }
 
-// 종 울리기 — 새 Audio 객체로 매번 (이전 재생이 안 끝나도 새로 시작)
+// 종 울리기 — 같은 Audio 객체 재사용 (iOS Safari가 시간 지난 후
+// 새 Audio 객체 자동 재생을 막을 수 있어서, 첫 user gesture로 풀린 객체를 계속 사용)
 function playBell() {
-  const audio = new Audio(BELL_PATH);
-  audio.play().catch(e => {
-    // 자동 재생 정책 등으로 실패할 수 있음 — 조용히 무시
+  const audio = getBellAudio();
+  try {
+    audio.currentTime = 0;  // 처음부터 다시
+    audio.play().catch(e => {
+      // 자동 재생 정책 등으로 실패할 수 있음 — 조용히 무시
+      console.warn('종소리 재생 실패:', e);
+    });
+  } catch (e) {
     console.warn('종소리 재생 실패:', e);
-  });
+  }
 }
 
 // 초 → "M:SS" 형식
@@ -85,9 +91,60 @@ export default function renderSilence({ navigateTo, param, extra }) {
   let remainingSeconds = totalSeconds;
   let intervalId = null;
   let startTime = null;        // 정확한 카운트다운을 위해 setInterval 대신 시계 사용
+  let wakeLock = null;         // 화면이 꺼지지 않게 (iOS 16.4+ / Android 지원)
+  let visibilityHandler = null; // background에서 돌아올 때 점검용
 
   // 종소리 미리 로드 (사용자 인터랙션 후에야 실제로 가능)
   getBellAudio();
+
+  // ============================================
+  // 0초에 닿았는지 점검 — 마침 종 처리
+  // (background에서 돌아왔을 때나 setInterval 안에서 부름)
+  // ============================================
+  function checkAndComplete() {
+    if (state !== 'counting' || !startTime) return false;
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    remainingSeconds = Math.max(0, totalSeconds - elapsed);
+    if (remainingSeconds <= 0) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      // 마침 종 + done
+      playBell();
+      document.body.classList.remove('silence-deep');
+      releaseWakeLock();
+      if (visibilityHandler) {
+        document.removeEventListener('visibilitychange', visibilityHandler);
+        visibilityHandler = null;
+      }
+      state = 'done';
+      renderDone();
+      return true;
+    }
+    return false;
+  }
+
+  // ============================================
+  // Wake Lock — 머무는 동안 화면이 안 꺼지게
+  // ============================================
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+      } catch (e) {
+        // Wake Lock 못 받아도 진행 (visibilitychange로 보완됨)
+        console.warn('wake lock 실패:', e);
+      }
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      try { wakeLock.release(); } catch (e) { /* 무시 */ }
+      wakeLock = null;
+    }
+  }
 
   function render() {
     if (state === 'setup') {
@@ -177,6 +234,23 @@ export default function renderSilence({ navigateTo, param, extra }) {
     // 시작 종 울림
     playBell();
 
+    // Wake Lock — 화면이 안 꺼지게 (지원하는 OS에서)
+    requestWakeLock();
+
+    // visibilitychange — background에서 돌아오면 즉시 시간 점검
+    // (모바일에서 화면 잠그면 setInterval이 멈추니까 마침 종을 놓칠 수 있음)
+    visibilityHandler = () => {
+      if (document.visibilityState === 'visible') {
+        // 돌아왔을 때 wake lock도 다시 요청 (한 번 풀렸을 수 있음)
+        if (state === 'counting' && !wakeLock) {
+          requestWakeLock();
+        }
+        // 시간 점검 — 이미 0초 지났으면 즉시 마침 처리
+        checkAndComplete();
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+
     // 집중 모드 (앱 이름 라벨 더 옅어짐)
     document.body.classList.add('silence-deep');
 
@@ -184,19 +258,8 @@ export default function renderSilence({ navigateTo, param, extra }) {
 
     // 1초마다 업데이트 (실제 시간 기반)
     intervalId = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      remainingSeconds = Math.max(0, totalSeconds - elapsed);
-
-      if (remainingSeconds <= 0) {
-        clearInterval(intervalId);
-        intervalId = null;
-        // 마침 종 울리고 done 상태로
-        playBell();
-        // 집중 모드 해제
-        document.body.classList.remove('silence-deep');
-        state = 'done';
-        renderDone();
-      } else {
+      const completed = checkAndComplete();
+      if (!completed) {
         updateCountingDisplay();
       }
     }, 1000);
@@ -253,8 +316,13 @@ export default function renderSilence({ navigateTo, param, extra }) {
         clearInterval(intervalId);
         intervalId = null;
       }
-      // 집중 모드 해제
+      // 집중 모드 해제 + wake lock 해제 + visibility 리스너 제거
       document.body.classList.remove('silence-deep');
+      releaseWakeLock();
+      if (visibilityHandler) {
+        document.removeEventListener('visibilitychange', visibilityHandler);
+        visibilityHandler = null;
+      }
       playBell();
       state = 'done';
       renderDone();
