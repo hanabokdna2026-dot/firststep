@@ -22,6 +22,9 @@ const STORAGE_KEYS = {
   WEEK_PACE: 'firststep:weekPace',  // 이번 주 속도 ('one' | 'two' | 'three')
   LAST_ADVANCE_DATE: 'firststep:lastAdvanceDate',  // 마지막으로 진도 이동한 날 (ISO)
 
+  // 글씨 크기 ('small' | 'medium' | 'large') — 기본 'medium'
+  TEXT_SIZE: 'firststep:textSize',
+
   // 마지막으로 속도 확인한 과 (이 과가 현재 과보다 작으면 새 과 시작이라 속도 묻기)
   LAST_PACE_CHECK_LESSON: 'firststep:lastPaceCheckLesson',
 
@@ -123,6 +126,14 @@ const Storage = {
   },
   setLastAdvanceDate(isoDate) {
     localStorage.setItem(STORAGE_KEYS.LAST_ADVANCE_DATE, isoDate);
+  },
+
+  // 글씨 크기
+  getTextSize() {
+    return localStorage.getItem(STORAGE_KEYS.TEXT_SIZE) || 'medium';
+  },
+  setTextSize(size) {
+    localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, size);
   },
 
   // 마지막 속도 확인한 과

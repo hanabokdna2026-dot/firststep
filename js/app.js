@@ -127,6 +127,9 @@ async function init() {
   // hashchange 리스너부터 등록
   window.addEventListener('hashchange', render);
 
+  // 글씨 크기 적용 (body에 data-text-size 속성)
+  document.body.setAttribute('data-text-size', Storage.getTextSize());
+
   // 빠진 날 자동 진행 (사용자가 며칠 빼먹어도 자연스럽게 흘러감)
   // 온보딩 마친 사용자만 — 새 사용자는 진도 아직 시작 안 함
   if (Storage.isOnboardingDone()) {

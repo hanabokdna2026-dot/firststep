@@ -140,7 +140,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-body">
       <p class="read-section-label">오늘의 말씀</p>
 
-      <p class="read-verse" id="verse-text">${day.verses[currentTranslation]}</p>
+      <p class="read-verse${day.passageMode === 'long' ? ' read-verse-long' : ''}" id="verse-text">${day.verses[currentTranslation]}</p>
 
       <p class="read-verse-ref">— ${day.verseRef}</p>
 
@@ -503,7 +503,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-body">
       <p class="read-section-label">다시 그 말씀</p>
 
-      <p class="read-verse read-verse-evening" id="verse-text">${day.verses[currentTranslation]}</p>
+      <p class="read-verse read-verse-evening${day.passageMode === 'long' ? ' read-verse-long' : ''}" id="verse-text">${day.verses[currentTranslation]}</p>
 
       <p class="read-verse-ref">— ${day.verseRef}</p>
 

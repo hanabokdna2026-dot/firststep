@@ -1166,11 +1166,49 @@ p.subtle {
   margin-bottom: 16px;
 }
 
+/* 긴 단락 본문 — 가독성 위해 살짝 작게, 행간은 더 여유롭게 */
+.read-verse.read-verse-long {
+  font-size: 19px;
+  line-height: 1.85;
+}
+
 /* 저녁 묵상에서 다시 보는 본문 — 살짝 작게 */
 .read-verse-evening {
   font-size: 19px;
   margin-bottom: 12px;
 }
+
+/* 저녁의 긴 단락 본문 — 더 작게 */
+.read-verse-evening.read-verse-long {
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+/* ==========================================
+   글씨 크기 설정 — body의 data-text-size 속성에 따라
+   본문(verse)과 묵상 안내·질문(read-guide-body·read-prayer-example) 크기 변경
+   기본값은 medium이며, 위에 정의된 결이 그대로 작동
+   ========================================== */
+
+/* 작게 */
+body[data-text-size="small"] .read-verse { font-size: 19px; }
+body[data-text-size="small"] .read-verse.read-verse-long { font-size: 17px; }
+body[data-text-size="small"] .read-verse-evening { font-size: 17px; }
+body[data-text-size="small"] .read-verse-evening.read-verse-long { font-size: 15px; }
+body[data-text-size="small"] .read-guide-body,
+body[data-text-size="small"] .read-prayer-example-text,
+body[data-text-size="small"] .read-guide-card-text,
+body[data-text-size="small"] .continuous-verse { font-size: 14px; }
+
+/* 크게 */
+body[data-text-size="large"] .read-verse { font-size: 26px; line-height: 1.7; }
+body[data-text-size="large"] .read-verse.read-verse-long { font-size: 22px; line-height: 1.9; }
+body[data-text-size="large"] .read-verse-evening { font-size: 22px; }
+body[data-text-size="large"] .read-verse-evening.read-verse-long { font-size: 20px; }
+body[data-text-size="large"] .read-guide-body,
+body[data-text-size="large"] .read-prayer-example-text,
+body[data-text-size="large"] .read-guide-card-text,
+body[data-text-size="large"] .continuous-verse { font-size: 17px; }
 
 .read-verse-ref {
   font-size: 13px;
@@ -2118,6 +2156,52 @@ p.subtle {
   line-height: 1.55;
   margin-top: -4px;
   margin-bottom: 16px;
+  letter-spacing: -0.1px;
+}
+
+/* 글씨 크기 옵션 — 세 자리 segmented 결 */
+.text-size-segment {
+  display: flex;
+  gap: 8px;
+  background: rgba(186, 117, 23, 0.06);
+  border-radius: var(--radius-md);
+  padding: 6px;
+}
+
+.text-size-option {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.text-size-option.is-active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(65, 36, 2, 0.08);
+}
+
+.text-size-sample {
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.text-size-sample-small { font-size: 14px; }
+.text-size-sample-medium { font-size: 18px; }
+.text-size-sample-large { font-size: 24px; }
+
+.text-size-label {
+  font-size: 11px;
   letter-spacing: -0.1px;
 }
 
