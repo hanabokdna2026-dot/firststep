@@ -128,12 +128,17 @@ const Storage = {
     localStorage.setItem(STORAGE_KEYS.LAST_ADVANCE_DATE, isoDate);
   },
 
-  // 글씨 크기
+  // 글씨 크기 (1~5, 기본 3)
   getTextSize() {
-    return localStorage.getItem(STORAGE_KEYS.TEXT_SIZE) || 'medium';
+    const stored = localStorage.getItem(STORAGE_KEYS.TEXT_SIZE);
+    const n = parseInt(stored, 10);
+    if (!isNaN(n) && n >= 1 && n <= 5) return n;
+    return 3;  // 기본값 — 보통
   },
   setTextSize(size) {
-    localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, size);
+    const n = parseInt(size, 10);
+    if (isNaN(n) || n < 1 || n > 5) return;
+    localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(n));
   },
 
   // 마지막 속도 확인한 과

@@ -59,6 +59,51 @@ function bindTranslationToggle(screen, onChange) {
   });
 }
 
+// ==========================================
+// 글씨 크기 조절 (A- A+) — 토글 아래 한 줄
+// ==========================================
+function renderTextSizeControl() {
+  const current = Storage.getTextSize();
+  return `
+    <div class="read-header-text-size">
+      <button class="read-header-text-size-btn" data-size-action="dec" aria-label="글씨 작게" ${current <= 1 ? 'disabled' : ''}>
+        <span class="a">A</span>−
+      </button>
+      <button class="read-header-text-size-btn" data-size-action="inc" aria-label="글씨 크게" ${current >= 5 ? 'disabled' : ''}>
+        <span class="a">A</span>+
+      </button>
+    </div>
+  `;
+}
+
+function bindTextSizeControl(screen) {
+  const btnDec = screen.querySelector('[data-size-action="dec"]');
+  const btnInc = screen.querySelector('[data-size-action="inc"]');
+  if (!btnDec || !btnInc) return;
+
+  function refresh() {
+    const cur = Storage.getTextSize();
+    btnDec.disabled = cur <= 1;
+    btnInc.disabled = cur >= 5;
+    document.body.setAttribute('data-text-size', String(cur));
+  }
+
+  btnDec.addEventListener('click', () => {
+    const cur = Storage.getTextSize();
+    if (cur > 1) {
+      Storage.setTextSize(cur - 1);
+      refresh();
+    }
+  });
+  btnInc.addEventListener('click', () => {
+    const cur = Storage.getTextSize();
+    if (cur < 5) {
+      Storage.setTextSize(cur + 1);
+      refresh();
+    }
+  });
+}
+
 export default async function renderRead({ navigateTo, param, extra }) {
   const sessionType = param || 'morning';
   const sessionLabel = SESSION_LABELS[sessionType] || '';
@@ -135,6 +180,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">아침 · ${day.displayDayLabel}</p>
       ${renderTranslationToggle(currentTranslation)}
+      ${renderTextSizeControl()}
     </div>
 
     <div class="read-body">
@@ -187,6 +233,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
   // 번역 토글
   const verseEl = screen.querySelector('#verse-text');
+  bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
     verseEl.textContent = day.verses[currentTranslation];
@@ -236,6 +283,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
       ${renderTranslationToggle(currentTranslation)}
+      ${renderTextSizeControl()}
     </div>
 
     <div class="read-body">
@@ -263,6 +311,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
 
   // 번역 토글
   const passageEl = screen.querySelector('#passage-text');
+  bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
     passageEl.innerHTML = renderPassage(midday.passageText[currentTranslation]);
@@ -390,6 +439,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
         <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
         ${renderTranslationToggle(currentTranslation)}
+      ${renderTextSizeControl()}
       </div>
 
       <div class="read-body">
@@ -431,6 +481,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     });
 
     // 번역 토글
+    bindTextSizeControl(screen);
     bindTranslationToggle(screen, (newTranslation) => {
       currentTranslation = newTranslation;
       paint();
@@ -498,6 +549,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
       <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
       ${renderTranslationToggle(currentTranslation)}
+      ${renderTextSizeControl()}
     </div>
 
     <div class="read-body">
@@ -585,6 +637,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
   // 번역 토글
   const verseEl = screen.querySelector('#verse-text');
+  bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
     verseEl.textContent = day.verses[currentTranslation];

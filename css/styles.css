@@ -1187,28 +1187,95 @@ p.subtle {
 /* ==========================================
    글씨 크기 설정 — body의 data-text-size 속성에 따라
    본문(verse)과 묵상 안내·질문(read-guide-body·read-prayer-example) 크기 변경
-   기본값은 medium이며, 위에 정의된 결이 그대로 작동
+   기본값은 3단계(보통)
+   1: 가장 작게 / 2: 작게 / 3: 보통 (기본) / 4: 크게 / 5: 가장 크게
    ========================================== */
 
-/* 작게 */
-body[data-text-size="small"] .read-verse { font-size: 19px; }
-body[data-text-size="small"] .read-verse.read-verse-long { font-size: 17px; }
-body[data-text-size="small"] .read-verse-evening { font-size: 17px; }
-body[data-text-size="small"] .read-verse-evening.read-verse-long { font-size: 15px; }
-body[data-text-size="small"] .read-guide-body,
-body[data-text-size="small"] .read-prayer-example-text,
-body[data-text-size="small"] .read-guide-card-text,
-body[data-text-size="small"] .continuous-verse { font-size: 14px; }
+/* 1단계 — 가장 작게 */
+body[data-text-size="1"] .read-verse { font-size: 17px; line-height: 1.65; }
+body[data-text-size="1"] .read-verse.read-verse-long { font-size: 15px; line-height: 1.85; }
+body[data-text-size="1"] .read-verse-evening { font-size: 15px; }
+body[data-text-size="1"] .read-verse-evening.read-verse-long { font-size: 14px; }
+body[data-text-size="1"] .read-guide-body,
+body[data-text-size="1"] .read-prayer-example-text,
+body[data-text-size="1"] .read-guide-card-text,
+body[data-text-size="1"] .continuous-verse { font-size: 13px; }
 
-/* 크게 */
-body[data-text-size="large"] .read-verse { font-size: 26px; line-height: 1.7; }
-body[data-text-size="large"] .read-verse.read-verse-long { font-size: 22px; line-height: 1.9; }
-body[data-text-size="large"] .read-verse-evening { font-size: 22px; }
-body[data-text-size="large"] .read-verse-evening.read-verse-long { font-size: 20px; }
-body[data-text-size="large"] .read-guide-body,
-body[data-text-size="large"] .read-prayer-example-text,
-body[data-text-size="large"] .read-guide-card-text,
-body[data-text-size="large"] .continuous-verse { font-size: 17px; }
+/* 2단계 — 작게 */
+body[data-text-size="2"] .read-verse { font-size: 19px; }
+body[data-text-size="2"] .read-verse.read-verse-long { font-size: 17px; }
+body[data-text-size="2"] .read-verse-evening { font-size: 17px; }
+body[data-text-size="2"] .read-verse-evening.read-verse-long { font-size: 15px; }
+body[data-text-size="2"] .read-guide-body,
+body[data-text-size="2"] .read-prayer-example-text,
+body[data-text-size="2"] .read-guide-card-text,
+body[data-text-size="2"] .continuous-verse { font-size: 14px; }
+
+/* 3단계 — 보통 (기본값, 별도 결 없이 위 정의 그대로) */
+
+/* 4단계 — 크게 */
+body[data-text-size="4"] .read-verse { font-size: 25px; line-height: 1.7; }
+body[data-text-size="4"] .read-verse.read-verse-long { font-size: 21px; line-height: 1.9; }
+body[data-text-size="4"] .read-verse-evening { font-size: 21px; }
+body[data-text-size="4"] .read-verse-evening.read-verse-long { font-size: 19px; }
+body[data-text-size="4"] .read-guide-body,
+body[data-text-size="4"] .read-prayer-example-text,
+body[data-text-size="4"] .read-guide-card-text,
+body[data-text-size="4"] .continuous-verse { font-size: 16px; }
+
+/* 5단계 — 가장 크게 */
+body[data-text-size="5"] .read-verse { font-size: 28px; line-height: 1.75; }
+body[data-text-size="5"] .read-verse.read-verse-long { font-size: 24px; line-height: 1.95; }
+body[data-text-size="5"] .read-verse-evening { font-size: 24px; }
+body[data-text-size="5"] .read-verse-evening.read-verse-long { font-size: 22px; }
+body[data-text-size="5"] .read-guide-body,
+body[data-text-size="5"] .read-prayer-example-text,
+body[data-text-size="5"] .read-guide-card-text,
+body[data-text-size="5"] .continuous-verse { font-size: 18px; }
+
+/* ==========================================
+   본문 화면 헤더의 A- A+ 버튼 (토글 아래)
+   ========================================== */
+.read-header-text-size {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  justify-content: flex-end;
+}
+
+.read-header-text-size-btn {
+  background: transparent;
+  border: 0.5px solid var(--border-mid);
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 500;
+  width: 28px;
+  height: 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: opacity 0.18s ease;
+}
+
+.read-header-text-size-btn:active {
+  background: rgba(186, 117, 23, 0.08);
+}
+
+.read-header-text-size-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* A는 살짝 작게, +/- 기호는 가운데에 */
+.read-header-text-size-btn .a {
+  font-size: 11px;
+  margin-right: 1px;
+}
 
 .read-verse-ref {
   font-size: 13px;
@@ -2156,52 +2223,6 @@ body[data-text-size="large"] .continuous-verse { font-size: 17px; }
   line-height: 1.55;
   margin-top: -4px;
   margin-bottom: 16px;
-  letter-spacing: -0.1px;
-}
-
-/* 글씨 크기 옵션 — 세 자리 segmented 결 */
-.text-size-segment {
-  display: flex;
-  gap: 8px;
-  background: rgba(186, 117, 23, 0.06);
-  border-radius: var(--radius-md);
-  padding: 6px;
-}
-
-.text-size-option {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 12px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  transition: background 0.18s ease, color 0.18s ease;
-}
-
-.text-size-option.is-active {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(65, 36, 2, 0.08);
-}
-
-.text-size-sample {
-  font-family: var(--font-serif);
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.text-size-sample-small { font-size: 14px; }
-.text-size-sample-medium { font-size: 18px; }
-.text-size-sample-large { font-size: 24px; }
-
-.text-size-label {
-  font-size: 11px;
   letter-spacing: -0.1px;
 }
 

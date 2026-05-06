@@ -36,7 +36,6 @@ export default function renderSettings({ navigateTo }) {
   const userName = Storage.getUserName();
   const defaultPace = Storage.getDefaultPace();
   const notifyTimes = Storage.getNotifyTimes();
-  const textSize = Storage.getTextSize();
 
   screen.innerHTML = `
     <div class="screen-inner-with-tabs">
@@ -91,27 +90,6 @@ export default function renderSettings({ navigateTo }) {
         <div class="time-row-v2">
           <p class="time-row-label">저녁</p>
           <input type="time" class="time-input-v2" id="input-evening" value="${notifyTimes.evening}"/>
-        </div>
-      </div>
-
-      <!-- 글씨 크기 -->
-      <div class="settings-section">
-        <p class="settings-section-label">글씨 크기</p>
-        <p class="settings-section-hint">본문과 묵상의 글씨 크기예요.</p>
-
-        <div class="text-size-segment" id="text-size-segment">
-          <button class="text-size-option ${textSize === 'small' ? 'is-active' : ''}" data-size="small">
-            <span class="text-size-sample text-size-sample-small">가</span>
-            <span class="text-size-label">작게</span>
-          </button>
-          <button class="text-size-option ${textSize === 'medium' ? 'is-active' : ''}" data-size="medium">
-            <span class="text-size-sample text-size-sample-medium">가</span>
-            <span class="text-size-label">보통</span>
-          </button>
-          <button class="text-size-option ${textSize === 'large' ? 'is-active' : ''}" data-size="large">
-            <span class="text-size-sample text-size-sample-large">가</span>
-            <span class="text-size-label">크게</span>
-          </button>
         </div>
       </div>
 
@@ -171,18 +149,6 @@ export default function renderSettings({ navigateTo }) {
     });
   });
 
-  // 글씨 크기 선택 — 누르자마자 즉시 미리보기 (body에 적용)
-  let selectedTextSize = textSize;
-  screen.querySelectorAll('.text-size-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      screen.querySelectorAll('.text-size-option').forEach(o => o.classList.remove('is-active'));
-      opt.classList.add('is-active');
-      selectedTextSize = opt.dataset.size;
-      // 즉시 적용 (저장하기 전이라도 미리보기로 결을 짚을 수 있게)
-      document.body.setAttribute('data-text-size', selectedTextSize);
-    });
-  });
-
   // 저장 버튼
   screen.querySelector('#btn-save').addEventListener('click', async () => {
     // 이름
@@ -196,8 +162,6 @@ export default function renderSettings({ navigateTo }) {
       midday: screen.querySelector('#input-midday').value,
       evening: screen.querySelector('#input-evening').value,
     });
-    // 글씨 크기
-    Storage.setTextSize(selectedTextSize);
 
     // 현재 자리가 새 속도에서 비활성이면 가장 가까운 활성 자리로 보정
     try {
