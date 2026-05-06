@@ -2005,6 +2005,12 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   line-height: 1;
 }
 
+/* 준비 시간(3·2·1) — 살짝 더 크게, 차분한 색 */
+.silence-prepare-num {
+  font-size: 72px;
+  color: var(--text-secondary);
+}
+
 .silence-circle-hint {
   font-size: 11px;
   color: var(--text-muted);

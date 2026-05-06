@@ -83,12 +83,14 @@ export default function renderSilence({ navigateTo, param, extra }) {
   const lessonId = overrideLesson || Storage.getCurrentLesson() || 1;
 
   // 상태
-  let state = 'setup';        // setup | counting | done
+  let state = 'setup';        // setup | preparing | counting | done
   // 아침 머무름 — 과별로 다른 기본 시간 / 저녁 머무름 — 1분 (저녁은 lessons.json silenceSeconds로 별도 처리됨)
   let totalSeconds = sessionType === 'morning'
     ? getMorningSilenceDefault(lessonId)
     : 60;
   let remainingSeconds = totalSeconds;
+  let overflowSeconds = 0;     // 마침 종 후 +로 흐르는 시간
+  let bellRang = false;        // 마침 종 한 번 울렸는지 (중복 방지)
   let intervalId = null;
   let startTime = null;        // 정확한 카운트다운을 위해 setInterval 대신 시계 사용
   let wakeLock = null;         // 화면이 꺼지지 않게 (iOS 16.4+ / Android 지원)
@@ -101,28 +103,33 @@ export default function renderSilence({ navigateTo, param, extra }) {
   // 0초에 닿았는지 점검 — 마침 종 처리
   // (background에서 돌아왔을 때나 setInterval 안에서 부름)
   // ============================================
+  // ============================================
+  // 시간 점검 — 매 초 부르기 (setInterval) + background 복귀 시
+  // 0초에 닿으면 마침 종 한 번 울리고, 그 후엔 +로 시간 흐름
+  // 사용자가 '마쳤어요' 누를 때 done으로
+  // ============================================
   function checkAndComplete() {
     if (state !== 'counting' || !startTime) return false;
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    remainingSeconds = Math.max(0, totalSeconds - elapsed);
-    if (remainingSeconds <= 0) {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
+
+    if (elapsed < totalSeconds) {
+      // 아직 카운트다운 중
+      remainingSeconds = totalSeconds - elapsed;
+      overflowSeconds = 0;
+    } else {
+      // 0초 도달 (또는 지남)
+      remainingSeconds = 0;
+      overflowSeconds = elapsed - totalSeconds;
+
+      if (!bellRang) {
+        // 마침 종 한 번만 울림
+        bellRang = true;
+        playBell();
+        // 화면 갈무리 — '마쳤어요' 버튼 보이게 + 안내 갱신
+        renderCounting();
       }
-      // 마침 종 + done
-      playBell();
-      document.body.classList.remove('silence-deep');
-      releaseWakeLock();
-      if (visibilityHandler) {
-        document.removeEventListener('visibilitychange', visibilityHandler);
-        visibilityHandler = null;
-      }
-      state = 'done';
-      renderDone();
-      return true;
     }
-    return false;
+    return false;  // done으로 자동 안 감 (사용자가 '마쳤어요' 눌러야)
   }
 
   // ============================================
@@ -149,6 +156,8 @@ export default function renderSilence({ navigateTo, param, extra }) {
   function render() {
     if (state === 'setup') {
       renderSetup();
+    } else if (state === 'preparing') {
+      renderPreparing();
     } else if (state === 'counting') {
       renderCounting();
     } else if (state === 'done') {
@@ -219,8 +228,59 @@ export default function renderSilence({ navigateTo, param, extra }) {
     });
 
     screen.querySelector('#btn-start-bell').addEventListener('click', () => {
-      startCounting();
+      startPreparing();
     });
+  }
+
+  // ============================================
+  // 1.5. 시작 전 3초 유예 — 마음 가다듬는 자리
+  // ============================================
+  let prepareTimerId = null;
+  function startPreparing() {
+    state = 'preparing';
+    let prepareSeconds = 3;
+
+    renderPreparing(prepareSeconds);
+
+    prepareTimerId = setInterval(() => {
+      prepareSeconds -= 1;
+      if (prepareSeconds <= 0) {
+        clearInterval(prepareTimerId);
+        prepareTimerId = null;
+        // 시작 종이 울리고 카운트다운 시작
+        startCounting();
+      } else {
+        renderPreparing(prepareSeconds);
+      }
+    }, 1000);
+  }
+
+  function renderPreparing(seconds) {
+    screen.innerHTML = `
+      <div class="silence-screen">
+        <div class="silence-header silence-header-minimal">
+          <div class="silence-header-spacer"></div>
+          <div class="silence-header-spacer"></div>
+          <div class="silence-header-spacer"></div>
+        </div>
+
+        <div class="silence-counting">
+          <p class="silence-counting-label">곧 시작합니다</p>
+
+          <div class="silence-circle">
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="92" stroke="rgba(186, 117, 23, 0.15)" stroke-width="0.5" fill="none"/>
+            </svg>
+            <div class="silence-circle-inner">
+              <p class="silence-circle-time silence-prepare-num">${seconds}</p>
+              <p class="silence-circle-hint">호흡을 가다듬으세요</p>
+            </div>
+          </div>
+
+          <p class="silence-counting-quote">잠시 후 시작 종이 울립니다.</p>
+        </div>
+      </div>
+    `;
   }
 
   // ============================================
@@ -229,6 +289,8 @@ export default function renderSilence({ navigateTo, param, extra }) {
   function startCounting() {
     state = 'counting';
     remainingSeconds = totalSeconds;
+    overflowSeconds = 0;
+    bellRang = false;
     startTime = Date.now();
 
     // 시작 종 울림
@@ -258,10 +320,8 @@ export default function renderSilence({ navigateTo, param, extra }) {
 
     // 1초마다 업데이트 (실제 시간 기반)
     intervalId = setInterval(() => {
-      const completed = checkAndComplete();
-      if (!completed) {
-        updateCountingDisplay();
-      }
+      checkAndComplete();
+      updateCountingDisplay();
     }, 1000);
   }
 
@@ -271,15 +331,28 @@ export default function renderSilence({ navigateTo, param, extra }) {
   function renderCounting() {
     const radius = 92;
     const circumference = 2 * Math.PI * radius;
-    const progress = remainingSeconds / totalSeconds;
+    const progress = bellRang ? 1 : (remainingSeconds / totalSeconds);
     const dashOffset = circumference * (1 - progress);
+
+    // 마침 종 울리기 전: 카운트다운 중 / 울린 후: +로 흐름
+    const timeText = bellRang
+      ? '+' + formatSeconds(overflowSeconds)
+      : formatSeconds(remainingSeconds);
+    const hintText = bellRang ? '마침 종이 울렸어요' : '남은 시간';
+    const quoteText = bellRang
+      ? '천천히 마치셔도 됩니다.<br/>준비되시면 마침을 누르세요.'
+      : '아무 말 없이.<br/>그저 함께 있는 시간입니다.';
+
+    // 오른쪽 위 버튼: 카운트다운 중엔 '건너뛰기', 마침 종 울린 후엔 '마쳤어요'
+    const rightBtnLabel = bellRang ? '마쳤어요' : '건너뛰기';
+    const rightBtnId = bellRang ? 'btn-finish' : 'btn-skip';
 
     screen.innerHTML = `
       <div class="silence-screen">
         <div class="silence-header silence-header-minimal">
           <div class="silence-header-spacer"></div>
           <div class="silence-header-spacer"></div>
-          <button class="silence-skip" id="btn-skip">건너뛰기</button>
+          <button class="silence-skip" id="${rightBtnId}">${rightBtnLabel}</button>
         </div>
 
         <div class="silence-counting">
@@ -300,33 +373,37 @@ export default function renderSilence({ navigateTo, param, extra }) {
               />
             </svg>
             <div class="silence-circle-inner">
-              <p class="silence-circle-time" id="time-display">${formatSeconds(remainingSeconds)}</p>
-              <p class="silence-circle-hint">남은 시간</p>
+              <p class="silence-circle-time" id="time-display">${timeText}</p>
+              <p class="silence-circle-hint" id="time-hint">${hintText}</p>
             </div>
           </div>
 
-          <p class="silence-counting-quote">아무 말 없이.<br/>그저 함께 있는 시간입니다.</p>
+          <p class="silence-counting-quote">${quoteText}</p>
         </div>
       </div>
     `;
 
-    screen.querySelector('#btn-skip').addEventListener('click', () => {
-      // 건너뛰기 — 카운트다운 멈추고 마침 종 울리고 done으로
+    // 마치기 (건너뛰기 또는 마쳤어요) 핸들러
+    const finishHandler = () => {
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
       }
-      // 집중 모드 해제 + wake lock 해제 + visibility 리스너 제거
       document.body.classList.remove('silence-deep');
       releaseWakeLock();
       if (visibilityHandler) {
         document.removeEventListener('visibilitychange', visibilityHandler);
         visibilityHandler = null;
       }
-      playBell();
+      // 마침 종 — 아직 안 울렸으면 울림 (건너뛰기)
+      if (!bellRang) {
+        playBell();
+      }
       state = 'done';
       renderDone();
-    });
+    };
+
+    screen.querySelector(`#${rightBtnId}`).addEventListener('click', finishHandler);
   }
 
   // 카운트다운 진행 중 매 초 업데이트 (전체 다시 그리지 않고 부분만)
@@ -334,12 +411,16 @@ export default function renderSilence({ navigateTo, param, extra }) {
     const timeEl = screen.querySelector('#time-display');
     const circleEl = screen.querySelector('#progress-circle');
     if (timeEl) {
-      timeEl.textContent = formatSeconds(remainingSeconds);
+      // 마침 종 울리기 전: 카운트다운 / 후: +로 흐름
+      timeEl.textContent = bellRang
+        ? '+' + formatSeconds(overflowSeconds)
+        : formatSeconds(remainingSeconds);
     }
     if (circleEl) {
       const radius = 92;
       const circumference = 2 * Math.PI * radius;
-      const progress = remainingSeconds / totalSeconds;
+      // 마침 종 후엔 원이 가득 찬 채로 (progress = 1)
+      const progress = bellRang ? 1 : (remainingSeconds / totalSeconds);
       const dashOffset = circumference * (1 - progress);
       circleEl.setAttribute('stroke-dashoffset', dashOffset);
     }

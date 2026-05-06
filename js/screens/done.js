@@ -97,7 +97,7 @@ export default async function renderDone({ navigateTo, param, extra }) {
 
       ${nextCardHtml}
 
-      <button class="btn-narrow done-cta" id="btn-home">홈으로</button>
+      <button class="btn btn-narrow" id="btn-home">홈으로</button>
     </div>
   `;
 
