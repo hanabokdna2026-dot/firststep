@@ -25,7 +25,7 @@ const SESSION_LABELS = {
 // ==========================================
 // 번역 토글 (segmented control)
 // ==========================================
-// 양쪽 옵션이 다 보이는 결 — 사용자가 한눈에 "이건 두 번역으로 볼 수 있구나" 인지
+// 양쪽 옵션이 다 보이는 짜임 — 사용자가 한눈에 "이건 두 번역으로 볼 수 있구나" 인지
 function renderTranslationToggle(currentTranslation = 'saebeon') {
   return `
     <div class="read-header-segment" role="tablist">
@@ -269,16 +269,16 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 async function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   const midday = day.midday;
 
-  // 새 결: continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
+  // 새 짜임: continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
   if (midday.readingMode === 'continuous') {
     return await renderContinuousMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   }
 
-  // 기존 결: 고정 단락 (1·2·3과)
+  // 기존 짜임: 고정 단락 (1·2·3과)
   return renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
 }
 
-// 기존 결 — 고정 단락 (1·2·3과 그대로)
+// 기존 짜임 — 고정 단락 (1·2·3과 그대로)
 function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   let currentTranslation = 'saebeon';
   const midday = day.midday;
@@ -340,7 +340,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
   return screen;
 }
 
-// 새 결 — continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
+// 새 짜임 — continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
 async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   const midday = day.midday;
   const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
@@ -587,7 +587,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
       <p class="read-guide-body">${evening.reflectQuestion}</p>
 
       ${evening.lordsPart && evening.lordsKeywords ? `
-        <!-- 5·6과: 주기도 자세히 배우기 결 -->
+        <!-- 5·6과: 주기도 자세히 배우기 짜임 -->
         <div class="read-divider"></div>
 
         <p class="read-section-label">주기도로 마치기</p>
@@ -620,7 +620,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
           spellcheck="false"
         >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
       ` : evening.lordsFocus ? `
-        <!-- 7~10과: 주기도의 한 부분에 머물기 결 -->
+        <!-- 7~10과: 주기도의 한 부분에 머물기 짜임 -->
         <div class="read-divider"></div>
 
         <p class="read-section-label">주기도의 흐름으로</p>

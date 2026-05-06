@@ -130,7 +130,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
     }
   }).join('');
 
-  // 위쪽 힌트 바에 이미 결이 있으니 아래 버튼은 안 둠 (중복 방지)
+  // 위쪽 힌트 바에 이미 흐름이 있으니 아래 버튼은 안 둠 (중복 방지)
 
   // 탭바 — 미리보기 모드에서는 안 보임 (위쪽 힌트의 "오늘"이 그 역할)
   const tabbarHtml = isPreview ? '' : `
@@ -315,7 +315,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
   }
 
   // ============= 좌우 스와이프 =============
-  // 두 화면이 동시에 슬라이드되는 결 (placeholder 사용)
+  // 두 화면이 동시에 슬라이드되는 짜임 (placeholder 사용)
   setupSwipePager(screen, {
     leftBg: '#D5CFA0',     // 여정 (올리브 크림)
     rightBg: '#C8D4DD',    // 다음 자리 (포그 블루)
@@ -425,7 +425,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
     const sessionLabel = getSessionLabel(sessionType);
     const isDone = isPreview ? false : Storage.isSessionDone(todayISO, sessionType);
     const timeLabel = formatKoreanShortTime(sessionTime);
-    // hint — 그 날의 그 세션 결을 우선, 없으면 기본 hint
+    // hint — 그 날의 그 세션 hint를 우선, 없으면 기본 hint
     const hint = (day[sessionType] && day[sessionType].homeHint) || SESSION_HINTS[sessionType];
 
     const checkIcon = isDone ? `
@@ -452,5 +452,5 @@ export default async function renderHome({ navigateTo, param, extra }) {
 }
 
 // ============================================
-// (스와이프 페이저는 placeholder 결이라 인접 화면 미리 그릴 필요 없음)
+// (스와이프 페이저는 placeholder 짜임이라 인접 화면 미리 그릴 필요 없음)
 // ============================================

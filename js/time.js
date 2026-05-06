@@ -92,7 +92,7 @@ export function formatKoreanDate(date = new Date()) {
 // - 12:00 ~ 17:59 → 'midday' (낮)
 // - 18:00 ~ 04:29 → 'evening' (저녁)
 //
-// 사용자의 '만날 시간'은 자기 약속의 결로만 기록됨 — 활성 자리에는 영향 없음
+// 사용자의 '만날 시간'은 자기 약속으로만 기록됨 — 활성 자리에는 영향 없음
 export function getCurrentSessionType() {
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();

@@ -1,12 +1,12 @@
 /**
  * 좌우 스와이프 페이저
  *
- * 화면 어디서든 자연스럽게 좌우 스와이프되는 결.
- * placeholder를 옆에 깔아 두 화면이 함께 움직이는 듯한 결.
+ * 화면 어디서든 자연스럽게 좌우 스와이프되는 짜임.
+ * placeholder를 옆에 깔아 두 화면이 함께 움직이는 듯한 짜임.
  *
- * 핵심 결:
+ * 핵심:
  * - 화면 어느 부분에서든 손을 대고 가로로 밀면 동작
- * - 세로 스크롤과 충돌하지 않게 가로 결 인식
+ * - 세로 스크롤과 충돌하지 않게 가로 움직임 인식
  * - 일단 스와이프 시작되면 세로 움직임은 무시 (손이 호를 그려도 자연스럽게)
  * - textarea/input 안에서는 동작 안 함 (텍스트 선택 보존)
  * - 스와이프 인식되면 click 이벤트 막아 카드 동작 방해 안 함
@@ -86,7 +86,7 @@ export function setupSwipePager(screen, options) {
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
 
-    // 아직 dragging 모드 아닐 때만 세로 결 체크
+    // 아직 dragging 모드 아닐 때만 세로 움직임 체크
     // 한 번 dragging 모드에 들어가면 세로 움직임은 무시 (손이 호를 그려도 자연스럽게)
     if (!isDragging && !scrollDecided) {
       const absDx = Math.abs(dx);
