@@ -25,6 +25,9 @@ const STORAGE_KEYS = {
   // 글씨 크기 ('small' | 'medium' | 'large') — 기본 'medium'
   TEXT_SIZE: 'firststep:textSize',
 
+  // 잠잠히 머무는 동안 자연의 소리 — 기본 켜짐 ('on' | 'off')
+  NATURE_SOUND: 'firststep:natureSound',
+
   // 마지막으로 속도 확인한 과 (이 과가 현재 과보다 작으면 새 과 시작이라 속도 묻기)
   LAST_PACE_CHECK_LESSON: 'firststep:lastPaceCheckLesson',
 
@@ -139,6 +142,16 @@ const Storage = {
     const n = parseInt(size, 10);
     if (isNaN(n) || n < 1 || n > 5) return;
     localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(n));
+  },
+
+  // 자연의 소리 토글 (잠잠히 머무는 동안) — 기본 켜짐
+  isNatureSoundOn() {
+    const stored = localStorage.getItem(STORAGE_KEYS.NATURE_SOUND);
+    if (stored === null) return true;  // 기본 켜짐
+    return stored === 'on';
+  },
+  setNatureSoundOn(on) {
+    localStorage.setItem(STORAGE_KEYS.NATURE_SOUND, on ? 'on' : 'off');
   },
 
   // 마지막 속도 확인한 과

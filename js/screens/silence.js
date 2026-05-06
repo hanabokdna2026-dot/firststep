@@ -61,6 +61,81 @@ function playBell() {
   }
 }
 
+// ==========================================
+// 자연의 소리 — 머무는 동안 부드럽게 깔리는 ambient
+// ==========================================
+const NATURE_PATH = 'assets/sounds/nature.mp3';
+const NATURE_VOLUME = 0.3;
+let natureAudio = null;
+let natureFadeTimerId = null;
+
+function getNatureAudio() {
+  if (!natureAudio) {
+    natureAudio = new Audio(NATURE_PATH);
+    natureAudio.loop = true;
+    natureAudio.volume = NATURE_VOLUME;
+    natureAudio.preload = 'auto';
+  }
+  return natureAudio;
+}
+
+function startNature() {
+  if (!Storage.isNatureSoundOn()) return;
+  const audio = getNatureAudio();
+  try {
+    audio.currentTime = 0;
+    audio.volume = NATURE_VOLUME;
+    audio.play().catch(e => {
+      console.warn('자연의 소리 재생 실패:', e);
+    });
+  } catch (e) {
+    console.warn('자연의 소리 재생 실패:', e);
+  }
+}
+
+function stopNature() {
+  if (!natureAudio) return;
+  if (natureFadeTimerId) {
+    clearInterval(natureFadeTimerId);
+    natureFadeTimerId = null;
+  }
+  try {
+    natureAudio.pause();
+    natureAudio.currentTime = 0;
+    natureAudio.volume = NATURE_VOLUME;
+  } catch (e) { /* 무시 */ }
+}
+
+// 부드럽게 페이드아웃 후 멈춤 (마침 종 직전에)
+function fadeOutNature(durationMs) {
+  if (!natureAudio || natureAudio.paused) return;
+  if (natureFadeTimerId) {
+    clearInterval(natureFadeTimerId);
+  }
+  const steps = 20;
+  const stepTime = durationMs / steps;
+  const startVolume = natureAudio.volume;
+  const volStep = startVolume / steps;
+  let count = 0;
+  natureFadeTimerId = setInterval(() => {
+    count++;
+    if (natureAudio) {
+      natureAudio.volume = Math.max(0, natureAudio.volume - volStep);
+    }
+    if (count >= steps) {
+      clearInterval(natureFadeTimerId);
+      natureFadeTimerId = null;
+      if (natureAudio) {
+        try {
+          natureAudio.pause();
+          natureAudio.currentTime = 0;
+          natureAudio.volume = NATURE_VOLUME;
+        } catch (e) { /* 무시 */ }
+      }
+    }
+  }, stepTime);
+}
+
 // 초 → "M:SS" 형식
 function formatSeconds(s) {
   const m = Math.floor(s / 60);
@@ -95,9 +170,13 @@ export default function renderSilence({ navigateTo, param, extra }) {
   let startTime = null;        // 정확한 카운트다운을 위해 setInterval 대신 시계 사용
   let wakeLock = null;         // 화면이 꺼지지 않게 (iOS 16.4+ / Android 지원)
   let visibilityHandler = null; // background에서 돌아올 때 점검용
+  let natureStartTimer = null;  // 시작 종 후 5초 후 자연의 소리 시작 타이머
 
-  // 종소리 미리 로드 (사용자 인터랙션 후에야 실제로 가능)
+  // 종소리 + 자연 소리 미리 로드 (사용자 인터랙션 후에야 실제로 가능)
   getBellAudio();
+  if (Storage.isNatureSoundOn()) {
+    getNatureAudio();  // 토글이 켜져 있으면 미리 다운로드 시작
+  }
 
   // ============================================
   // 0초에 닿았는지 점검 — 마침 종 처리
@@ -116,6 +195,12 @@ export default function renderSilence({ navigateTo, param, extra }) {
       // 아직 카운트다운 중
       remainingSeconds = totalSeconds - elapsed;
       overflowSeconds = 0;
+
+      // 끝 2초 남았을 때 자연의 소리 페이드아웃 시작 (1.8초 동안)
+      // setInterval이 매 초 호출되니 정확히 2초에 한 번만 발동되도록
+      if (remainingSeconds === 2 && natureAudio && !natureAudio.paused) {
+        fadeOutNature(1800);
+      }
     } else {
       // 0초 도달 (또는 지남)
       remainingSeconds = 0;
@@ -124,6 +209,13 @@ export default function renderSilence({ navigateTo, param, extra }) {
       if (!bellRang) {
         // 마침 종 한 번만 울림
         bellRang = true;
+        // 시작 5초 자연 소리 타이머가 아직 안 발동했으면 취소
+        if (natureStartTimer) {
+          clearTimeout(natureStartTimer);
+          natureStartTimer = null;
+        }
+        // 자연 소리 안전하게 멈춤 (페이드아웃이 안 끝났을 수도 있음)
+        stopNature();
         playBell();
         // 화면 갈무리 — '마쳤어요' 버튼 보이게 + 안내 갱신
         renderCounting();
@@ -203,10 +295,23 @@ export default function renderSilence({ navigateTo, param, extra }) {
 
           <p class="silence-setup-hint">시작 종이 울리고 시간이 흐릅니다.<br/>마침 종이 울리면 천천히 마치셔도 됩니다.</p>
 
+          <label class="silence-nature-toggle">
+            <span class="silence-nature-icon">🍃</span>
+            <span class="silence-nature-label">머무는 동안 자연의 소리</span>
+            <span class="silence-nature-switch">
+              <input type="checkbox" id="natureToggle" ${Storage.isNatureSoundOn() ? 'checked' : ''}>
+              <span class="silence-nature-slider"></span>
+            </span>
+          </label>
+
           <button class="btn btn-narrow silence-start-btn" id="btn-start-bell">시작 종 울리기</button>
         </div>
       </div>
     `;
+
+    screen.querySelector('#natureToggle').addEventListener('change', (e) => {
+      Storage.setNatureSoundOn(e.target.checked);
+    });
 
     screen.querySelector('#btn-back').addEventListener('click', () => {
       // 뒤로 — 본문 화면으로
@@ -295,6 +400,12 @@ export default function renderSilence({ navigateTo, param, extra }) {
 
     // 시작 종 울림
     playBell();
+
+    // 5초 후 자연의 소리 시작 (시작 종 잔향이 끝난 다음 부드럽게)
+    natureStartTimer = setTimeout(() => {
+      startNature();
+      natureStartTimer = null;
+    }, 5000);
 
     // Wake Lock — 화면이 안 꺼지게 (지원하는 OS에서)
     requestWakeLock();
@@ -389,6 +500,12 @@ export default function renderSilence({ navigateTo, param, extra }) {
         clearInterval(intervalId);
         intervalId = null;
       }
+      // 시작 5초 타이머 + 자연 소리 정리
+      if (natureStartTimer) {
+        clearTimeout(natureStartTimer);
+        natureStartTimer = null;
+      }
+      stopNature();
       document.body.classList.remove('silence-deep');
       releaseWakeLock();
       if (visibilityHandler) {
