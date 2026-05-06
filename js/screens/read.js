@@ -65,7 +65,8 @@ function bindTranslationToggle(screen, onChange) {
 function renderHeaderRight(currentTranslation) {
   return `
     <div class="read-header-right">
-      ${renderHeaderRight(currentTranslation)}
+      ${renderTranslationToggle(currentTranslation)}
+      ${renderTextSizeControl()}
     </div>
   `;
 }
