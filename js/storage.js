@@ -286,6 +286,26 @@ const Storage = {
       localStorage.removeItem(key);
     }
   },
+
+  // 모든 주기도 자기 입력 가져오기
+  getAllLordsEntries() {
+    const entries = [];
+    const prefix = 'firststep:lords:';
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        const parts = key.replace(prefix, '').split(':');
+        if (parts.length === 2) {
+          entries.push({
+            lessonId: parseInt(parts[0], 10),
+            dayIndex: parseInt(parts[1], 10),
+            text: localStorage.getItem(key) || '',
+          });
+        }
+      }
+    }
+    return entries;
+  },
 };
 
 export default Storage;
