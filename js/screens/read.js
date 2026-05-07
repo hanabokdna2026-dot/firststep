@@ -310,9 +310,19 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
 
       ${midday.prayerExample ? `
         <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+        ${midday.prayerLeadIn ? `<p class="read-guide-body">${midday.prayerLeadIn}</p>` : ''}
         <div class="read-prayer-example">
           <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
         </div>
+
+        <textarea
+          class="read-prayer-input"
+          id="prayer-input"
+          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
       ` : ''}
 
       <button class="btn read-cta" id="btn-next">읽었어요</button>
@@ -329,12 +339,12 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
 
   // 닫기
   screen.querySelector('#btn-close').addEventListener('click', () => {
-    navigateTo('#home');
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
   });
 
-  // 읽었어요 → 마침 화면
+  // 읽었어요 → 마침 화면 (한 마디 기도 저장)
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    navigateTo('#done/midday' + overridePath);
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
   });
 
   return screen;
@@ -425,15 +435,26 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
           <div class="read-prayer-example">
             <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
           </div>
+
+          <textarea
+            class="read-prayer-input"
+            id="prayer-input"
+            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
         ` : ''}
 
         <button class="btn read-cta" id="btn-next">마침</button>
       </div>
     `;
 
-    screen.querySelector('#btn-close').addEventListener('click', () => navigateTo('#home'));
+    screen.querySelector('#btn-close').addEventListener('click', () => {
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
+    });
     screen.querySelector('#btn-next').addEventListener('click', () => {
-      navigateTo('#done/midday' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
     });
     return screen;
   }
@@ -474,6 +495,15 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
           <div class="read-prayer-example">
             <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
           </div>
+
+          <textarea
+            class="read-prayer-input"
+            id="prayer-input"
+            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
         ` : ''}
 
         <button class="btn read-cta" id="btn-next">여기까지 읽었어요</button>
@@ -483,6 +513,11 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     // 분량 버튼
     screen.querySelectorAll('.continuous-size-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        // 분량 바꾸기 전에 옛 입력 저장 (다시 그릴 때 사라지지 않게)
+        const oldInput = screen.querySelector('#prayer-input');
+        if (oldInput) {
+          Storage.setPrayer(lessonId, dayIndex, 'midday', oldInput.value.trim());
+        }
         currentSize = btn.dataset.size;
         Storage.setReadingSize(currentSize);
         paint();  // 다시 그림
@@ -493,19 +528,24 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     bindTextSizeControl(screen);
     bindTranslationToggle(screen, (newTranslation) => {
       currentTranslation = newTranslation;
+      // 다시 그릴 때도 옛 입력 저장
+      const oldInput = screen.querySelector('#prayer-input');
+      if (oldInput) {
+        Storage.setPrayer(lessonId, dayIndex, 'midday', oldInput.value.trim());
+      }
       paint();
     });
 
-    // 닫기
+    // 닫기 — 한 마디 기도 저장
     screen.querySelector('#btn-close').addEventListener('click', () => {
-      navigateTo('#home');
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
     });
 
-    // 여기까지 읽었어요 → 진도 저장 후 마침 화면
+    // 여기까지 읽었어요 → 진도 저장 + 한 마디 기도 저장 + 마침 화면
     screen.querySelector('#btn-next').addEventListener('click', () => {
       const r = calcRange(currentSize);
       Storage.setReadingProgress(book, chapter, r.end);
-      navigateTo('#done/midday' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
     });
   }
 

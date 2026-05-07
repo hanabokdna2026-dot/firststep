@@ -12,8 +12,12 @@ import { getDay } from '../content.js';
 
 const SESSION_LABELS = {
   morning: '아침',
+  midday: '낮',
   evening: '저녁',
 };
+
+// 같은 날 안에서의 세션 순서 (시간 순 — 늦은 게 먼저 보임)
+const SESSION_ORDER = { evening: 0, midday: 1, morning: 2 };
 
 export default async function renderRecord({ navigateTo }) {
   const screen = document.createElement('div');
@@ -25,10 +29,8 @@ export default async function renderRecord({ navigateTo }) {
   prayers.sort((a, b) => {
     if (a.lessonId !== b.lessonId) return b.lessonId - a.lessonId;  // 최신 과 먼저
     if (a.dayIndex !== b.dayIndex) return b.dayIndex - a.dayIndex;
-    // 같은 날 안에서는 저녁이 먼저 (시간상 더 늦음)
-    if (a.sessionType === 'evening' && b.sessionType === 'morning') return -1;
-    if (a.sessionType === 'morning' && b.sessionType === 'evening') return 1;
-    return 0;
+    // 같은 날 안에서는 저녁 → 낮 → 아침 (시간상 늦은 게 먼저)
+    return (SESSION_ORDER[a.sessionType] ?? 99) - (SESSION_ORDER[b.sessionType] ?? 99);
   });
 
   // 각 기도에 대한 본문 정보(말씀 구절) 가져오기
