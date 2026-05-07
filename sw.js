@@ -13,7 +13,7 @@
  *   CACHE_VERSION 숫자 올리면 옛 캐시 자동 삭제됨.
  */
 
-const CACHE_VERSION = 'firststep-v16';
+const CACHE_VERSION = 'firststep-v18';
 const APP_SHELL = [
   './',
   './index.html',
