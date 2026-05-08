@@ -13,6 +13,71 @@ let messaging = null;
 let firestore = null;
 
 /**
+ * 약속 시간을 cron이 도는 30분 단위로 변환
+ *
+ * 예) "04:30" → ["04:30"]                  (정확히 닿음)
+ *     "04:35" → ["04:30"]                  (5분 차이 → 04:30이 가까움)
+ *     "04:50" → ["05:00"]                  (10분 차이 → 05:00이 가까움)
+ *     "04:45" → ["04:30", "05:00"]         (둘 다 ±15)
+ *     "14:46" → ["15:00"]                  (14분 차이 → 15:00만 ±15)
+ *     "00:05" → ["00:00"]                  (5분 차이)
+ *     "23:50" → ["00:00"]                  (자정 짚어둠)
+ *
+ * cron이 30분에 한 번 도니까, ±15분 안의 30분 자리들을 다 더함.
+ *
+ * @param {string} time HH:MM 짜임
+ * @returns {string[]} 닿는 cron 자리들 (HH:MM 짜임)
+ */
+function timeToSlots(time) {
+  if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return [];
+  const [h, m] = time.split(':').map(Number);
+  const userMin = h * 60 + m;
+  const slots = [];
+
+  // 30분 단위 모든 자리들을 짚어보고 — ±15 안에 들어오면 더함
+  // 옛 30분, 그 다음 30분 — 두 자리만 살펴봐도 됨
+  // 약속 시간을 둘러싼 30분 자리들:
+  //   바로 옛 30분 자리: floor(userMin / 30) * 30
+  //   그 다음 30분 자리: 옛 + 30
+  const flooredSlot = Math.floor(userMin / 30) * 30;
+  const candidates = [flooredSlot, flooredSlot + 30];
+
+  for (const slotMin of candidates) {
+    let slotMinNorm = slotMin;
+    while (slotMinNorm < 0) slotMinNorm += 1440;
+    while (slotMinNorm >= 1440) slotMinNorm -= 1440;
+
+    // 약속 시간과의 차이 (자정 짚어둠)
+    let diff = Math.abs(slotMinNorm - userMin);
+    if (diff > 720) diff = 1440 - diff;
+
+    if (diff <= 15) {
+      const slotH = Math.floor(slotMinNorm / 60);
+      const slotMM = slotMinNorm % 60;
+      const slotStr = String(slotH).padStart(2, '0') + ':' + String(slotMM).padStart(2, '0');
+      if (!slots.includes(slotStr)) slots.push(slotStr);
+    }
+  }
+
+  return slots;
+}
+
+/**
+ * 사용자의 모든 약속 시간 → cron 자리들로 변환
+ *
+ * @param {{morning: string, midday: string, evening: string}} meetingTimes
+ * @returns {string[]} 모든 닿는 cron 자리들 (중복 없음, 정렬됨)
+ */
+function buildScheduledSlots(meetingTimes) {
+  const allSlots = new Set();
+  for (const time of Object.values(meetingTimes)) {
+    if (!time) continue;
+    timeToSlots(time).forEach(s => allSlots.add(s));
+  }
+  return Array.from(allSlots).sort();
+}
+
+/**
  * Firebase SDK 동적으로 로드 + 초기화
  * 처음 한 번만 실행됨
  */
@@ -129,19 +194,22 @@ export async function enablePushNotifications() {
     // 토큰 길이가 길어서, 짧게 해시하지 말고 그냥 토큰을 키로 쓰기
     Storage.setPushToken(token);
 
-    // Firestore에 토큰 + 약속 시간 저장
+    // Firestore에 토큰 + 약속 시간 + cron 자리 저장
     const meetingTimes = Storage.getNotifyTimes();
     const userName = Storage.getUserName() || '';
     const userDoc = doc(firestore, 'pushUsers', token);
 
+    const meetingTimesObj = {
+      morning: meetingTimes.morning || '04:30',
+      midday: meetingTimes.midday || '12:00',
+      evening: meetingTimes.evening || '18:00',
+    };
+
     await setDoc(userDoc, {
       token: token,
       userName: userName,
-      meetingTimes: {
-        morning: meetingTimes.morning || '04:30',
-        midday: meetingTimes.midday || '12:00',
-        evening: meetingTimes.evening || '18:00',
-      },
+      meetingTimes: meetingTimesObj,
+      scheduledSlots: buildScheduledSlots(meetingTimesObj),  // cron 자리들 미리 짜둠
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
       enabled: true,
       lastUpdated: new Date().toISOString(),
@@ -195,12 +263,15 @@ export async function updateMeetingTimes() {
     const meetingTimes = Storage.getNotifyTimes();
     const userDoc = doc(firestore, 'pushUsers', token);
 
+    const meetingTimesObj = {
+      morning: meetingTimes.morning || '04:30',
+      midday: meetingTimes.midday || '12:00',
+      evening: meetingTimes.evening || '18:00',
+    };
+
     await setDoc(userDoc, {
-      meetingTimes: {
-        morning: meetingTimes.morning || '04:30',
-        midday: meetingTimes.midday || '12:00',
-        evening: meetingTimes.evening || '18:00',
-      },
+      meetingTimes: meetingTimesObj,
+      scheduledSlots: buildScheduledSlots(meetingTimesObj),  // cron 자리도 같이 갱신
       lastUpdated: new Date().toISOString(),
     }, { merge: true });
   } catch (err) {

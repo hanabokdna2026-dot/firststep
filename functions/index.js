@@ -51,17 +51,36 @@ exports.sendDailyReminders = onSchedule(
     const db = admin.firestore();
     const messaging = admin.messaging();
 
-    // 모든 푸시 사용자 가져오기
+    // 지금 cron 자리 — Asia/Seoul 짜임 (HH:MM)
+    // 짚어둘 자리: 사용자 시간대가 다 다를 수 있는데, 우리 짜임은 거의 다 한국 자리.
+    // 그래서 일단 Seoul 자리 기준으로 가져오고, 다른 시간대 사용자도 짚도록 짜임 둠.
+    const now = new Date();
+    const seoulNow = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(now);
+    let [seoulH, seoulM] = seoulNow.split(':').map(Number);
+    if (seoulH === 24) seoulH = 0;
+    // 30분 단위로 짜임 (cron이 :00 또는 :30에 도니까)
+    const slotM = seoulM < 30 ? 0 : 30;
+    const currentSlot = String(seoulH).padStart(2, '0') + ':' + String(slotM).padStart(2, '0');
+    console.log(`현재 cron 자리: ${currentSlot} (Asia/Seoul)`);
+
+    // scheduledSlots에 현재 자리가 들어 있는 사용자만 가져오기
+    // 이러면 매 cron마다 모든 사용자 짚지 않아도 되어 효율 높음
     const snapshot = await db.collection('pushUsers')
       .where('enabled', '==', true)
+      .where('scheduledSlots', 'array-contains', currentSlot)
       .get();
 
     if (snapshot.empty) {
-      console.log('푸시 받을 사용자 없음');
+      console.log(`이번 cron 자리에 닿는 사용자 없음 (${currentSlot})`);
       return;
     }
+    console.log(`사용자 ${snapshot.size}명 짚어봄`);
 
-    const now = new Date();
     let sentCount = 0;
     let invalidCount = 0;
 

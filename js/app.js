@@ -142,6 +142,18 @@ async function init() {
     }
   }
 
+  // 옛 사용자 자리 갈무리 — scheduledSlots이 없으면 자동 더해주기
+  // (옛 결로 알림 켜둔 사용자가 새 효율 짜임으로 짜이게)
+  if (Storage.isPushEnabled() && Storage.getPushToken()) {
+    try {
+      const { updateMeetingTimes } = await import('./push-notifications.js' + v);
+      // 백그라운드로 실행 (await 안 함 — 앱 시작 막지 않게)
+      updateMeetingTimes();
+    } catch (e) {
+      console.warn('푸시 자리 갱신 실패:', e);
+    }
+  }
+
   // 빈 해시면 적절한 자리로 — 이때 hash를 바꾸면 hashchange가 발생해 render가 호출됨
   // 그래서 직접 render() 호출은 안 함 (이중 호출 방지)
   if (!window.location.hash || window.location.hash === '#') {

@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "pushUsers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "enabled", "order": "ASCENDING" },
+        { "fieldPath": "scheduledSlots", "arrayConfig": "CONTAINS" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

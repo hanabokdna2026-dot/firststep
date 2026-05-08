@@ -6,5 +6,8 @@
       "runtime": "nodejs20",
       "ignore": ["node_modules", ".git", "*.log"]
     }
-  ]
+  ],
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  }
 }
