@@ -84,22 +84,32 @@ exports.sendDailyReminders = onSchedule(
       if (userHour === 24) userHour = 0;
 
       const userMinutesNow = userHour * 60 + userMin;
+      console.log(`사용자 ${token.substring(0, 10)}... 시간 점검: 현재=${userNow}, 약속=${JSON.stringify(meetingTimes)}`);
 
-      // 어떤 세션이 지금인지 점검 (15분 안 자리면 발송)
+      // 어떤 세션이 지금인지 점검
+      // cron이 30분 단위로 돌아가니까 — 약속 시간 ±15분 안이면 발송
+      // (가장 가까운 cron 실행 자리 한 번만 돌도록)
       let sessionToSend = null;
+      let smallestDiff = 999;
       for (const [session, time] of Object.entries(meetingTimes)) {
         if (!time) continue;
         const [h, m] = time.split(':').map(Number);
         const sessionMinutes = h * 60 + m;
-        const diff = userMinutesNow - sessionMinutes;
-        // 0~30분 안이면 발송 (30분 cron이라 어긋날 수 있어서 여유 둠)
-        if (diff >= 0 && diff < 30) {
+        // 하루 자리 고려 (자정 자리 짚음)
+        let diff = Math.abs(userMinutesNow - sessionMinutes);
+        if (diff > 720) diff = 1440 - diff;  // 자정 짜임
+        // ±15분 안이면 그 세션
+        if (diff <= 15 && diff < smallestDiff) {
           sessionToSend = session;
-          break;
+          smallestDiff = diff;
         }
       }
 
-      if (!sessionToSend) return;
+      if (!sessionToSend) {
+        console.log(`  → 푸시 건너뜀 (가까운 약속 시간 없음)`);
+        return;
+      }
+      console.log(`  → ${sessionToSend} 세션 푸시 보냄`);
 
       // 푸시 보내기
       const msg = pickMessage(sessionToSend);
