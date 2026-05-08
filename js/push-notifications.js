@@ -141,7 +141,7 @@ export async function enablePushNotifications() {
     Storage.setPushToken(token);
 
     // Firestore에 토큰 + 약속 시간 저장
-    const meetingTimes = Storage.getMeetingTimes();
+    const meetingTimes = Storage.getNotifyTimes();
     const userName = Storage.getUserName() || '';
     const userDoc = doc(firestore, 'pushUsers', token);
 
@@ -203,7 +203,7 @@ export async function updateMeetingTimes() {
   try {
     const { firestore } = await ensureFirebase();
     const { doc, setDoc } = ensureFirebase._helpers;
-    const meetingTimes = Storage.getMeetingTimes();
+    const meetingTimes = Storage.getNotifyTimes();
     const userDoc = doc(firestore, 'pushUsers', token);
 
     await setDoc(userDoc, {
