@@ -97,14 +97,40 @@ export async function enablePushNotifications() {
     const { messaging, firestore } = await ensureFirebase();
     const { getToken, doc, setDoc } = ensureFirebase._helpers;
 
-    // Service Worker 등록 (firebase-messaging-sw.js가 자동으로 등록되도록)
-    const swRegistration = await navigator.serviceWorker.ready;
+    // Firebase Messaging Service Worker 따로 등록
+    // (앱 메인 SW와 별도 — Firebase가 이걸 통해서 백그라운드 푸시 받음)
+    const fbSwUrl = './firebase-messaging-sw.js';
+    let swRegistration;
+    try {
+      swRegistration = await navigator.serviceWorker.register(fbSwUrl, {
+        scope: './firebase-cloud-messaging-push-scope',
+      });
+      // 활성화 기다리기
+      if (swRegistration.installing || swRegistration.waiting) {
+        await new Promise((resolve) => {
+          const check = () => {
+            if (swRegistration.active) resolve();
+            else setTimeout(check, 100);
+          };
+          check();
+        });
+      }
+    } catch (swErr) {
+      console.error('Firebase SW 등록 실패:', swErr);
+      return { success: false, message: '알림 자리를 만들지 못했어요. (SW 등록 실패: ' + swErr.message + ')' };
+    }
 
     // FCM 토큰 받기
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: swRegistration,
-    });
+    let token;
+    try {
+      token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: swRegistration,
+      });
+    } catch (tokenErr) {
+      console.error('토큰 받기 실패:', tokenErr);
+      return { success: false, message: '알림 자리를 받지 못했어요. (' + tokenErr.message + ')' };
+    }
 
     if (!token) {
       return { success: false, message: '알림 자리를 받지 못했어요. 잠시 후 다시 시도해 주세요.' };

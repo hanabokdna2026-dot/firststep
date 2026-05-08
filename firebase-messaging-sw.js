@@ -28,8 +28,8 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title, {
     body: body,
-    icon: '/firststep/icons/icon-192.png',
-    badge: '/firststep/icons/icon-72.png',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-72.png',
     tag: 'firststep-meeting',
     data: payload.data || {},
   });
@@ -38,17 +38,18 @@ messaging.onBackgroundMessage((payload) => {
 // 알림 누르면 앱 열기
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = self.registration.scope.replace(/firebase-cloud-messaging-push-scope\/?$/, '');
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientList) => {
       // 이미 열린 자리가 있으면 그 자리로
       for (const client of clientList) {
-        if (client.url.includes('/firststep') && 'focus' in client) {
+        if (client.url.startsWith(targetUrl) && 'focus' in client) {
           return client.focus();
         }
       }
       // 없으면 새로 열기
       if (clients.openWindow) {
-        return clients.openWindow('/firststep/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
