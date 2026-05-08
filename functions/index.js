@@ -71,6 +71,7 @@ exports.sendDailyReminders = onSchedule(
       const token = data.token;
       const meetingTimes = data.meetingTimes || {};
       const userTimezone = data.timezone || 'Asia/Seoul';
+      const lastSent = data.lastSent || {};  // { morning: ISO, midday: ISO, evening: ISO }
 
       // 사용자 시간대 기준으로 현재 시각 (HH:MM)
       const userNow = new Intl.DateTimeFormat('en-US', {
@@ -109,6 +110,19 @@ exports.sendDailyReminders = onSchedule(
         console.log(`  → 푸시 건너뜀 (가까운 약속 시간 없음)`);
         return;
       }
+
+      // 같은 세션을 옛에 보낸 적 있으면 — 22시간 안이면 또 안 보냄
+      // (하루에 한 번씩만 같은 세션 푸시 가도록)
+      const lastSentForSession = lastSent[sessionToSend];
+      if (lastSentForSession) {
+        const lastTime = new Date(lastSentForSession).getTime();
+        const hoursAgo = (now.getTime() - lastTime) / (1000 * 60 * 60);
+        if (hoursAgo < 22) {
+          console.log(`  → ${sessionToSend} 세션 푸시 건너뜀 (옛에 ${hoursAgo.toFixed(1)}시간 전에 보냄)`);
+          return;
+        }
+      }
+
       console.log(`  → ${sessionToSend} 세션 푸시 보냄`);
 
       // 푸시 보내기
@@ -130,6 +144,11 @@ exports.sendDailyReminders = onSchedule(
           },
         });
         sentCount++;
+
+        // 마지막 보낸 시간 저장 (다음 cron 자리에 같은 자리 두 번 안 보내게)
+        await docSnap.ref.update({
+          [`lastSent.${sessionToSend}`]: now.toISOString(),
+        });
       } catch (err) {
         // 토큰 무효 — 사용자가 알림 끄거나 앱 지움
         if (err.code === 'messaging/registration-token-not-registered'
