@@ -38,14 +38,16 @@ function pickMessage(sessionType) {
 
 // ========================================
 // 매 시간 실행되는 cron job
+// 갱신: 2026-05-08 — Cloud Scheduler 자리 강제 재짜임
 // ========================================
 exports.sendDailyReminders = onSchedule(
   {
-    schedule: 'every 30 minutes',  // 30분마다 — 30분 단위 정확도
+    schedule: 'every 30 minutes',
     timeZone: 'Asia/Seoul',
     region: 'asia-northeast3',
   },
   async (event) => {
+    console.log('sendDailyReminders 실행 시작:', new Date().toISOString());
     const db = admin.firestore();
     const messaging = admin.messaging();
 
