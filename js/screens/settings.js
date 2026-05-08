@@ -75,7 +75,7 @@ export default function renderSettings({ navigateTo }) {
       <!-- 만날 시간 -->
       <div class="settings-section">
         <p class="settings-section-label">만날 시간</p>
-        <p class="settings-section-hint">매일 그분과 만날 자리의 시간이에요.<br/>직접 휴대폰의 알람이나 캘린더에 약속을 적어두시면 좋아요.</p>
+        <p class="settings-section-hint">매일 그분과 만날 자리의 시간이에요.</p>
 
         <div class="time-row-v2">
           <p class="time-row-label">아침</p>
@@ -90,6 +90,16 @@ export default function renderSettings({ navigateTo }) {
         <div class="time-row-v2">
           <p class="time-row-label">저녁</p>
           <input type="time" class="time-input-v2" id="input-evening" value="${notifyTimes.evening}"/>
+        </div>
+      </div>
+
+      <!-- 푸시 알림 -->
+      <div class="settings-section" id="push-section">
+        <p class="settings-section-label">알림</p>
+        <p class="settings-section-hint">약속한 시간에 부드럽게 알려드릴게요.</p>
+
+        <div id="push-status">
+          <p class="push-status-loading">자리 살펴보는 중...</p>
         </div>
       </div>
 
@@ -184,6 +194,15 @@ export default function renderSettings({ navigateTo }) {
     }
 
     showToast(screen, '저장되었어요');
+
+    // 푸시 켜져 있으면 약속 시간을 Firestore에도 갱신 (백그라운드로)
+    if (Storage.isPushEnabled()) {
+      try {
+        const { updateMeetingTimes } = await import('../push-notifications.js');
+        updateMeetingTimes();  // await 안 함 — 백그라운드로 진행
+      } catch (e) { /* 무시 */ }
+    }
+
     setTimeout(() => navigateTo('#home'), 800);
   });
 
@@ -205,7 +224,79 @@ export default function renderSettings({ navigateTo }) {
     });
   });
 
+  // 푸시 알림 자리 짜임 — 비동기로 진행
+  setupPushSection(screen);
+
   return screen;
+}
+
+/**
+ * 푸시 알림 자리 짜임 — 현재 상태 점검 + 켜고 끄기 버튼
+ */
+async function setupPushSection(screen) {
+  const statusDiv = screen.querySelector('#push-status');
+  if (!statusDiv) return;
+
+  try {
+    const { isPushSupported, getNotificationPermission, enablePushNotifications, disablePushNotifications } =
+      await import('../push-notifications.js');
+
+    if (!isPushSupported()) {
+      statusDiv.innerHTML = '<p class="push-status-message">이 브라우저는 알림을 지원하지 않아요.</p>';
+      return;
+    }
+
+    const renderState = () => {
+      const enabled = Storage.isPushEnabled();
+      const permission = getNotificationPermission();
+
+      if (enabled && permission === 'granted') {
+        statusDiv.innerHTML = `
+          <div class="push-on-row">
+            <span class="push-on-icon">🔔</span>
+            <span class="push-on-text">알림이 켜져 있어요</span>
+          </div>
+          <button class="push-toggle-btn push-off-btn" id="btn-push-off">알림 끄기</button>
+        `;
+        statusDiv.querySelector('#btn-push-off').addEventListener('click', async () => {
+          statusDiv.innerHTML = '<p class="push-status-loading">알림을 끄는 중...</p>';
+          await disablePushNotifications();
+          renderState();
+        });
+      } else if (permission === 'denied') {
+        statusDiv.innerHTML = `
+          <p class="push-status-message">알림이 차단되어 있어요.<br/>휴대폰 설정에서 알림 허용으로 바꿔주세요.</p>
+        `;
+      } else {
+        statusDiv.innerHTML = `
+          <button class="push-toggle-btn push-on-btn" id="btn-push-on">알림 켜기</button>
+          <p class="push-status-hint">아침·낮·저녁 약속하신 시간에 부드럽게 알려드릴게요.</p>
+        `;
+        statusDiv.querySelector('#btn-push-on').addEventListener('click', async () => {
+          statusDiv.innerHTML = '<p class="push-status-loading">알림을 켜는 중...</p>';
+          // 만약 사용자가 시간을 입력한 채 아직 저장 안 했으면 — 먼저 저장
+          Storage.setNotifyTimes({
+            morning: screen.querySelector('#input-morning').value,
+            midday: screen.querySelector('#input-midday').value,
+            evening: screen.querySelector('#input-evening').value,
+          });
+          const result = await enablePushNotifications();
+          if (result.success) {
+            renderState();
+            showToast(screen, result.message);
+          } else {
+            renderState();
+            alert(result.message);
+          }
+        });
+      }
+    };
+
+    renderState();
+  } catch (err) {
+    console.warn('푸시 자리 짜임 실패:', err);
+    statusDiv.innerHTML = '<p class="push-status-message">알림 자리를 만들지 못했어요.</p>';
+  }
 }
 
 // 짧은 토스트 메시지

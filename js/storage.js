@@ -28,6 +28,10 @@ const STORAGE_KEYS = {
   // 잠잠히 머무는 동안 자연의 소리 — 기본 켜짐 ('on' | 'off')
   NATURE_SOUND: 'firststep:natureSound',
 
+  // 푸시 알림 자리
+  PUSH_ENABLED: 'firststep:pushEnabled',  // 'true' | 'false'
+  PUSH_TOKEN: 'firststep:pushToken',       // FCM 토큰
+
   // 마지막으로 속도 확인한 과 (이 과가 현재 과보다 작으면 새 과 시작이라 속도 묻기)
   LAST_PACE_CHECK_LESSON: 'firststep:lastPaceCheckLesson',
 
@@ -152,6 +156,26 @@ const Storage = {
   },
   setNatureSoundOn(on) {
     localStorage.setItem(STORAGE_KEYS.NATURE_SOUND, on ? 'on' : 'off');
+  },
+
+  // 푸시 알림 — 기본 꺼짐
+  isPushEnabled() {
+    return localStorage.getItem(STORAGE_KEYS.PUSH_ENABLED) === 'true';
+  },
+  setPushEnabled(enabled) {
+    localStorage.setItem(STORAGE_KEYS.PUSH_ENABLED, enabled ? 'true' : 'false');
+  },
+
+  // FCM 토큰
+  getPushToken() {
+    return localStorage.getItem(STORAGE_KEYS.PUSH_TOKEN) || '';
+  },
+  setPushToken(token) {
+    if (token) {
+      localStorage.setItem(STORAGE_KEYS.PUSH_TOKEN, token);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.PUSH_TOKEN);
+    }
   },
 
   // 마지막 속도 확인한 과

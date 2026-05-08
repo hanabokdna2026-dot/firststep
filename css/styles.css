@@ -2451,6 +2451,69 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   margin-top: 8px;
 }
 
+/* ==========================================
+   푸시 알림 자리
+   ========================================== */
+.push-status-loading,
+.push-status-message,
+.push-status-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.push-on-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(186, 117, 23, 0.08);
+  border: 1px solid rgba(186, 117, 23, 0.2);
+  border-radius: var(--radius-sm);
+  margin: 12px 0;
+}
+
+.push-on-icon {
+  font-size: 16px;
+}
+
+.push-on-text {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.push-toggle-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  margin: 12px 0 8px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s;
+}
+
+.push-toggle-btn:hover {
+  opacity: 0.85;
+}
+
+.push-on-btn {
+  background: var(--accent);
+  color: white;
+}
+
+.push-off-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-mid);
+  margin-top: 4px;
+}
+
 .settings-divider {
   height: 0.5px;
   background: var(--border-mid);
