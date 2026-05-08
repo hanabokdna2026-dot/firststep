@@ -1,0 +1,46 @@
+# 풍성한 첫걸음 자동 배포
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node.js 자리 짜기
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 의존성 설치
+        working-directory: functions
+        run: npm install
+      - name: Firebase CLI 설치
+        run: npm install -g firebase-tools
+      - name: Service Account 자리 만들기
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase-key.json
+      - name: Cloud Functions 배포
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /home/runner/firebase-key.json
+        run: firebase deploy --only functions --project firststep-app-73a1c --non-interactive
+      - name: Service Account 자리 정리
+        if: always()
+        run: rm -f $HOME/firebase-key.json
