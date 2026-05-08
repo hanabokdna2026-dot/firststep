@@ -41,7 +41,15 @@ export default function renderNotify({ navigateTo }) {
         </div>
       </div>
 
-      <p class="subtle" style="margin-bottom: 28px;">시간을 누르면 바꿀 수 있어요.<br/>직접 휴대폰의 알람이나 캘린더에<br/>약속을 적어두시면 좋아요.</p>
+      <!-- 알림 켜기 자리 -->
+      <div class="notify-push-card" id="push-card">
+        <p class="notify-push-title">🔔 알림 받기</p>
+        <p class="notify-push-body">약속하신 시간에 부드럽게 알려드릴게요.</p>
+        <button class="btn btn-narrow" id="btn-enable-push">알림 켜기</button>
+        <p class="notify-push-hint">나중에 설정에서 끄거나 갈무리할 수 있어요.</p>
+      </div>
+
+      <p class="subtle" style="margin-bottom: 28px;">시간을 누르면 바꿀 수 있어요.<br/>휴대폰의 알람이나 캘린더에 따로<br/>약속을 적어두셔도 좋아요.</p>
 
       <button class="btn" id="btn-start">시작할게요</button>
     </div>
@@ -58,6 +66,9 @@ export default function renderNotify({ navigateTo }) {
     });
   });
 
+  // 알림 켜기 버튼 자리 짜임
+  setupPushButton(screen, currentTimes);
+
   // 시작 버튼
   screen.querySelector('#btn-start').addEventListener('click', () => {
     Storage.setNotifyTimes(currentTimes);
@@ -67,4 +78,70 @@ export default function renderNotify({ navigateTo }) {
   });
 
   return screen;
+}
+
+/**
+ * 알림 켜기 버튼 자리 — 사용자가 알림 켰는지 살펴보고 보여주기
+ */
+async function setupPushButton(screen, currentTimes) {
+  const card = screen.querySelector('#push-card');
+  if (!card) return;
+
+  try {
+    const { isPushSupported, getNotificationPermission, enablePushNotifications } =
+      await import('../push-notifications.js');
+
+    if (!isPushSupported()) {
+      // 푸시 자체를 못 받는 자리 — 카드 숨기기
+      card.style.display = 'none';
+      return;
+    }
+
+    const renderState = () => {
+      const enabled = Storage.isPushEnabled();
+      const permission = getNotificationPermission();
+
+      if (enabled && permission === 'granted') {
+        card.innerHTML = `
+          <p class="notify-push-title">🔔 알림이 켜져 있어요</p>
+          <p class="notify-push-body">약속하신 시간에 부드럽게 알려드릴게요.</p>
+        `;
+      } else if (permission === 'denied') {
+        card.innerHTML = `
+          <p class="notify-push-title">🔔 알림 받기</p>
+          <p class="notify-push-body">알림이 차단되어 있어요.<br/>휴대폰 설정에서 알림을 허용해 주세요.</p>
+        `;
+      } else {
+        // 기본 자리 — 켜기 버튼
+        card.innerHTML = `
+          <p class="notify-push-title">🔔 알림 받기</p>
+          <p class="notify-push-body">약속하신 시간에 부드럽게 알려드릴게요.</p>
+          <button class="btn btn-narrow" id="btn-enable-push">알림 켜기</button>
+          <p class="notify-push-hint">나중에 설정에서 끄거나 갈무리할 수 있어요.</p>
+        `;
+        const btn = card.querySelector('#btn-enable-push');
+        btn.addEventListener('click', async () => {
+          // 사용자가 입력한 시간을 미리 저장 (alarm 짜임에 같이 보내기 위해)
+          Storage.setNotifyTimes(currentTimes);
+
+          btn.disabled = true;
+          btn.textContent = '알림 켜는 중...';
+          const result = await enablePushNotifications();
+
+          if (result.success) {
+            renderState();  // 켜진 자리로 갈무리
+          } else {
+            btn.disabled = false;
+            btn.textContent = '알림 켜기';
+            alert(result.message);
+          }
+        });
+      }
+    };
+
+    renderState();
+  } catch (err) {
+    console.warn('알림 자리 짜임 실패:', err);
+    card.style.display = 'none';
+  }
 }
