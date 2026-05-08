@@ -97,27 +97,16 @@ export async function enablePushNotifications() {
     const { messaging, firestore } = await ensureFirebase();
     const { getToken, doc, setDoc } = ensureFirebase._helpers;
 
-    // Firebase Messaging Service Worker 따로 등록
-    // (앱 메인 SW와 별도 — Firebase가 이걸 통해서 백그라운드 푸시 받음)
-    const fbSwUrl = './firebase-messaging-sw.js';
+    // 메인 SW 자리 받기 (sw.js에 Firebase 짜임이 같이 들어 있음)
     let swRegistration;
     try {
-      swRegistration = await navigator.serviceWorker.register(fbSwUrl, {
-        scope: './firebase-cloud-messaging-push-scope',
-      });
-      // 활성화 기다리기
-      if (swRegistration.installing || swRegistration.waiting) {
-        await new Promise((resolve) => {
-          const check = () => {
-            if (swRegistration.active) resolve();
-            else setTimeout(check, 100);
-          };
-          check();
-        });
+      swRegistration = await navigator.serviceWorker.ready;
+      if (!swRegistration) {
+        throw new Error('Service Worker가 등록되어 있지 않아요');
       }
     } catch (swErr) {
-      console.error('Firebase SW 등록 실패:', swErr);
-      return { success: false, message: '알림 자리를 만들지 못했어요. (SW 등록 실패: ' + swErr.message + ')' };
+      console.error('Service Worker 자리 받기 실패:', swErr);
+      return { success: false, message: '알림 자리를 만들지 못했어요. (SW 자리 받기 실패: ' + swErr.message + ')' };
     }
 
     // FCM 토큰 받기
