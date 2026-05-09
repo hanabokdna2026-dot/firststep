@@ -32,16 +32,18 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // 백그라운드에서 푸시 받음
+// data로 보내는 짜임이라 notification 자리 안 들어옴 — data에서 title/body 가져옴
 messaging.onBackgroundMessage((payload) => {
   console.log('[sw.js] 백그라운드 푸시 받음:', payload);
-  const title = payload.notification?.title || '풍성한 첫걸음';
-  const body = payload.notification?.body || '오늘의 자리에 오세요.';
+  const data = payload.data || {};
+  const title = data.title || '풍성한 첫걸음';
+  const body = data.body || '오늘의 자리에 오세요.';
   self.registration.showNotification(title, {
     body: body,
     icon: './icons/icon-192.png',
     badge: './icons/icon-72.png',
     tag: 'firststep-meeting',
-    data: payload.data || {},
+    data: data,
   });
 });
 
@@ -63,7 +65,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_VERSION = 'firststep-v24';
+const CACHE_VERSION = 'firststep-v25';
 const APP_SHELL = [
   './',
   './index.html',

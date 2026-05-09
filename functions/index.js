@@ -42,7 +42,7 @@ function pickMessage(sessionType) {
 // ========================================
 exports.sendDailyReminders = onSchedule(
   {
-    schedule: 'every 30 minutes',
+    schedule: 'every 1 minutes',  // 1분마다 — 약속 시간 정확히 짚기
     timeZone: 'Asia/Seoul',
     region: 'asia-northeast3',
   },
@@ -63,9 +63,8 @@ exports.sendDailyReminders = onSchedule(
     }).format(now);
     let [seoulH, seoulM] = seoulNow.split(':').map(Number);
     if (seoulH === 24) seoulH = 0;
-    // 30분 단위로 짜임 (cron이 :00 또는 :30에 도니까)
-    const slotM = seoulM < 30 ? 0 : 30;
-    const currentSlot = String(seoulH).padStart(2, '0') + ':' + String(slotM).padStart(2, '0');
+    // 1분 단위 짜임 (cron이 매 분에 돔)
+    const currentSlot = String(seoulH).padStart(2, '0') + ':' + String(seoulM).padStart(2, '0');
     console.log(`현재 cron 자리: ${currentSlot} (Asia/Seoul)`);
 
     // scheduledSlots에 현재 자리가 들어 있는 사용자만 가져오기
@@ -76,7 +75,7 @@ exports.sendDailyReminders = onSchedule(
       .get();
 
     if (snapshot.empty) {
-      console.log(`이번 cron 자리에 닿는 사용자 없음 (${currentSlot})`);
+      // 1분마다 도니까 — 닿는 사용자 없는 게 보통. 로그 안 짜두 됨.
       return;
     }
     console.log(`사용자 ${snapshot.size}명 짚어봄`);
@@ -99,34 +98,28 @@ exports.sendDailyReminders = onSchedule(
         minute: '2-digit',
         hour12: false,
       }).format(now);
-      // userNow는 "HH:MM" 형식 (또는 "24:MM" → "00:MM")
       let [userHour, userMin] = userNow.split(':').map(Number);
       if (userHour === 24) userHour = 0;
 
       const userMinutesNow = userHour * 60 + userMin;
-      console.log(`사용자 ${token.substring(0, 10)}... 시간 점검: 현재=${userNow}, 약속=${JSON.stringify(meetingTimes)}`);
+      console.log(`사용자 ${token.substring(0, 10)}... 현재=${userNow}, 약속=${JSON.stringify(meetingTimes)}`);
 
       // 어떤 세션이 지금인지 점검
-      // cron이 30분 단위로 돌아가니까 — 약속 시간 ±15분 안이면 발송
-      // (가장 가까운 cron 실행 자리 한 번만 돌도록)
+      // cron이 1분 단위로 도니까 — 정확히 그 시간일 때 한 번만 보냄
       let sessionToSend = null;
-      let smallestDiff = 999;
       for (const [session, time] of Object.entries(meetingTimes)) {
         if (!time) continue;
         const [h, m] = time.split(':').map(Number);
         const sessionMinutes = h * 60 + m;
-        // 하루 자리 고려 (자정 자리 짚음)
-        let diff = Math.abs(userMinutesNow - sessionMinutes);
-        if (diff > 720) diff = 1440 - diff;  // 자정 짜임
-        // ±15분 안이면 그 세션
-        if (diff <= 15 && diff < smallestDiff) {
+        // 정확히 같은 분(分)이면 그 세션
+        if (sessionMinutes === userMinutesNow) {
           sessionToSend = session;
-          smallestDiff = diff;
+          break;
         }
       }
 
       if (!sessionToSend) {
-        console.log(`  → 푸시 건너뜀 (가까운 약속 시간 없음)`);
+        console.log(`  → 푸시 건너뜀 (지금 시각 약속 시간 아님)`);
         return;
       }
 
@@ -145,16 +138,17 @@ exports.sendDailyReminders = onSchedule(
       console.log(`  → ${sessionToSend} 세션 푸시 보냄`);
 
       // 푸시 보내기
+      // 짚어둘 자리: notification 자리는 빼고 data로만 보냄.
+      // notification이 들어 있으면 — 브라우저가 자동으로 알림 한 번 + 우리 SW가 또 한 번 짜서
+      // 알림이 두 번 떠는 짚음이 있어요. 우리 SW가 알아서 처리하니까 data만 보냄.
       const msg = pickMessage(sessionToSend);
       try {
         await messaging.send({
           token: token,
-          notification: {
-            title: msg.title,
-            body: msg.body,
-          },
           data: {
             sessionType: sessionToSend,
+            title: msg.title,
+            body: msg.body,
           },
           webpush: {
             fcmOptions: {
@@ -164,7 +158,7 @@ exports.sendDailyReminders = onSchedule(
         });
         sentCount++;
 
-        // 마지막 보낸 시간 저장 (다음 cron 자리에 같은 자리 두 번 안 보내게)
+        // 마지막 보낸 시간 저장 (혹시 짜임으로 두 번 도는 자리 짚어둠)
         await docSnap.ref.update({
           [`lastSent.${sessionToSend}`]: now.toISOString(),
         });

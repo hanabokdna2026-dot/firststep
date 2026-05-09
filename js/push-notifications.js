@@ -13,53 +13,23 @@ let messaging = null;
 let firestore = null;
 
 /**
- * 약속 시간을 cron이 도는 30분 단위로 변환
+ * 약속 시간 → cron이 짚는 자리들
  *
- * 예) "04:30" → ["04:30"]                  (정확히 닿음)
- *     "04:35" → ["04:30"]                  (5분 차이 → 04:30이 가까움)
- *     "04:50" → ["05:00"]                  (10분 차이 → 05:00이 가까움)
- *     "04:45" → ["04:30", "05:00"]         (둘 다 ±15)
- *     "14:46" → ["15:00"]                  (14분 차이 → 15:00만 ±15)
- *     "00:05" → ["00:00"]                  (5분 차이)
- *     "23:50" → ["00:00"]                  (자정 짚어둠)
+ * cron이 1분마다 도니까 — 약속 시간 그 자체가 자리.
+ * 예) "04:30" → ["04:30"]
+ *     "14:23" → ["14:23"]
  *
- * cron이 30분에 한 번 도니까, ±15분 안의 30분 자리들을 다 더함.
+ * 짜임 결로 그저 약속 시간을 정규화해서 돌려줌.
  *
  * @param {string} time HH:MM 짜임
- * @returns {string[]} 닿는 cron 자리들 (HH:MM 짜임)
+ * @returns {string[]} 닿는 cron 자리들
  */
 function timeToSlots(time) {
   if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return [];
   const [h, m] = time.split(':').map(Number);
-  const userMin = h * 60 + m;
-  const slots = [];
-
-  // 30분 단위 모든 자리들을 짚어보고 — ±15 안에 들어오면 더함
-  // 옛 30분, 그 다음 30분 — 두 자리만 살펴봐도 됨
-  // 약속 시간을 둘러싼 30분 자리들:
-  //   바로 옛 30분 자리: floor(userMin / 30) * 30
-  //   그 다음 30분 자리: 옛 + 30
-  const flooredSlot = Math.floor(userMin / 30) * 30;
-  const candidates = [flooredSlot, flooredSlot + 30];
-
-  for (const slotMin of candidates) {
-    let slotMinNorm = slotMin;
-    while (slotMinNorm < 0) slotMinNorm += 1440;
-    while (slotMinNorm >= 1440) slotMinNorm -= 1440;
-
-    // 약속 시간과의 차이 (자정 짚어둠)
-    let diff = Math.abs(slotMinNorm - userMin);
-    if (diff > 720) diff = 1440 - diff;
-
-    if (diff <= 15) {
-      const slotH = Math.floor(slotMinNorm / 60);
-      const slotMM = slotMinNorm % 60;
-      const slotStr = String(slotH).padStart(2, '0') + ':' + String(slotMM).padStart(2, '0');
-      if (!slots.includes(slotStr)) slots.push(slotStr);
-    }
-  }
-
-  return slots;
+  // 짜임 정규화 (예: "4:30" → "04:30")
+  const slotStr = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  return [slotStr];
 }
 
 /**
