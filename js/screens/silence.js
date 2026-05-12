@@ -2,7 +2,7 @@
  * 잠잠히 머물기
  *
  * URL: #silence/:type
- *   :type = morning | evening (낮은 잠잠히 없음)
+ *   :type = morning | midday (저녁은 잠잠히 머물기 없음 — 묵상 단계 위함)
  *
  * 한 화면 안에서 세 상태를 전환:
  *   1. setup    — 시간 설정 (기본 시간은 과별로 다름, ± 30초씩 조정 가능)
@@ -17,7 +17,10 @@
  *   - 1~6과: 1분 (60초)
  *   - 7~8과: 2분 (120초)
  *   - 9~10과: 3분 (180초)
- *   저녁 머무름은 lessons.json의 silenceSeconds로 차등 적용 (10~30초)
+ * 낮 머무름 기본 시간 (과별 차등, 아침보다 살짝 짧게):
+ *   - 1~6과: 1분 (60초)
+ *   - 7~8과: 1분 30초 (90초)
+ *   - 9~10과: 2분 (120초)
  */
 
 import Storage from '../storage.js';
@@ -30,6 +33,13 @@ const SILENCE_MAX = 600;              // 최대 10분
 function getMorningSilenceDefault(lessonId) {
   if (lessonId >= 9) return 180;  // 9·10과: 3분
   if (lessonId >= 7) return 120;  // 7·8과: 2분
+  return 60;                      // 1~6과: 1분
+}
+
+// 낮 머무름 기본 시간 — 아침보다 살짝 짧게 (한낮 짬에 잠잠히 머무는 자리)
+function getMiddaySilenceDefault(lessonId) {
+  if (lessonId >= 9) return 120;  // 9·10과: 2분
+  if (lessonId >= 7) return 90;   // 7·8과: 1분 30초
   return 60;                      // 1~6과: 1분
 }
 
@@ -159,10 +169,15 @@ export default function renderSilence({ navigateTo, param, extra }) {
 
   // 상태
   let state = 'setup';        // setup | preparing | counting | done
-  // 아침 머무름 — 과별로 다른 기본 시간 / 저녁 머무름 — 1분 (저녁은 lessons.json silenceSeconds로 별도 처리됨)
-  let totalSeconds = sessionType === 'morning'
-    ? getMorningSilenceDefault(lessonId)
-    : 60;
+  // 머무름 시간 — 과별·세션별 차등
+  let totalSeconds;
+  if (sessionType === 'morning') {
+    totalSeconds = getMorningSilenceDefault(lessonId);
+  } else if (sessionType === 'midday') {
+    totalSeconds = getMiddaySilenceDefault(lessonId);
+  } else {
+    totalSeconds = 60;  // 안전 결 (혹시 다른 타입이 들어오면)
+  }
   let remainingSeconds = totalSeconds;
   let overflowSeconds = 0;     // 마침 종 후 +로 흐르는 시간
   let bellRang = false;        // 마침 종 한 번 울렸는지 (중복 방지)

@@ -7,10 +7,10 @@
  * 한 모듈로 세 세션 타입 다 처리. 세션 타입에 따라 다른 콘텐츠 보여줌.
  *
  * 아침: 본문 + 마음에 머물기 + 한 마디 기도 → "잠잠히 머물기"
- * 낮: 단락 본문 + 흘려 읽기 안내 → "읽었어요"
- * 저녁: 다시 그 말씀 + 하루 돌아보기 + 한 마디 기도 → "잠잠히 머물기"
+ * 낮: 한 절(또는 단락) 본문 + 머물기 안내 → "잠잠히 머물기"
+ * 저녁: 다시 그 말씀 + 하루 돌아보기 + 한 마디 기도 → "마침" (잠잠히 머물기 없음)
  *
- * 잠잠히는 5단계에서. 일단 임시로 마침 화면으로.
+ * 잠잠히 머물기는 아침과 낮 자리에만 짜임 — 묵상 단계 위함.
  */
 
 import Storage from '../storage.js';
@@ -366,7 +366,7 @@ function renderKeyVerseMidday(screen, navigateTo, day, lessonId, dayIndex, isOve
         >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
       ` : ''}
 
-      <button class="btn read-cta" id="btn-next">머물렀어요</button>
+      <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
@@ -385,7 +385,7 @@ function renderKeyVerseMidday(screen, navigateTo, day, lessonId, dayIndex, isOve
 
   // 머물렀어요 → 마침 화면
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
   });
 
   return screen;
@@ -438,7 +438,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
         >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
       ` : ''}
 
-      <button class="btn read-cta" id="btn-next">읽었어요</button>
+      <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
@@ -457,7 +457,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
 
   // 읽었어요 → 마침 화면 (한 마디 기도 저장)
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
   });
 
   return screen;
@@ -567,7 +567,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
       saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
     });
     screen.querySelector('#btn-next').addEventListener('click', () => {
-      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
     });
     return screen;
   }
@@ -619,7 +619,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
           >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">여기까지 읽었어요</button>
+        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
     `;
 
@@ -658,7 +658,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     screen.querySelector('#btn-next').addEventListener('click', () => {
       const r = calcRange(currentSize);
       Storage.setReadingProgress(book, chapter, r.end);
-      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
     });
   }
 
@@ -803,7 +803,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
+        <button class="btn read-cta" id="btn-next">마침</button>
       </div>
     `;
 
@@ -820,7 +820,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           Storage.setReadingChapter(book, nextChapter);
         }
       }
-      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
     });
     return screen;
   }
@@ -874,7 +874,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">여기까지 읽었어요</button>
+        <button class="btn read-cta" id="btn-next">마침</button>
       </div>
     `;
 
@@ -908,7 +908,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
     screen.querySelector('#btn-next').addEventListener('click', () => {
       const r = calcRange(currentSize);
       Storage.setReadingProgress(book, chapter, r.end);
-      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
     });
   }
 
@@ -1054,7 +1054,7 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
         spellcheck="false"
       >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
 
-      <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
+      <button class="btn read-cta" id="btn-next">마침</button>
     </div>
   `;
 
@@ -1078,7 +1078,7 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
 
   // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
+    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
   });
 
   return screen;
