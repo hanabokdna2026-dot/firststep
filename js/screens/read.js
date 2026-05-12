@@ -260,6 +260,41 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
       <div class="read-divider"></div>
 
+      ${morning.lordsPart && morning.lordsKeywords ? `
+        <!-- 5·6과 주기도 가이드 자리: 본문 묵상 다음, 기도문 적기 전 -->
+        <p class="read-section-label">주기도로 함께</p>
+        ${morning.lordsIntro ? `<p class="read-guide-body">${morning.lordsIntro}</p>` : ''}
+
+        <div class="read-lords-card">
+          <p class="read-lords-part">"${morning.lordsPart}"</p>
+
+          <div class="read-lords-keywords">
+            ${morning.lordsKeywords.map(kw => `
+              <div class="read-lords-keyword-row">
+                <span class="read-lords-keyword-key">${kw.key}</span>
+                <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          ${morning.lordsExample ? `
+            <p class="read-lords-example-label">예시 기도</p>
+            <p class="read-lords-example">"${morning.lordsExample}"</p>
+          ` : ''}
+        </div>
+
+        <textarea
+          class="read-prayer-input read-lords-input"
+          id="lords-input"
+          placeholder="${morning.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+
+        <div class="read-divider"></div>
+      ` : ''}
+
       <p class="read-section-label">하나님께 한 마디</p>
       ${morning.prayerLeadIn ? `<p class="read-guide-body">${morning.prayerLeadIn}</p>` : ''}
 
