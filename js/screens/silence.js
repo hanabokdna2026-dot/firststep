@@ -2,7 +2,7 @@
  * 잠잠히 머물기
  *
  * URL: #silence/:type
- *   :type = morning | midday (저녁은 잠잠히 머물기 없음 — 묵상 단계 위함)
+ *   :type = morning | midday | evening
  *
  * 한 화면 안에서 세 상태를 전환:
  *   1. setup    — 시간 설정 (기본 시간은 과별로 다름, ± 30초씩 조정 가능)
@@ -17,7 +17,7 @@
  *   - 1~6과: 1분 (60초)
  *   - 7~8과: 2분 (120초)
  *   - 9~10과: 3분 (180초)
- * 낮 머무름 기본 시간 (과별 차등, 아침보다 살짝 짧게):
+ * 낮·저녁 머무름 기본 시간 (과별 차등, 아침보다 살짝 짧게):
  *   - 1~6과: 1분 (60초)
  *   - 7~8과: 1분 30초 (90초)
  *   - 9~10과: 2분 (120초)
@@ -36,8 +36,8 @@ function getMorningSilenceDefault(lessonId) {
   return 60;                      // 1~6과: 1분
 }
 
-// 낮 머무름 기본 시간 — 아침보다 살짝 짧게 (한낮 짬에 잠잠히 머무는 자리)
-function getMiddaySilenceDefault(lessonId) {
+// 낮·저녁 머무름 기본 시간 — 아침보다 살짝 짧게 (짬에 잠잠히 머무는 자리)
+function getShortSilenceDefault(lessonId) {
   if (lessonId >= 9) return 120;  // 9·10과: 2분
   if (lessonId >= 7) return 90;   // 7·8과: 1분 30초
   return 60;                      // 1~6과: 1분
@@ -173,8 +173,8 @@ export default function renderSilence({ navigateTo, param, extra }) {
   let totalSeconds;
   if (sessionType === 'morning') {
     totalSeconds = getMorningSilenceDefault(lessonId);
-  } else if (sessionType === 'midday') {
-    totalSeconds = getMiddaySilenceDefault(lessonId);
+  } else if (sessionType === 'midday' || sessionType === 'evening') {
+    totalSeconds = getShortSilenceDefault(lessonId);
   } else {
     totalSeconds = 60;  // 안전 결 (혹시 다른 타입이 들어오면)
   }

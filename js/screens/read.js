@@ -6,11 +6,11 @@
  *
  * 한 모듈로 세 세션 타입 다 처리. 세션 타입에 따라 다른 콘텐츠 보여줌.
  *
- * 아침: 본문 + 마음에 머물기 + 한 마디 기도 → "잠잠히 머물기"
+ * 아침: 본문 + 마음에 머물기 + (주기도 가이드 — 5·6과) + 한 마디 기도 → "잠잠히 머물기"
  * 낮: 한 절(또는 단락) 본문 + 머물기 안내 → "잠잠히 머물기"
- * 저녁: 다시 그 말씀 + 하루 돌아보기 + 한 마디 기도 → "마침" (잠잠히 머물기 없음)
+ * 저녁: 다시 그 말씀 + 하루 돌아보기 + 한 마디 기도 → "잠잠히 머물기"
  *
- * 잠잠히 머물기는 아침과 낮 자리에만 짜임 — 묵상 단계 위함.
+ * 잠잠히 머물기는 세 자리 모두에 짜임 — 묵상 단계 위함.
  */
 
 import Storage from '../storage.js';
@@ -295,21 +295,24 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <div class="read-divider"></div>
       ` : ''}
 
-      <p class="read-section-label">하나님께 한 마디</p>
-      ${morning.prayerLeadIn ? `<p class="read-guide-body">${morning.prayerLeadIn}</p>` : ''}
+      ${!morning.lordsPart ? `
+        <!-- 주기도 가이드 자리 없을 때만 일반 기도 자리 짜기 (중복 안 짜이게) -->
+        <p class="read-section-label">하나님께 한 마디</p>
+        ${morning.prayerLeadIn ? `<p class="read-guide-body">${morning.prayerLeadIn}</p>` : ''}
 
-      <div class="read-prayer-example">
-        <p class="read-prayer-example-text">"${morning.prayerExample}"</p>
-      </div>
+        <div class="read-prayer-example">
+          <p class="read-prayer-example-text">"${morning.prayerExample}"</p>
+        </div>
 
-      <textarea
-        class="read-prayer-input"
-        id="prayer-input"
-        placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false"
-      >${Storage.getPrayer(lessonId, dayIndex, 'morning')}</textarea>
+        <textarea
+          class="read-prayer-input"
+          id="prayer-input"
+          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getPrayer(lessonId, dayIndex, 'morning')}</textarea>
+      ` : ''}
 
       <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
@@ -594,7 +597,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
           >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">마침</button>
+        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
     `;
 
@@ -838,7 +841,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">마침</button>
+        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
     `;
 
@@ -855,7 +858,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           Storage.setReadingChapter(book, nextChapter);
         }
       }
-      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
     });
     return screen;
   }
@@ -909,7 +912,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
         ` : ''}
 
-        <button class="btn read-cta" id="btn-next">마침</button>
+        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
     `;
 
@@ -943,7 +946,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
     screen.querySelector('#btn-next').addEventListener('click', () => {
       const r = calcRange(currentSize);
       Storage.setReadingProgress(book, chapter, r.end);
-      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
     });
   }
 
@@ -1089,7 +1092,7 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
         spellcheck="false"
       >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
 
-      <button class="btn read-cta" id="btn-next">마침</button>
+      <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
@@ -1113,7 +1116,7 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
 
   // 잠잠히 머물기 → silence 화면으로
   screen.querySelector('#btn-next').addEventListener('click', () => {
-    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#done/evening' + overridePath);
+    saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
   });
 
   return screen;
