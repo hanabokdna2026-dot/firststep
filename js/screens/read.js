@@ -171,10 +171,33 @@ export default async function renderRead({ navigateTo, param, extra }) {
   } else if (sessionType === 'midday') {
     return await renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   } else if (sessionType === 'evening') {
-    return renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+    return await renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   }
 
   return screen;
+}
+
+// ==========================================
+// 자료 결 헬퍼 — 옛(verses) / 새(passage 배열) 둘 다 짚어주기
+// ==========================================
+// 옛 결: day.verses = { saebeon: "한 절", gaeyeok: "한 절" }
+// 새 결: day.passage = { saebeon: ["절1", "절2", ...], gaeyeok: [...] }
+function renderVerseOrPassage(day, translation) {
+  // 옛 결 — 한 절 문자열
+  if (day.verses && day.verses[translation]) {
+    return `<p class="read-verse${day.passageMode === 'long' ? ' read-verse-long' : ''}" id="verse-text">${day.verses[translation]}</p>`;
+  }
+  // 새 결 — passage 배열 (각 절을 <p>로 짜기)
+  if (day.passage && day.passage[translation]) {
+    const lines = day.passage[translation];
+    if (Array.isArray(lines)) {
+      return `<div id="verse-text" class="read-passage-block">${lines.map(l => `<p class="read-passage-paragraph">${l}</p>`).join('')}</div>`;
+    }
+    // 혹시 문자열로 짜인 결
+    return `<p class="read-verse" id="verse-text">${lines}</p>`;
+  }
+  // 아무 결도 없을 때 — 빈 자리
+  return `<p class="read-verse" id="verse-text"></p>`;
 }
 
 // ==========================================
@@ -187,6 +210,12 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
   const morning = day.morning;
 
+  // 옛 결 / 새 결 짚어주기
+  // — 옛: stillIntro, readGuide, ponderQuestion, prayerLeadIn
+  // — 새: intro, interpret (observeQuestion, applyQuestion은 둘 다 짜임)
+  const hasIntro = morning.intro || morning.stillIntro;
+  const hasInterpret = morning.interpret;
+
   screen.innerHTML = `
     <div class="read-header">
       <button class="read-header-back" id="btn-close">‹ 닫기</button>
@@ -197,15 +226,24 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-body">
       <p class="read-section-label">오늘의 말씀</p>
 
-      <p class="read-verse${day.passageMode === 'long' ? ' read-verse-long' : ''}" id="verse-text">${day.verses[currentTranslation]}</p>
+      ${renderVerseOrPassage(day, currentTranslation)}
 
       <p class="read-verse-ref">— ${day.verseRef}</p>
 
       <div class="read-divider"></div>
 
+      ${hasIntro ? `
+        <p class="read-guide-body">${morning.intro || morning.stillIntro}</p>
+        <div class="read-divider"></div>
+      ` : ''}
+
       ${morning.observeQuestion && morning.applyQuestion ? `
         <p class="read-section-label">잠시 들여다보기</p>
         <p class="read-guide-body">${morning.observeQuestion}</p>
+
+        ${hasInterpret ? `
+          <p class="read-guide-body" style="margin-top: 12px;">${morning.interpret}</p>
+        ` : ''}
 
         ${morning.kingdomQuestion ? `
           <p class="read-section-label" style="margin-top: 24px;">하나님 나라의 눈으로</p>
@@ -217,7 +255,7 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
         <p class="read-guide-body">${morning.applyQuestion}</p>
       ` : `
         <p class="read-section-label">마음에 머물기</p>
-        <p class="read-guide-body">${morning.ponderQuestion}</p>
+        <p class="read-guide-body">${morning.ponderQuestion || ''}</p>
       `}
 
       <div class="read-divider"></div>
@@ -247,7 +285,13 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    verseEl.textContent = day.verses[currentTranslation];
+    // verseEl 자리에 새 결을 다시 그려야 함 (옛/새 둘 다 짚을 수 있게)
+    const newHtml = renderVerseOrPassage(day, currentTranslation);
+    // verseEl을 새 HTML로 갈무리 (outerHTML로 통째로)
+    const parent = verseEl.parentNode;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = newHtml;
+    parent.replaceChild(tmp.firstChild, verseEl);
   });
 
   // 닫기
@@ -269,13 +313,82 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 async function renderMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   const midday = day.midday;
 
-  // 새 짜임: continuous 모드 (4과부터 사용자 페이스로 이어 읽기)
+  // 새 짜임: continuous 모드 (옛 4-10과 midday 통독 결 — 1장만)
   if (midday.readingMode === 'continuous') {
     return await renderContinuousMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
   }
 
-  // 기존 짜임: 고정 단락 (1·2·3과)
+  // 새 결 (4-10과 새 짜임): keyVerse + stillGuide 자리에 머물기
+  if (midday.keyVerse) {
+    return renderKeyVerseMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+  }
+
+  // 옛 짜임: 고정 단락 (1·2·3과)
   return renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+}
+
+// 새 결 (4-10과) — 핵심 절에 잠잠히 머물기
+function renderKeyVerseMidday(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+  let currentTranslation = 'saebeon';
+  const midday = day.midday;
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
+
+  screen.innerHTML = `
+    <div class="read-header">
+      <button class="read-header-back" id="btn-close">‹ 닫기</button>
+      <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
+      ${renderHeaderRight(currentTranslation)}
+    </div>
+
+    <div class="read-body">
+      <p class="read-section-label">오늘의 한 절</p>
+      <p class="read-verse-ref" style="margin-bottom: 20px;">${midday.keyVerseRef || ''}</p>
+
+      <p class="read-verse" id="verse-text">${midday.keyVerse[currentTranslation]}</p>
+
+      <div class="read-guide-card" style="margin-top: 24px;">
+        <p class="read-guide-card-text">${midday.stillGuide || ''}</p>
+      </div>
+
+      ${midday.prayerExample ? `
+        <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+        <div class="read-prayer-example">
+          <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
+        </div>
+
+        <textarea
+          class="read-prayer-input"
+          id="prayer-input"
+          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
+      ` : ''}
+
+      <button class="btn read-cta" id="btn-next">머물렀어요</button>
+    </div>
+  `;
+
+  // 번역 토글
+  const verseEl = screen.querySelector('#verse-text');
+  bindTextSizeControl(screen);
+  bindTranslationToggle(screen, (newTranslation) => {
+    currentTranslation = newTranslation;
+    verseEl.textContent = midday.keyVerse[currentTranslation];
+  });
+
+  // 닫기
+  screen.querySelector('#btn-close').addEventListener('click', () => {
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
+  });
+
+  // 머물렀어요 → 마침 화면
+  screen.querySelector('#btn-next').addEventListener('click', () => {
+    saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#done/midday' + overridePath);
+  });
+
+  return screen;
 }
 
 // 기존 짜임 — 고정 단락 (1·2·3과 그대로)
@@ -564,9 +677,261 @@ function bookSlug(book) {
 }
 
 // ==========================================
+// 저녁 통독 화면 (새 결: 4-10과)
+// — evening.readingMode === 'continuous'
+// — 한 장씩 자기 페이스로 읽음. 한 장 마치면 다음 장으로.
+// — 21장 마치면 사도행전 안내.
+// ==========================================
+async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+  const evening = day.evening;
+  const overridePath = isOverride ? `/${lessonId}/${dayIndex}` : '';
+
+  // 자료 자리 — evening.source가 있으면 그걸 짚음. 없으면 기본 (요한복음 1장 이어가기).
+  // evening.source 결이 안 짜인 자리에선, 현재 진도(요한복음 어디까지)에 따라 자동 짚음.
+  let book = '요한복음';
+  let chapter = 1;
+  if (evening.source) {
+    book = evening.source.book || book;
+    chapter = evening.source.chapter || chapter;
+  } else {
+    // 자료 자리에 source 안 짜였으면 — 현재 진도 잇기
+    chapter = Storage.getReadingChapter ? Storage.getReadingChapter(book) || 1 : 1;
+  }
+
+  // 분량 정의 (절수)
+  const SIZES = {
+    '3': 8,    // 3분 ≈ 8절
+    '5': 16,   // 5분 ≈ 16절
+    '7': 24,   // 7분 ≈ 24절
+    '10': 36,  // 10분 ≈ 36절
+  };
+
+  // 절 단위 자료 짚기 — 21장 마치면 사도행전 안내
+  async function loadChapter(b, c) {
+    const fileName = `${bookSlug(b)}${c}.json`;
+    const res = await fetch(`data/${fileName}`);
+    if (!res.ok) throw new Error(`자료 자리 없음: ${fileName}`);
+    return await res.json();
+  }
+
+  let chapterData;
+  try {
+    chapterData = await loadChapter(book, chapter);
+  } catch (e) {
+    screen.innerHTML = `<div class="screen-inner"><p class="body">통독 본문을 불러오지 못했어요. 잠시 후 다시 짚어보세요.</p></div>`;
+    return screen;
+  }
+  const totalVerses = chapterData.totalVerses;
+
+  // 사용자 진도 (이 장의 어느 절까지 읽었는지)
+  let lastVerse = Storage.getReadingProgress(book, chapter);
+  let startVerse = lastVerse + 1;
+  const finishedChapter = startVerse > totalVerses;
+
+  // 분량 짚기
+  let currentSize = Storage.getReadingSize();
+  let currentTranslation = 'saebeon';
+
+  function calcRange(size) {
+    const wantVerses = SIZES[size];
+    let endVerse = Math.min(startVerse + wantVerses - 1, totalVerses);
+    return { start: startVerse, end: endVerse };
+  }
+
+  function renderVerses(start, end, translation) {
+    const lines = [];
+    for (let v = start; v <= end; v++) {
+      const verseData = chapterData.verses.find(x => x.v === v);
+      if (verseData) {
+        lines.push(`<p class="continuous-verse"><span class="continuous-verse-num">${v}</span> ${verseData[translation]}</p>`);
+      }
+    }
+    return lines.join('');
+  }
+
+  // ── 한 장을 다 읽은 자리 — 다음 장으로 이어가거나, 21장이면 사도행전 안내 ──
+  if (finishedChapter) {
+    // 다음 장 자리 있는지 짚기
+    const isJohnLast = (book === '요한복음' && chapter >= 21);
+    const nextChapter = chapter + 1;
+    const nextChapterTitle = isJohnLast ? '사도행전' : `${book} ${nextChapter}장`;
+
+    screen.innerHTML = `
+      <div class="read-header">
+        <button class="read-header-back" id="btn-close">‹ 닫기</button>
+        <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
+        <span style="width: 60px;"></span>
+      </div>
+
+      <div class="read-body">
+        <p class="eyebrow">통독 마침</p>
+        <h2 class="title-small">${book} ${chapter}장을<br/>다 읽으셨어요</h2>
+
+        <p class="body" style="margin-top: 16px;">
+          한 장을 끝까지 읽으셨다는 것 — 그 자체로 큰 한 걸음이에요.
+        </p>
+
+        ${isJohnLast ? `
+          <div class="read-guide-card" style="margin-top: 24px;">
+            <p class="read-guide-card-text">
+              요한복음 21장을 다 마치셨네요. 정말 큰 자리예요.<br/><br/>
+              이어서 사도행전으로 가실 수 있어요. 새로운 시작이 펼쳐집니다.
+            </p>
+          </div>
+        ` : `
+          <div class="read-guide-card" style="margin-top: 24px;">
+            <p class="read-guide-card-text">
+              내일은 ${nextChapterTitle}으로 이어집니다.<br/>
+              오늘은 잠시 멈추셔도 좋고, 다른 성경 앱으로 더 읽어가셔도 좋아요.
+            </p>
+          </div>
+        `}
+
+        ${evening.prayerExample ? `
+          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+          <div class="read-prayer-example">
+            <p class="read-prayer-example-text">"${evening.prayerExample}"</p>
+          </div>
+
+          <textarea
+            class="read-prayer-input"
+            id="prayer-input"
+            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
+        ` : ''}
+
+        <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
+      </div>
+    `;
+
+    screen.querySelector('#btn-close').addEventListener('click', () => {
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#home');
+    });
+    screen.querySelector('#btn-next').addEventListener('click', () => {
+      // 다음 장으로 자동 갈무리 (요한복음 1-21장 안에서만)
+      if (!isJohnLast) {
+        // 다음 장 첫 절부터 다시 시작할 수 있게, 현재 장 진도 0으로 갈무리하면 안 되고,
+        // 다음 장으로 책갈피를 옮기는 결. 자료 자리에 chapter가 짜였으면 그대로 유지.
+        // 자료 자리에 source가 안 짜였으면, 자동 진행을 위해 storage에 chapter 짚기.
+        if (Storage.setReadingChapter) {
+          Storage.setReadingChapter(book, nextChapter);
+        }
+      }
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
+    });
+    return screen;
+  }
+
+  // ── 일반 통독 화면 ──
+  function paint() {
+    const range = calcRange(currentSize);
+    const versesHtml = renderVerses(range.start, range.end, currentTranslation);
+    const refLabel = `${book} ${chapter}:${range.start}${range.end > range.start ? '-' + range.end : ''}`;
+
+    screen.innerHTML = `
+      <div class="read-header">
+        <button class="read-header-back" id="btn-close">‹ 닫기</button>
+        <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
+        ${renderHeaderRight(currentTranslation)}
+      </div>
+
+      <div class="read-body">
+        <p class="read-section-label">오늘의 통독</p>
+        <p class="read-verse-ref" style="margin-bottom: 12px;">${refLabel}</p>
+
+        <div class="continuous-size-toggle">
+          ${['3', '5', '7', '10'].map(s => `
+            <button class="continuous-size-btn ${s === currentSize ? 'active' : ''}" data-size="${s}">${s}분</button>
+          `).join('')}
+        </div>
+
+        <div class="continuous-verses" id="verses-area">
+          ${versesHtml}
+        </div>
+
+        ${evening.reflectQuestion ? `
+          <div class="read-divider"></div>
+          <p class="read-section-label">하루를 돌아보며</p>
+          <p class="read-guide-body">${evening.reflectQuestion}</p>
+        ` : ''}
+
+        ${evening.prayerExample ? `
+          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
+          <div class="read-prayer-example">
+            <p class="read-prayer-example-text">"${evening.prayerExample}"</p>
+          </div>
+
+          <textarea
+            class="read-prayer-input"
+            id="prayer-input"
+            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
+        ` : ''}
+
+        <button class="btn read-cta" id="btn-next">여기까지 읽었어요</button>
+      </div>
+    `;
+
+    // 분량 버튼
+    screen.querySelectorAll('.continuous-size-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oldInput = screen.querySelector('#prayer-input');
+        if (oldInput) {
+          Storage.setPrayer(lessonId, dayIndex, 'evening', oldInput.value.trim());
+        }
+        currentSize = btn.dataset.size;
+        Storage.setReadingSize(currentSize);
+        paint();
+      });
+    });
+
+    bindTextSizeControl(screen);
+    bindTranslationToggle(screen, (newTranslation) => {
+      currentTranslation = newTranslation;
+      const oldInput = screen.querySelector('#prayer-input');
+      if (oldInput) {
+        Storage.setPrayer(lessonId, dayIndex, 'evening', oldInput.value.trim());
+      }
+      paint();
+    });
+
+    screen.querySelector('#btn-close').addEventListener('click', () => {
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#home');
+    });
+
+    screen.querySelector('#btn-next').addEventListener('click', () => {
+      const r = calcRange(currentSize);
+      Storage.setReadingProgress(book, chapter, r.end);
+      saveAndExit(screen, lessonId, dayIndex, 'evening', navigateTo, '#silence/evening' + overridePath);
+    });
+  }
+
+  paint();
+  return screen;
+}
+
+// ==========================================
 // 저녁 묵상 화면
 // ==========================================
-function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+async function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
+  const evening = day.evening;
+
+  // 새 결 (4-10과): evening.readingMode === 'continuous'이면 통독 결
+  if (evening && evening.readingMode === 'continuous') {
+    return await renderContinuousEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+  }
+
+  return renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride);
+}
+
+// 옛 결 (1-3과 또는 비통독 결) — 다시 그 말씀 + 하루 돌아보기
+function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   let currentTranslation = 'saebeon';
   const evening = day.evening;
   const isWeekClosing = evening.isWeekClosing;
@@ -603,7 +968,7 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
     <div class="read-body">
       <p class="read-section-label">다시 그 말씀</p>
 
-      <p class="read-verse read-verse-evening${day.passageMode === 'long' ? ' read-verse-long' : ''}" id="verse-text">${day.verses[currentTranslation]}</p>
+      ${renderVerseOrPassage(day, currentTranslation)}
 
       <p class="read-verse-ref">— ${day.verseRef}</p>
 
@@ -698,7 +1063,12 @@ function renderEvening(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    verseEl.textContent = day.verses[currentTranslation];
+    // verseEl 자리에 새 결을 통째로 갈무리 (옛/새 둘 다)
+    const newHtml = renderVerseOrPassage(day, currentTranslation);
+    const parent = verseEl.parentNode;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = newHtml;
+    parent.replaceChild(tmp.firstChild, verseEl);
   });
 
   // 닫기

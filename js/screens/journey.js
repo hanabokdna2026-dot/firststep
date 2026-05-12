@@ -277,7 +277,15 @@ export default async function renderJourney({ navigateTo }) {
           <span class="journey-day-label">${displayLabel}</span>
           ${badge}
         </div>
-        <p class="journey-day-verse">${day.verses.saebeon}</p>
+        <p class="journey-day-verse">${(() => {
+          // 옛 결: verses (한 절), 새 결: passage (배열 — 첫 절만)
+          if (day.verses && day.verses.saebeon) return day.verses.saebeon;
+          if (day.passage && day.passage.saebeon) {
+            const arr = day.passage.saebeon;
+            return Array.isArray(arr) ? arr[0] : arr;
+          }
+          return '';
+        })()}</p>
         <p class="journey-day-ref">— ${day.verseRef}</p>
         ${isCurrent ? '<p class="journey-day-current-mark">지금 이 자리</p>' : ''}
 

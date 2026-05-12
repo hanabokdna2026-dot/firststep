@@ -297,6 +297,18 @@ const Storage = {
     localStorage.setItem('firststep:readingSize', String(size));
   },
 
+  // 통독 책갈피 — 현재 어느 장 읽고 있는지 (저녁 통독 새 결 4-10과)
+  // 한 장 다 마치면 다음 장으로 자동 갈무리
+  getReadingChapter(book) {
+    const key = `firststep:reading:${book}:chapter`;
+    const v = localStorage.getItem(key);
+    return v ? parseInt(v, 10) : 1;  // 기본 1장부터
+  },
+  setReadingChapter(book, chapter) {
+    const key = `firststep:reading:${book}:chapter`;
+    localStorage.setItem(key, String(chapter));
+  },
+
   // 주기도 자기 말 저장 (5·6과 아침 세션에서 사용)
   // 키: firststep:lords:{lessonId}:{dayIndex}
   getLordsEntry(lessonId, dayIndex) {

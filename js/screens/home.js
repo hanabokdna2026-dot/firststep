@@ -378,9 +378,17 @@ export default async function renderHome({ navigateTo, param, extra }) {
         <p class="card-passage-hint">짧은 단락을 흘려 읽습니다.</p>
       `;
     } else {
+      // 옛 결: verses (한 절), 새 결: passage (배열 — 첫 절만 미리보기)
+      let verseText = '';
+      if (day.verses && day.verses.saebeon) {
+        verseText = day.verses.saebeon;
+      } else if (day.passage && day.passage.saebeon) {
+        const arr = day.passage.saebeon;
+        verseText = Array.isArray(arr) ? arr[0] : arr;
+      }
       previewHtml = `
         <p class="card-section-label">${isPreview ? '미리보는 ' : '오늘의 '}${sessionLabel} 세션</p>
-        <p class="card-verse-text">${day.verses.saebeon}</p>
+        <p class="card-verse-text">${verseText}</p>
         <p class="card-verse-ref">— ${day.verseRef}</p>
       `;
     }
