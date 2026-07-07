@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'  # 저장소 전체 (functions 폴더는 GitHub Pages가 알아서 무시)
+          path: '.'
 
       - id: deployment
         uses: actions/deploy-pages@v4
@@ -56,9 +56,7 @@ jobs:
         env:
           FIREBASE_SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          # 환경변수로 짚기 — JSON 안의 따옴표/줄바꿈 짜임 깨지지 않게
           printf '%s' "$FIREBASE_SA_JSON" > $HOME/firebase-key.json
-          # 짜임 멀쩡한지 짚기
           python3 -c "import json; json.load(open('$HOME/firebase-key.json'))" \
             && echo "✓ JSON 짜임 멀쩡" \
             || (echo "✗ JSON 짜임 깨짐 — secret 자리 다시 짚어야 함" && exit 1)
@@ -66,4 +64,13 @@ jobs:
       - name: Cloud Functions + Firestore 규칙 배포
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /home/runner/firebase-key.json
-        run: firebase deploy --only
+        run: >
+          firebase deploy
+          --only functions,firestore:rules,firestore:indexes
+          --project firststep-app-73a1c
+          --non-interactive
+          --force
+
+      - name: Service Account 자리 정리
+        if: always()
+        run: rm -f $HOME/firebase-key.json
