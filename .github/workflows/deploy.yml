@@ -1,49 +1,70 @@
 # 풍성한 첫걸음 자동 배포
+# main에 push하면 — GitHub Pages + Firebase Functions 둘 다 자동으로 배포
 name: Deploy
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch:  # 수동으로도 시작 가능
 
 jobs:
+  # ================================
+  # 1. GitHub Pages — 앱 자체 배포
+  # ================================
   deploy-pages:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       contents: read
       pages: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '.'  # 저장소 전체 (functions 폴더는 GitHub Pages가 알아서 무시)
+
       - id: deployment
         uses: actions/deploy-pages@v4
 
+  # ================================
+  # 2. Firebase Cloud Functions 배포
+  # ================================
   deploy-functions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Node.js 자리 짜기
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: 의존성 설치
         working-directory: functions
         run: npm install
+
       - name: Firebase CLI 설치
         run: npm install -g firebase-tools
+
       - name: Service Account 자리 만들기
-        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase-key.json
-      - name: Cloud Functions 배포
+        env:
+          FIREBASE_SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          # 환경변수로 짚기 — JSON 안의 따옴표/줄바꿈 짜임 깨지지 않게
+          printf '%s' "$FIREBASE_SA_JSON" > $HOME/firebase-key.json
+          # 짜임 멀쩡한지 짚기
+          python3 -c "import json; json.load(open('$HOME/firebase-key.json'))" \
+            && echo "✓ JSON 짜임 멀쩡" \
+            || (echo "✗ JSON 짜임 깨짐 — secret 자리 다시 짚어야 함" && exit 1)
+
+      - name: Cloud Functions + Firestore 규칙 배포
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /home/runner/firebase-key.json
-        run: firebase deploy --only functions,firestore:indexes --project firststep-app-73a1c --non-interactive --force
+        run: firebase deploy --only functions,firestore:rules,firestore:indexes --project firststep-app-73a1c --non-interactive --force
+
       - name: Service Account 자리 정리
         if: always()
         run: rm -f $HOME/firebase-key.json
