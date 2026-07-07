@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// 풍성한 첫걸음 — Firestore 보안 규칙
+//
+// 짜임:
+//   pushUsers/{token} — 알림 토큰 자리. 클라이언트(앱)가 자기 토큰으로 쓰고 지움.
+//   서버(Cloud Functions / cron)는 Admin SDK를 쓰므로 이 규칙을 우회함.
+//
+// 원칙:
+//   - 클라이언트는 자기 토큰 자리에만 쓰기·지우기 가능 (자기 토큰을 문서 ID로 씀)
+//   - 목록(list)은 클라이언트에게 막음 (다른 사람 토큰을 못 보게)
+//   - 그 밖의 모든 자리는 기본 거부
+//
+// FCM 토큰은 사용자 기기만 아는 자리라서, 이걸 문서 ID로 쓰면
+// 다른 사람 자리를 건드릴 수 없음 (자기 토큰을 알아야만 그 자리에 접근 가능).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 토큰이 FCM 토큰 짜임인지 짚음 (너무 짧거나 빈 자리는 막음).
+    function isTokenShaped(token) {
+      return token is string && token.size() > 20;
+    }
+
+    // 저장하려는 자료의 짜임이 올바른지 짚음.
+    // 자료 안의 token이 문서 ID(pathToken)와 같아야 — 남의 자리에 못 쓰게.
+    function isValidUserDoc(pathToken) {
+      let d = request.resource.data;
+      return d.token is string
+        && d.token == pathToken
+        && d.enabled is bool
+        && d.meetingTimes is map;
+    }
+
+    // 알림 토큰 자리
+    match /pushUsers/{token} {
+      // 읽기(get) — 자기 토큰 자리만. 목록(list)은 막음.
+      allow get: if isTokenShaped(token);
+      allow list: if false;
+
+      // 만들기·갱신 — 토큰 짜임이 올바르고, 저장하는 자료의 짜임도 올바를 때.
+      allow create, update: if isTokenShaped(token) && isValidUserDoc(token);
+
+      // 지우기 — 자기 토큰 자리만.
+      allow delete: if isTokenShaped(token);
+    }
+
+    // 그 밖의 모든 자리는 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
