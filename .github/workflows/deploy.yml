@@ -17,6 +17,9 @@ jobs:
       contents: read
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -63,8 +66,4 @@ jobs:
       - name: Cloud Functions + Firestore 규칙 배포
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /home/runner/firebase-key.json
-        run: firebase deploy --only functions,firestore:rules,firestore:indexes --project firststep-app-73a1c --non-interactive --force
-
-      - name: Service Account 자리 정리
-        if: always()
-        run: rm -f $HOME/firebase-key.json
+        run: firebase deploy --only
