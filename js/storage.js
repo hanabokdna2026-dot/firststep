@@ -140,7 +140,7 @@ const Storage = {
     const stored = localStorage.getItem(STORAGE_KEYS.TEXT_SIZE);
     const n = parseInt(stored, 10);
     if (!isNaN(n) && n >= 1 && n <= 5) return n;
-    return 3;  // 기본값 — 보통
+    return 2;  // 기본값 — 작게 (최소 바로 윗단계. 필요하면 각자 A+로 키움)
   },
   setTextSize(size) {
     const n = parseInt(size, 10);
