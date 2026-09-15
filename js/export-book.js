@@ -65,7 +65,10 @@ export async function openExportBook() {
 
   // 통계
   const totalEntries = entries.length;
-  const totalPrayers = prayers.filter(p => p.text && p.text.trim()).length;
+  // 한 마디 기도 + 주기도 자기 말 둘 다 셈 (빠짐 없게)
+  const validPrayers = prayers.filter(p => p.text && p.text.trim()).length;
+  const validLords = lordsEntries.filter(e => e.text && e.text.trim()).length;
+  const totalPrayers = validPrayers + validLords;
 
   // 오늘 날짜
   const today = new Date();
@@ -92,11 +95,15 @@ function buildHtml(opts) {
   const entryBlocks = entries.map(e => {
     const lesson = lessonMap.get(e.lessonId);
     const day = lesson ? lesson.days.find(d => d.dayIndex === e.dayIndex) : null;
-    if (!lesson || !day) return '';
 
-    const verseRef = day.verseRef || day.verseShortRef || '';
-    const aspect = day.aspect || '';
-    const keyword = day.keyword || '';
+    // ── lesson/day를 못 찾아도 기록은 버리지 않음 (빠짐 없게) ──
+    // 옛 자료 결이나 짜임이 바뀐 경우에도, 적은 기록은 반드시 짚어줌
+    const verseRef = day ? (day.verseRef || day.verseShortRef || '') : '';
+    const aspect = day ? (day.aspect || '') : '';
+    const keyword = day ? (day.keyword || '') : '';
+    const lessonTitle = lesson ? lesson.title : '';
+    const dayLabel = day ? (day.dayLabel || (day.dayIndex + '일')) : (e.dayIndex + '일');
+    const metaText = (lesson ? lesson.id : e.lessonId) + '과 · ' + dayLabel;
 
     const sessionBlocks = ['morning', 'midday', 'evening']
       .filter(s => e.prayers[s])
@@ -107,11 +114,16 @@ function buildHtml(opts) {
       ? '<div class="session"><div class="session-label session-label-lords">주기도 한 마디</div><div class="session-text">' + escapeHtml(e.lords) + '</div></div>'
       : '';
 
+    // 본문이 아예 없는 자리(lesson/day 못 찾음)는 제목을 과 제목으로라도 짚어줌
+    const headerInner = aspect
+      ? '<h2 class="entry-aspect">' + escapeHtml(aspect) + '</h2>'
+      : (lessonTitle ? '<h2 class="entry-aspect">' + escapeHtml(lessonTitle) + '</h2>' : '');
+
     return '<article class="entry"><header class="entry-header">' +
-      '<div class="entry-meta">' + lesson.id + '과 · ' + (day.dayLabel || (day.dayIndex + '일')) + '</div>' +
-      '<h2 class="entry-aspect">' + escapeHtml(aspect) + '</h2>' +
+      '<div class="entry-meta">' + escapeHtml(metaText) + '</div>' +
+      headerInner +
       (keyword ? '<p class="entry-keyword">"' + escapeHtml(keyword) + '"</p>' : '') +
-      '<p class="entry-ref">' + escapeHtml(verseRef) + '</p>' +
+      (verseRef ? '<p class="entry-ref">' + escapeHtml(verseRef) + '</p>' : '') +
       '</header><div class="entry-body">' + sessionBlocks + lordsBlock + '</div></article>';
   }).filter(Boolean).join('');
 

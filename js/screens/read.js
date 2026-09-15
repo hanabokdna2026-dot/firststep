@@ -203,6 +203,33 @@ function renderVerseOrPassage(day, translation) {
 // ==========================================
 // 아침 본문 화면
 // ==========================================
+// 아침 말씀 판 — 절 번호 붙여서 그림
+// 옛 자료(verses: 한 절 문자열) / 새 자료(passage: 절 배열) 둘 다 처리
+function renderScriptureBlock(day, translation) {
+  // 새 자료: 절 배열
+  if (day.passage && day.passage[translation]) {
+    const lines = day.passage[translation];
+    if (Array.isArray(lines)) {
+      // 출처에서 시작 절 번호 찾기 (예: "시편 119:105-112" → 105)
+      let startVerse = null;
+      const m = (day.verseRef || '').match(/:(\d+)/);
+      if (m) startVerse = parseInt(m[1], 10);
+
+      const html = lines.map((line, i) => {
+        const num = startVerse !== null ? `<span class="read-verse-num">${startVerse + i}</span>` : '';
+        return `<p>${num}${line}</p>`;
+      }).join('');
+      return `<div class="read-scripture" id="verse-text">${html}</div>`;
+    }
+    return `<div class="read-scripture is-single" id="verse-text"><p>${lines}</p></div>`;
+  }
+  // 옛 자료: 한 절 문자열
+  if (day.verses && day.verses[translation]) {
+    return `<div class="read-scripture is-single" id="verse-text"><p>${day.verses[translation]}</p></div>`;
+  }
+  return `<div class="read-scripture is-single" id="verse-text"><p></p></div>`;
+}
+
 function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) {
   // 번역 토글 — 세션 안에서만 유지 (기본 새번역)
   let currentTranslation = 'saebeon';
@@ -210,11 +237,99 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
 
   const morning = day.morning;
 
-  // 옛 결 / 새 결 짚어주기
+  // 옛 자료 / 새 자료 둘 다 처리
   // — 옛: stillIntro, readGuide, ponderQuestion, prayerLeadIn
-  // — 새: intro, interpret (observeQuestion, applyQuestion은 둘 다 짜임)
-  const hasIntro = morning.intro || morning.stillIntro;
-  const hasInterpret = morning.interpret;
+  // — 새: intro, interpret (observeQuestion, applyQuestion은 둘 다 있음)
+  const introText = morning.intro || morning.stillIntro || '';
+  const hasObserveApply = morning.observeQuestion && morning.applyQuestion;
+  const hasLords = morning.lordsPart && morning.lordsKeywords;
+
+  // ── 걸음 1: 잠시 들여다보기 (또는 마음에 머물기) ──
+  let stepLook = '';
+  if (hasObserveApply) {
+    stepLook = `
+      <section class="read-step">
+        <h3 class="read-step-title">잠시 들여다보기</h3>
+        ${introText ? `<p class="read-step-text">${introText}</p>` : ''}
+        ${morning.readGuide ? `<p class="read-step-text">${morning.readGuide}</p>` : ''}
+        <p class="read-step-question">${morning.observeQuestion}</p>
+        ${morning.interpret ? `<p class="read-step-text">${morning.interpret}</p>` : ''}
+        ${morning.kingdomQuestion ? `
+          ${morning.kingdomIntro ? `<p class="read-step-text">${morning.kingdomIntro}</p>` : ''}
+          <p class="read-step-question">${morning.kingdomQuestion}</p>
+        ` : ''}
+      </section>
+      <section class="read-step">
+        <h3 class="read-step-title">오늘 내 하루에서</h3>
+        <p class="read-step-question">${morning.applyQuestion}</p>
+      </section>
+    `;
+  } else {
+    stepLook = `
+      <section class="read-step">
+        <h3 class="read-step-title">마음에 머물기</h3>
+        ${introText ? `<p class="read-step-text">${introText}</p>` : ''}
+        ${morning.readGuide ? `<p class="read-step-text">${morning.readGuide}</p>` : ''}
+        <p class="read-step-question">${morning.ponderQuestion || ''}</p>
+      </section>
+    `;
+  }
+
+  // ── 마지막 걸음: 기도 (5·6과는 주기도, 그 밖은 하나님께 한 마디) ──
+  let stepPray = '';
+  if (hasLords) {
+    stepPray = `
+      <section class="read-step is-fill">
+        <h3 class="read-step-title">주기도로 함께</h3>
+        ${morning.lordsIntro ? `<p class="read-step-text">${morning.lordsIntro}</p>` : ''}
+        <div class="read-pray-panel">
+          <div class="read-lords-card">
+            <p class="read-lords-part">"${morning.lordsPart}"</p>
+            <div class="read-lords-keywords">
+              ${morning.lordsKeywords.map(kw => `
+                <div class="read-lords-keyword-row">
+                  <span class="read-lords-keyword-key">${kw.key}</span>
+                  <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+                </div>
+              `).join('')}
+            </div>
+            ${morning.lordsExample ? `
+              <p class="read-lords-example-label">예시 기도</p>
+              <p class="read-lords-example">"${morning.lordsExample}"</p>
+            ` : ''}
+          </div>
+          <textarea
+            class="read-prayer-input read-lords-input"
+            id="lords-input"
+            placeholder="${morning.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+        </div>
+      </section>
+    `;
+  } else {
+    stepPray = `
+      <section class="read-step is-fill">
+        <h3 class="read-step-title">하나님께 한 마디</h3>
+        ${morning.prayerLeadIn ? `<p class="read-step-text">${morning.prayerLeadIn}</p>` : ''}
+        <div class="read-pray-panel">
+          <div class="read-prayer-example">
+            <p class="read-prayer-example-text">${morning.prayerExample || ''}</p>
+          </div>
+          <textarea
+            class="read-prayer-input"
+            id="prayer-input"
+            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >${Storage.getPrayer(lessonId, dayIndex, 'morning')}</textarea>
+        </div>
+      </section>
+    `;
+  }
 
   screen.innerHTML = `
     <div class="read-header">
@@ -223,113 +338,28 @@ function renderMorning(screen, navigateTo, day, lessonId, dayIndex, isOverride) 
       ${renderHeaderRight(currentTranslation)}
     </div>
 
-    <div class="read-body">
-      <p class="read-section-label">오늘의 말씀</p>
+    <div class="read-body read-morning">
+      <p class="read-ref-top">${day.verseRef}</p>
 
-      ${renderVerseOrPassage(day, currentTranslation)}
+      ${renderScriptureBlock(day, currentTranslation)}
 
-      <p class="read-verse-ref">— ${day.verseRef}</p>
-
-      <div class="read-divider"></div>
-
-      ${hasIntro ? `
-        <p class="read-guide-body">${morning.intro || morning.stillIntro}</p>
-        <div class="read-divider"></div>
-      ` : ''}
-
-      ${morning.observeQuestion && morning.applyQuestion ? `
-        <p class="read-section-label">잠시 들여다보기</p>
-        <p class="read-guide-body">${morning.observeQuestion}</p>
-
-        ${hasInterpret ? `
-          <p class="read-guide-body" style="margin-top: 12px;">${morning.interpret}</p>
-        ` : ''}
-
-        ${morning.kingdomQuestion ? `
-          <p class="read-section-label" style="margin-top: 24px;">하나님 나라의 눈으로</p>
-          ${morning.kingdomIntro ? `<p class="read-guide-body">${morning.kingdomIntro}</p>` : ''}
-          <p class="read-guide-body" style="margin-top: 8px;">${morning.kingdomQuestion}</p>
-        ` : ''}
-
-        <p class="read-section-label" style="margin-top: 24px;">오늘 내 하루에서</p>
-        <p class="read-guide-body">${morning.applyQuestion}</p>
-      ` : `
-        <p class="read-section-label">마음에 머물기</p>
-        <p class="read-guide-body">${morning.ponderQuestion || ''}</p>
-      `}
-
-      <div class="read-divider"></div>
-
-      ${morning.lordsPart && morning.lordsKeywords ? `
-        <!-- 5·6과 주기도 가이드 자리: 본문 묵상 다음, 기도문 적기 전 -->
-        <p class="read-section-label">주기도로 함께</p>
-        ${morning.lordsIntro ? `<p class="read-guide-body">${morning.lordsIntro}</p>` : ''}
-
-        <div class="read-lords-card">
-          <p class="read-lords-part">"${morning.lordsPart}"</p>
-
-          <div class="read-lords-keywords">
-            ${morning.lordsKeywords.map(kw => `
-              <div class="read-lords-keyword-row">
-                <span class="read-lords-keyword-key">${kw.key}</span>
-                <span class="read-lords-keyword-meaning">${kw.meaning}</span>
-              </div>
-            `).join('')}
-          </div>
-
-          ${morning.lordsExample ? `
-            <p class="read-lords-example-label">예시 기도</p>
-            <p class="read-lords-example">"${morning.lordsExample}"</p>
-          ` : ''}
-        </div>
-
-        <textarea
-          class="read-prayer-input read-lords-input"
-          id="lords-input"
-          placeholder="${morning.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
-
-        <div class="read-divider"></div>
-      ` : ''}
-
-      ${!morning.lordsPart ? `
-        <!-- 주기도 가이드 자리 없을 때만 일반 기도 자리 짜기 (중복 안 짜이게) -->
-        <p class="read-section-label">하나님께 한 마디</p>
-        ${morning.prayerLeadIn ? `<p class="read-guide-body">${morning.prayerLeadIn}</p>` : ''}
-
-        <div class="read-prayer-example">
-          <p class="read-prayer-example-text">"${morning.prayerExample}"</p>
-        </div>
-
-        <textarea
-          class="read-prayer-input"
-          id="prayer-input"
-          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getPrayer(lessonId, dayIndex, 'morning')}</textarea>
-      ` : ''}
+      <div class="read-path">
+        ${stepLook}
+        ${stepPray}
+      </div>
 
       <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
-  // 번역 토글
-  const verseEl = screen.querySelector('#verse-text');
+  // 번역 토글 — 말씀 판만 다시 그림
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    // verseEl 자리에 새 결을 다시 그려야 함 (옛/새 둘 다 짚을 수 있게)
-    const newHtml = renderVerseOrPassage(day, currentTranslation);
-    // verseEl을 새 HTML로 갈무리 (outerHTML로 통째로)
-    const parent = verseEl.parentNode;
+    const oldEl = screen.querySelector('#verse-text');
     const tmp = document.createElement('div');
-    tmp.innerHTML = newHtml;
-    parent.replaceChild(tmp.firstChild, verseEl);
+    tmp.innerHTML = renderScriptureBlock(day, currentTranslation);
+    oldEl.parentNode.replaceChild(tmp.firstChild, oldEl);
   });
 
   // 닫기
@@ -378,50 +408,52 @@ function renderKeyVerseMidday(screen, navigateTo, day, lessonId, dayIndex, isOve
       ${renderHeaderRight(currentTranslation)}
     </div>
 
-    <div class="read-body">
-      <p class="read-section-label">오늘의 한 절</p>
-      <p class="read-verse-ref" style="margin-bottom: 20px;">${midday.keyVerseRef || ''}</p>
+    <div class="read-body read-morning">
+      <p class="read-ref-top">${midday.keyVerseRef || ''}</p>
 
-      <p class="read-verse" id="verse-text">${midday.keyVerse[currentTranslation]}</p>
-
-      <div class="read-guide-card" style="margin-top: 24px;">
-        <p class="read-guide-card-text">${midday.stillGuide || ''}</p>
+      <div class="read-scripture is-single" id="verse-text">
+        <p>${midday.keyVerse[currentTranslation]}</p>
       </div>
 
-      ${midday.prayerExample ? `
-        <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-        <div class="read-prayer-example">
-          <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
-        </div>
+      <div class="read-path">
+        <section class="read-step">
+          <h3 class="read-step-title">잠잠히 머물기</h3>
+          <p class="read-step-text">${midday.stillGuide || ''}</p>
+        </section>
 
-        <textarea
-          class="read-prayer-input"
-          id="prayer-input"
-          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
-      ` : ''}
+        ${midday.prayerExample ? `
+          <section class="read-step is-fill">
+            <h3 class="read-step-title">한 마디 기도</h3>
+            <div class="read-pray-panel">
+              <div class="read-prayer-example">
+                <p class="read-prayer-example-text">${midday.prayerExample}</p>
+              </div>
+              <textarea
+                class="read-prayer-input"
+                id="prayer-input"
+                placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                autocomplete="off" autocorrect="off" spellcheck="false"
+              >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
+            </div>
+          </section>
+        ` : ''}
+      </div>
 
       <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
-  // 번역 토글
-  const verseEl = screen.querySelector('#verse-text');
+  // 번역 토글 — 말씀 판만 다시 그림 (매번 id로 다시 찾아 교체)
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    verseEl.textContent = midday.keyVerse[currentTranslation];
+    const el = screen.querySelector('#verse-text');
+    if (el) el.innerHTML = `<p>${midday.keyVerse[currentTranslation]}</p>`;
   });
 
-  // 닫기
   screen.querySelector('#btn-close').addEventListener('click', () => {
     saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
   });
-
-  // 머물렀어요 → 마침 화면
   screen.querySelector('#btn-next').addEventListener('click', () => {
     saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
   });
@@ -437,7 +469,7 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
 
   // 단락 본문을 줄바꿈 단위로 split해서 <p>로 감싸기
   function renderPassage(text) {
-    return text.split('\n\n').map(p => `<p class="read-passage-paragraph">${p}</p>`).join('');
+    return text.split('\n\n').map(p => `<p>${p}</p>`).join('');
   }
 
   screen.innerHTML = `
@@ -447,53 +479,53 @@ function renderFixedMidday(screen, navigateTo, day, lessonId, dayIndex, isOverri
       ${renderHeaderRight(currentTranslation)}
     </div>
 
-    <div class="read-body">
-      <p class="read-section-label">오늘의 짧은 단락</p>
-      <p class="read-verse-ref" style="margin-bottom: 28px;">${midday.passageRef}</p>
+    <div class="read-body read-morning">
+      <p class="read-ref-top">${midday.passageRef}</p>
 
-      <div id="passage-text">
+      <div class="read-scripture" id="passage-text">
         ${renderPassage(midday.passageText[currentTranslation])}
       </div>
 
-      <div class="read-guide-card">
-        <p class="read-guide-card-text">${midday.guide}</p>
+      <div class="read-path">
+        <section class="read-step">
+          <h3 class="read-step-title">잠잠히 머물기</h3>
+          <p class="read-step-text">${midday.guide}</p>
+        </section>
+
+        ${midday.prayerExample ? `
+          <section class="read-step is-fill">
+            <h3 class="read-step-title">한 마디 기도</h3>
+            ${midday.prayerLeadIn ? `<p class="read-step-text">${midday.prayerLeadIn}</p>` : ''}
+            <div class="read-pray-panel">
+              <div class="read-prayer-example">
+                <p class="read-prayer-example-text">${midday.prayerExample}</p>
+              </div>
+              <textarea
+                class="read-prayer-input"
+                id="prayer-input"
+                placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                autocomplete="off" autocorrect="off" spellcheck="false"
+              >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
+            </div>
+          </section>
+        ` : ''}
       </div>
-
-      ${midday.prayerExample ? `
-        <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-        ${midday.prayerLeadIn ? `<p class="read-guide-body">${midday.prayerLeadIn}</p>` : ''}
-        <div class="read-prayer-example">
-          <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
-        </div>
-
-        <textarea
-          class="read-prayer-input"
-          id="prayer-input"
-          placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
-      ` : ''}
 
       <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
-  // 번역 토글
-  const passageEl = screen.querySelector('#passage-text');
+  // 번역 토글 — 매번 id로 다시 찾아 교체
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    passageEl.innerHTML = renderPassage(midday.passageText[currentTranslation]);
+    const el = screen.querySelector('#passage-text');
+    if (el) el.innerHTML = renderPassage(midday.passageText[currentTranslation]);
   });
 
-  // 닫기
   screen.querySelector('#btn-close').addEventListener('click', () => {
     saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#home');
   });
-
-  // 읽었어요 → 마침 화면 (한 마디 기도 저장)
   screen.querySelector('#btn-next').addEventListener('click', () => {
     saveAndExit(screen, lessonId, dayIndex, 'midday', navigateTo, '#silence/midday' + overridePath);
   });
@@ -988,11 +1020,10 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
     `).join('');
 
     weekSummaryHtml = `
-      <p class="read-section-label">${summary.intro}</p>
+      ${summary.intro ? `<p class="read-step-text">${summary.intro}</p>` : ''}
       <div class="read-week-summary">
         ${versesHtml}
       </div>
-      <div class="read-divider"></div>
     `;
   }
 
@@ -1003,110 +1034,104 @@ function renderReflectEvening(screen, navigateTo, day, lessonId, dayIndex, isOve
       ${renderHeaderRight(currentTranslation)}
     </div>
 
-    <div class="read-body">
-      <p class="read-section-label">다시 그 말씀</p>
+    <div class="read-body read-morning">
+      <p class="read-ref-top">${day.verseRef}</p>
 
-      ${renderVerseOrPassage(day, currentTranslation)}
+      ${renderScriptureBlock(day, currentTranslation)}
 
-      <p class="read-verse-ref">— ${day.verseRef}</p>
+      <div class="read-path">
+        ${weekSummaryHtml ? `
+          <section class="read-step">
+            <h3 class="read-step-title">한 주의 말씀</h3>
+            ${weekSummaryHtml}
+          </section>
+        ` : ''}
 
-      <div class="read-divider"></div>
+        ${evening.confessLine ? `
+          <section class="read-step">
+            <h3 class="read-step-title">입술로 드리는 고백</h3>
+            ${evening.confessIntro ? `<p class="read-step-text">${evening.confessIntro}</p>` : ''}
+            <div class="read-confess-card">
+              <p class="read-confess-line">"${evening.confessLine}"</p>
+              ${evening.confessRef ? `<p class="read-confess-ref">- ${evening.confessRef}</p>` : ''}
+            </div>
+          </section>
+        ` : ''}
 
-      ${weekSummaryHtml}
+        <section class="read-step">
+          <h3 class="read-step-title">하루를 돌아보며</h3>
+          <p class="read-step-question">${evening.reflectQuestion}</p>
+        </section>
 
-      ${evening.confessLine ? `
-        <p class="read-section-label">입술로 드리는 고백</p>
-        ${evening.confessIntro ? `<p class="read-guide-body">${evening.confessIntro}</p>` : ''}
-
-        <div class="read-confess-card">
-          <p class="read-confess-line">"${evening.confessLine}"</p>
-          ${evening.confessRef ? `<p class="read-confess-ref">— ${evening.confessRef}</p>` : ''}
-        </div>
-
-        <div class="read-divider"></div>
-      ` : ''}
-
-      <p class="read-section-label">하루를 돌아보며</p>
-      <p class="read-guide-body">${evening.reflectQuestion}</p>
-
-      ${evening.lordsPart && evening.lordsKeywords ? `
-        <!-- 5·6과: 주기도 자세히 배우기 짜임 -->
-        <div class="read-divider"></div>
-
-        <p class="read-section-label">주기도로 마치기</p>
-        ${evening.lordsIntro ? `<p class="read-guide-body">${evening.lordsIntro}</p>` : ''}
-
-        <div class="read-lords-card">
-          <p class="read-lords-part">"${evening.lordsPart}"</p>
-
-          <div class="read-lords-keywords">
-            ${evening.lordsKeywords.map(kw => `
-              <div class="read-lords-keyword-row">
-                <span class="read-lords-keyword-key">${kw.key}</span>
-                <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+        ${evening.lordsPart && evening.lordsKeywords ? `
+          <section class="read-step">
+            <h3 class="read-step-title">주기도로 마치기</h3>
+            ${evening.lordsIntro ? `<p class="read-step-text">${evening.lordsIntro}</p>` : ''}
+            <div class="read-pray-panel">
+              <div class="read-lords-card">
+                <p class="read-lords-part">"${evening.lordsPart}"</p>
+                <div class="read-lords-keywords">
+                  ${evening.lordsKeywords.map(kw => `
+                    <div class="read-lords-keyword-row">
+                      <span class="read-lords-keyword-key">${kw.key}</span>
+                      <span class="read-lords-keyword-meaning">${kw.meaning}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                ${evening.lordsExample ? `
+                  <p class="read-lords-example-label">예시 기도</p>
+                  <p class="read-lords-example">"${evening.lordsExample}"</p>
+                ` : ''}
               </div>
-            `).join('')}
+              <textarea
+                class="read-prayer-input read-lords-input"
+                id="lords-input"
+                placeholder="${evening.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
+                autocomplete="off" autocorrect="off" spellcheck="false"
+              >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
+            </div>
+          </section>
+        ` : evening.lordsFocus ? `
+          <section class="read-step">
+            <h3 class="read-step-title">주기도의 흐름으로</h3>
+            ${evening.lordsIntro ? `<p class="read-step-text">${evening.lordsIntro}</p>` : ''}
+            <div class="read-lords-focus-card">
+              ${evening.lordsLine ? `<p class="read-lords-focus-line">"${evening.lordsLine}"</p>` : ''}
+              ${evening.lordsPrayerExample ? `<p class="read-lords-focus-prayer">${evening.lordsPrayerExample.replace(/\n/g, '<br/>')}</p>` : ''}
+            </div>
+          </section>
+        ` : ''}
+
+        <section class="read-step is-fill">
+          <h3 class="read-step-title">하나님께</h3>
+          <div class="read-pray-panel">
+            <div class="read-prayer-example">
+              <p class="read-prayer-example-text">${evening.prayerExample}</p>
+            </div>
+            <textarea
+              class="read-prayer-input"
+              id="prayer-input"
+              placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+              autocomplete="off" autocorrect="off" spellcheck="false"
+            >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
           </div>
-
-          ${evening.lordsExample ? `
-            <p class="read-lords-example-label">예시 기도</p>
-            <p class="read-lords-example">"${evening.lordsExample}"</p>
-          ` : ''}
-        </div>
-
-        <textarea
-          class="read-prayer-input read-lords-input"
-          id="lords-input"
-          placeholder="${evening.lordsPlaceholder || '자기 말로 한 마디 적어보세요'}"
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        >${Storage.getLordsEntry(lessonId, dayIndex)}</textarea>
-      ` : evening.lordsFocus ? `
-        <!-- 7~10과: 주기도의 한 부분에 머물기 짜임 -->
-        <div class="read-divider"></div>
-
-        <p class="read-section-label">주기도의 흐름으로</p>
-        ${evening.lordsIntro ? `<p class="read-guide-body">${evening.lordsIntro}</p>` : ''}
-
-        <div class="read-lords-focus-card">
-          ${evening.lordsLine ? `<p class="read-lords-focus-line">"${evening.lordsLine}"</p>` : ''}
-          ${evening.lordsPrayerExample ? `<p class="read-lords-focus-prayer">${evening.lordsPrayerExample.replace(/\n/g, '<br/>')}</p>` : ''}
-        </div>
-      ` : ''}
-
-      <div class="read-divider"></div>
-
-      <p class="read-section-label">하나님께</p>
-
-      <div class="read-prayer-example">
-        <p class="read-prayer-example-text">"${evening.prayerExample}"</p>
+        </section>
       </div>
-
-      <textarea
-        class="read-prayer-input"
-        id="prayer-input"
-        placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false"
-      >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
 
       <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
     </div>
   `;
 
-  // 번역 토글
-  const verseEl = screen.querySelector('#verse-text');
+  // 번역 토글 — 말씀 판만 매번 id로 다시 찾아 교체
   bindTextSizeControl(screen);
   bindTranslationToggle(screen, (newTranslation) => {
     currentTranslation = newTranslation;
-    // verseEl 자리에 새 결을 통째로 갈무리 (옛/새 둘 다)
-    const newHtml = renderVerseOrPassage(day, currentTranslation);
-    const parent = verseEl.parentNode;
-    const tmp = document.createElement('div');
-    tmp.innerHTML = newHtml;
-    parent.replaceChild(tmp.firstChild, verseEl);
+    const oldEl = screen.querySelector('#verse-text');
+    if (oldEl) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderScriptureBlock(day, currentTranslation);
+      oldEl.parentNode.replaceChild(tmp.firstChild, oldEl);
+    }
   });
 
   // 닫기

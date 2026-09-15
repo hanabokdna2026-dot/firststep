@@ -1389,6 +1389,226 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
   margin-bottom: 32px;
 }
 
+/* ==========================================
+   아침 화면 새 레이아웃
+   말씀은 흰 판 위에 절 번호와 함께(A),
+   그 아래 잠시 들여다보기 → 오늘 내 하루에서 → 기도가
+   왼쪽 세로선의 점을 따라 내려감(B).
+   낮·저녁 화면은 기존 클래스를 그대로 씀.
+   ========================================== */
+
+.read-body.read-morning {
+  padding: 20px 24px 32px;
+}
+
+/* 본문 출처 — 말씀 판 위, 왼쪽 */
+.read-ref-top {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 4px 12px;
+}
+
+/* 말씀 판 */
+.read-scripture {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 22px;
+  padding: 24px 22px 20px;
+  margin-bottom: 30px;
+}
+
+.read-scripture p {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.read-scripture p:last-child {
+  margin-bottom: 0;
+}
+
+/* 한 절만 있는 1~3과는 조금 크게 */
+.read-scripture.is-single p {
+  font-size: 21px;
+  line-height: 1.7;
+}
+
+/* 절 번호 */
+.read-verse-num {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  vertical-align: 0.55em;
+  margin-right: 5px;
+}
+
+/* 걸음길 — 왼쪽 세로선 */
+.read-path {
+  position: relative;
+  padding-left: 26px;
+}
+
+.read-path::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: 36px;
+  width: 2px;
+  background: var(--border-soft);
+}
+
+/* 한 걸음 */
+.read-step {
+  position: relative;
+  margin-bottom: 34px;
+}
+
+.read-step:last-child {
+  margin-bottom: 0;
+}
+
+/* 점 */
+.read-step::before {
+  content: "";
+  position: absolute;
+  left: -26px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 2.5px solid var(--accent);
+}
+
+/* 마지막 기도 걸음 — 채운 점 */
+.read-step.is-fill::before {
+  background: var(--accent);
+}
+
+.read-step-title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+}
+
+/* 안내·풀이 — 조용하게 */
+.read-step-text {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.read-step-text:last-child {
+  margin-bottom: 0;
+}
+
+/* 질문 — 여기서 멈춰 답하는 자리 */
+.read-step-question {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.read-step-question:last-child {
+  margin-bottom: 0;
+}
+
+/* 기도 판 */
+.read-pray-panel {
+  background: rgba(250, 199, 117, 0.22);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+}
+
+.read-pray-panel .read-prayer-example {
+  background: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.read-pray-panel .read-prayer-example-text {
+  font-style: normal;
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+
+.read-pray-panel .read-prayer-input,
+.read-pray-panel .read-lords-input {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(186, 117, 23, 0.15);
+  margin-bottom: 0;
+}
+
+.read-pray-panel .read-lords-card {
+  margin: 0 0 14px;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.read-pray-panel .read-lords-part {
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.read-pray-panel .read-lords-keyword-row {
+  display: block;
+  font-size: 14px;
+  line-height: 1.65;
+  margin-bottom: 8px;
+}
+
+.read-pray-panel .read-lords-keyword-key {
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.read-pray-panel .read-lords-keyword-meaning {
+  font-size: 14px;
+}
+
+.read-pray-panel .read-lords-example {
+  font-size: 15px;
+  font-style: normal;
+}
+
+.read-morning .read-cta {
+  margin-top: 28px;
+  margin-bottom: 0;
+}
+
+/* 글씨 크기 단계 — 새 아침 레이아웃 */
+body[data-text-size="1"] .read-scripture p { font-size: 15px; }
+body[data-text-size="1"] .read-scripture.is-single p { font-size: 17px; }
+body[data-text-size="1"] .read-step-text { font-size: 13px; }
+body[data-text-size="1"] .read-step-question { font-size: 15px; }
+body[data-text-size="2"] .read-scripture p { font-size: 17px; }
+body[data-text-size="2"] .read-scripture.is-single p { font-size: 19px; }
+body[data-text-size="2"] .read-step-text { font-size: 14px; }
+body[data-text-size="2"] .read-step-question { font-size: 16px; }
+body[data-text-size="4"] .read-scripture p { font-size: 21px; line-height: 1.9; }
+body[data-text-size="4"] .read-scripture.is-single p { font-size: 24px; }
+body[data-text-size="4"] .read-step-text { font-size: 17px; }
+body[data-text-size="4"] .read-step-question { font-size: 19px; }
+body[data-text-size="5"] .read-scripture p { font-size: 24px; line-height: 1.95; }
+body[data-text-size="5"] .read-scripture.is-single p { font-size: 27px; }
+body[data-text-size="5"] .read-step-text { font-size: 19px; }
+body[data-text-size="5"] .read-step-question { font-size: 21px; }
+
 /* 낮 통독 - 단락 본문 */
 .read-passage-paragraph {
   font-family: var(--font-serif);
