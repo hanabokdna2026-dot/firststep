@@ -286,7 +286,7 @@ export default async function renderJourney({ navigateTo }) {
           }
           return '';
         })()}</p>
-        <p class="journey-day-ref">— ${day.verseRef}</p>
+        <p class="journey-day-ref">${day.verseRef}</p>
         ${isCurrent ? '<p class="journey-day-current-mark">지금 이 자리</p>' : ''}
 
         ${isActive ? `

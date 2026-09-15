@@ -174,16 +174,24 @@ export default async function renderHome({ navigateTo, param, extra }) {
   const swipeHintHtml = `
     <div class="home-swipe-hints">
       <button class="home-swipe-hint home-swipe-hint-left" id="hint-left" aria-label="${isPreview ? '오늘로 돌아가기' : '여정 보기'}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="home-swipe-hint-label">${isPreview ? '오늘' : '여정'}</span>
+        ${isPreview ? `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        ` : `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="5" cy="18" r="2.4" fill="currentColor"/>
+            <circle cx="12" cy="12" r="2.4" fill="currentColor"/>
+            <circle cx="19" cy="6" r="2.4" fill="currentColor"/>
+          </svg>
+        `}
+        <span class="home-swipe-hint-label">${isPreview ? '오늘' : '여정 보기'}</span>
       </button>
       ${nextActiveDay ? `
         <button class="home-swipe-hint home-swipe-hint-right" id="hint-right" aria-label="다음 자리">
           <span class="home-swipe-hint-label">${isPreview ? '다음 자리' : '다음 날'}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       ` : ''}
@@ -373,7 +381,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
     let previewHtml;
     if (sessionType === 'midday') {
       previewHtml = `
-        <p class="card-section-label">${isPreview ? '미리보는 ' : '오늘의 '}${sessionLabel} 세션</p>
+        <p class="card-section-label">${isPreview ? '미리보기' : '낮에 머무는 한 절'}</p>
         <p class="card-passage-ref">${day.midday.homeHint || day.midday.passageRef || '오늘 통독을 이어갑니다'}</p>
         <p class="card-passage-hint">짧은 단락을 흘려 읽습니다.</p>
       `;
@@ -386,10 +394,13 @@ export default async function renderHome({ navigateTo, param, extra }) {
         const arr = day.passage.saebeon;
         verseText = Array.isArray(arr) ? arr[0] : arr;
       }
+      const labelText = isPreview
+        ? '미리보기'
+        : (sessionType === 'evening' ? '저녁에 돌아보는 말씀' : '아침에 만나는 말씀');
       previewHtml = `
-        <p class="card-section-label">${isPreview ? '미리보는 ' : '오늘의 '}${sessionLabel} 세션</p>
+        <p class="card-section-label">${labelText}</p>
         <p class="card-verse-text">${verseText}</p>
-        <p class="card-verse-ref">— ${day.verseRef}</p>
+        <p class="card-verse-ref">${day.verseRef}</p>
       `;
     }
 
@@ -436,24 +447,25 @@ export default async function renderHome({ navigateTo, param, extra }) {
     // hint — 그 날의 그 세션 hint를 우선, 없으면 기본 hint
     const hint = (day[sessionType] && day[sessionType].homeHint) || SESSION_HINTS[sessionType];
 
-    const checkIcon = isDone ? `
-      <span class="home-other-card-check">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
-    ` : '';
-
     return `
-      <button class="home-other-card ${isDone ? 'home-other-card-done' : ''}" data-session="${sessionType}">
-        <div class="home-other-card-row">
-          <span class="home-other-card-label-group">
-            ${checkIcon}
+      <button class="home-other-card home-other-card-${sessionType} ${isDone ? 'home-other-card-done' : ''}" data-session="${sessionType}">
+        <span class="home-other-card-mark" aria-hidden="true">
+          ${isDone ? `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12L10 17L19 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          ` : ''}
+        </span>
+        <span class="home-other-card-body">
+          <span class="home-other-card-row">
             <span class="home-other-card-label">${sessionLabel}</span>
+            <span class="home-other-card-time">${timeLabel}</span>
           </span>
-          <span class="home-other-card-time">${timeLabel}</span>
-        </div>
-        <p class="home-other-card-hint">${hint}</p>
+          <span class="home-other-card-hint">${hint}</span>
+        </span>
+        <svg class="home-other-card-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
     `;
   }

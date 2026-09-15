@@ -841,10 +841,15 @@ p.subtle {
 }
 
 .card-section-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
+  display: inline-block;
+  background: rgba(186, 117, 23, 0.12);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  margin-bottom: 12px;
 }
 
 .card-verse-text {
@@ -926,76 +931,96 @@ p.subtle {
 
 .home-other-card {
   width: 100%;
-  background: var(--bg-card-softer);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 14px 14px 14px 16px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
-  transition: background 0.15s, opacity 0.2s;
+  transition: background 0.15s, transform 0.12s;
 }
 
 .home-other-card:active {
-  background: var(--bg-card-soft);
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(0.99);
 }
 
-/* 마친 카드 - 텍스트만 옅게, 옅은 amber 배경 */
-.home-other-card-done {
-  background: rgba(186, 117, 23, 0.06);
+/* 왼쪽 표시 — 세션 색 점. 마치면 체크 */
+.home-other-card-mark {
+  flex-shrink: 0;
+  margin-right: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-primary);
+}
+
+.home-other-card-morning .home-other-card-mark { background: var(--accent-pale); }
+.home-other-card-midday  .home-other-card-mark { background: var(--accent-soft); }
+.home-other-card-evening .home-other-card-mark { background: var(--text-muted); }
+
+.home-other-card-done .home-other-card-mark {
+  background: var(--accent);
+}
+
+.home-other-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-right: 8px;
 }
 
 .home-other-card-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  align-items: baseline;
+  margin-bottom: 3px;
 }
 
-.home-other-card-label-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.home-other-card-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--bg-primary);
-  flex-shrink: 0;
+.home-other-card-row .home-other-card-label {
+  margin-right: 8px;
 }
 
 .home-other-card-label {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
-}
-
-.home-other-card-done .home-other-card-label {
-  color: var(--text-muted);
-  font-weight: 400;
 }
 
 .home-other-card-time {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .home-other-card-hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.home-other-card-done .home-other-card-hint {
-  color: var(--text-muted);
+.home-other-card-chevron {
+  flex-shrink: 0;
+  color: var(--accent);
 }
+
+/* 마친 카드 — 옅게 */
+.home-other-card-done {
+  background: rgba(186, 117, 23, 0.06);
+  border-color: transparent;
+}
+.home-other-card-done .home-other-card-label { color: var(--text-muted); font-weight: 500; }
+.home-other-card-done .home-other-card-hint { color: var(--text-muted); }
+.home-other-card-done .home-other-card-chevron { color: var(--text-muted); opacity: 0.6; }
 
 /* 하단 탭바 */
 .home-tabbar {
@@ -1864,45 +1889,41 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px 0;
-  min-height: 36px;
+  padding: 14px 16px 0;
+  min-height: 40px;
 }
 
 .home-swipe-hint {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: transparent;
   border: none;
-  padding: 6px 10px;
+  padding: 8px 14px;
   margin: 0;
   border-radius: 999px;
-  color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: -0.1px;
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s, background 0.2s;
+  transition: transform 0.12s, filter 0.15s;
 }
 
 .home-swipe-hint:active {
-  opacity: 1;
-  background: rgba(186, 117, 23, 0.1);
+  transform: scale(0.97);
+  filter: brightness(0.97);
 }
 
 .home-swipe-hint-label {
   white-space: nowrap;
 }
+.home-swipe-hint-left .home-swipe-hint-label { margin-left: 6px; }
+.home-swipe-hint-right .home-swipe-hint-label { margin-right: 4px; }
 
-/* 왼쪽 힌트는 화살표가 먼저, 오른쪽은 라벨이 먼저 — 자연스러운 좌우 짜임 */
-.home-swipe-hint-left {
-  margin-left: -4px;  /* 화살표가 화면 끝에 가깝게 */
-}
-
+/* 여정 / 다음 날 — 앰버 톤온톤 (배경과 한 계열, 은은하게) */
+.home-swipe-hint-left,
 .home-swipe-hint-right {
-  margin-right: -4px;
+  background: rgba(186, 117, 23, 0.12);
+  color: #7A4B0A;
 }
 
 /* ==========================================
