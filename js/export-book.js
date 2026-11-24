@@ -6,6 +6,7 @@
 
 import Storage from './storage.js';
 import { getAllLessons } from './content.js';
+import { formatKoreanDate } from './time.js';
 
 const SESSION_LABELS = {
   morning: '아침',
@@ -71,8 +72,7 @@ export async function openExportBook() {
   const totalPrayers = validPrayers + validLords;
 
   // 오늘 날짜
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+  const dateStr = formatKoreanDate();
 
   // HTML 짜임
   const html = buildHtml({ userName, dateStr, entries, lessonMap, totalEntries, totalPrayers });

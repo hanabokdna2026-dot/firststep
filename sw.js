@@ -65,7 +65,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_VERSION = 'firststep-v35';
+const CACHE_VERSION = 'firststep-v36';
 const APP_SHELL = [
   './',
   './index.html',
@@ -76,6 +76,7 @@ const APP_SHELL = [
   './icons/icon-512.png',
   './icons/hanabok-mark.svg',
   './assets/sounds/bell-medium.mp3',
+  './assets/fonts/RIDIBatang.woff2',
 ];
 
 // 설치 - 앱 셸 캐시

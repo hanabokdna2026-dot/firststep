@@ -582,7 +582,7 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
     for (let v = start; v <= end; v++) {
       const verseData = chapterData.verses.find(x => x.v === v);
       if (verseData) {
-        lines.push(`<p class="continuous-verse"><span class="continuous-verse-num">${v}</span> ${verseData[translation]}</p>`);
+        lines.push(`<p><span class="read-verse-num">${v}</span>${verseData[translation]}</p>`);
       }
     }
     return lines.join('');
@@ -594,40 +594,34 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
         <p class="read-header-title">낮 · ${day.displayDayLabel}</p>
-        <span style="width: 60px;"></span>
       </div>
 
-      <div class="read-body">
-        <p class="eyebrow">통독 마침</p>
-        <h2 class="title-small">요한복음 1장을<br/>다 읽으셨어요</h2>
-
-        <p class="body" style="margin-top: 16px;">
-          한 장을 끝까지 읽으셨다는 것 — 그 자체로 큰 한 걸음이에요.
-        </p>
-
-        <div class="read-guide-card" style="margin-top: 24px;">
-          <p class="read-guide-card-text">
-            다음 한 주 새 과에서 요한복음 2장으로 이어집니다.
-            오늘은 잠시 멈추셔도 좋고,
-            성경책이나 다른 성경 앱으로 더 읽어가셔도 좋아요.
-          </p>
+      <div class="read-body read-morning">
+        <div class="read-finish">
+          <p class="read-finish-mark">통독 마침</p>
+          <h2 class="read-finish-title">요한복음 1장을 다 읽으셨어요</h2>
+          <p class="read-finish-text">한 장을 끝까지 읽으셨다는 것, 그 자체로 큰 한 걸음이에요.</p>
+          <p class="read-finish-text">다음 한 주 새 과에서 요한복음 2장으로 이어집니다. 오늘은 잠시 멈추셔도 좋고, 성경책으로 더 읽어가셔도 좋아요.</p>
         </div>
 
+        <div class="read-path">
         ${midday.prayerExample ? `
-          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-          <div class="read-prayer-example">
-            <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
-          </div>
-
-          <textarea
-            class="read-prayer-input"
-            id="prayer-input"
-            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
-        ` : ''}
+            <section class="read-step is-fill">
+              <h3 class="read-step-title">한 마디 기도</h3>
+              <div class="read-pray-panel">
+                <div class="read-prayer-example">
+                  <p class="read-prayer-example-text">${midday.prayerExample}</p>
+                </div>
+                <textarea
+                  class="read-prayer-input"
+                  id="prayer-input"
+                  placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                  autocomplete="off" autocorrect="off" spellcheck="false"
+                >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
+              </div>
+            </section>
+          ` : ''}
+        </div>
 
         <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
@@ -655,9 +649,8 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
         ${renderHeaderRight(currentTranslation)}
       </div>
 
-      <div class="read-body">
-        <p class="read-section-label">오늘의 통독</p>
-        <p class="read-verse-ref" style="margin-bottom: 12px;">${refLabel}</p>
+      <div class="read-body read-morning">
+        <p class="read-ref-top">오늘의 통독 · ${refLabel}</p>
 
         <div class="continuous-size-toggle">
           ${['3', '5', '7', '10'].map(s => `
@@ -665,29 +658,32 @@ async function renderContinuousMidday(screen, navigateTo, day, lessonId, dayInde
           `).join('')}
         </div>
 
-        <div class="continuous-verses" id="verses-area">
+        <div class="read-scripture" id="verses-area">
           ${versesHtml}
         </div>
 
-        <div class="read-guide-card">
-          <p class="read-guide-card-text">${midday.guide}</p>
-        </div>
-
+        <div class="read-path">
+          <section class="read-step">
+            <h3 class="read-step-title">천천히 읽기</h3>
+            <p class="read-step-text">${midday.guide}</p>
+          </section>
         ${midday.prayerExample ? `
-          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-          <div class="read-prayer-example">
-            <p class="read-prayer-example-text">"${midday.prayerExample}"</p>
-          </div>
-
-          <textarea
-            class="read-prayer-input"
-            id="prayer-input"
-            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
-        ` : ''}
+            <section class="read-step is-fill">
+              <h3 class="read-step-title">한 마디 기도</h3>
+              <div class="read-pray-panel">
+                <div class="read-prayer-example">
+                  <p class="read-prayer-example-text">${midday.prayerExample}</p>
+                </div>
+                <textarea
+                  class="read-prayer-input"
+                  id="prayer-input"
+                  placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                  autocomplete="off" autocorrect="off" spellcheck="false"
+                >${Storage.getPrayer(lessonId, dayIndex, 'midday')}</textarea>
+              </div>
+            </section>
+          ` : ''}
+        </div>
 
         <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
@@ -813,7 +809,7 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
     for (let v = start; v <= end; v++) {
       const verseData = chapterData.verses.find(x => x.v === v);
       if (verseData) {
-        lines.push(`<p class="continuous-verse"><span class="continuous-verse-num">${v}</span> ${verseData[translation]}</p>`);
+        lines.push(`<p><span class="read-verse-num">${v}</span>${verseData[translation]}</p>`);
       }
     }
     return lines.join('');
@@ -830,48 +826,36 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
       <div class="read-header">
         <button class="read-header-back" id="btn-close">‹ 닫기</button>
         <p class="read-header-title">저녁 · ${day.displayDayLabel}</p>
-        <span style="width: 60px;"></span>
       </div>
 
-      <div class="read-body">
-        <p class="eyebrow">통독 마침</p>
-        <h2 class="title-small">${book} ${chapter}장을<br/>다 읽으셨어요</h2>
+      <div class="read-body read-morning">
+        <div class="read-finish">
+          <p class="read-finish-mark">통독 마침</p>
+          <h2 class="read-finish-title">${book} ${chapter}장을 다 읽으셨어요</h2>
+          <p class="read-finish-text">한 장을 끝까지 읽으셨다는 것, 그 자체로 큰 한 걸음이에요.</p>
+          ${isJohnLast
+            ? `<p class="read-finish-text">요한복음 21장을 다 마치셨어요. 이어서 사도행전으로 가실 수 있어요. 새로운 시작이 펼쳐집니다.</p>`
+            : `<p class="read-finish-text">내일은 ${nextChapterTitle}으로 이어집니다. 오늘은 잠시 멈추셔도 좋고, 성경책으로 더 읽어가셔도 좋아요.</p>`}
+        </div>
 
-        <p class="body" style="margin-top: 16px;">
-          한 장을 끝까지 읽으셨다는 것 — 그 자체로 큰 한 걸음이에요.
-        </p>
-
-        ${isJohnLast ? `
-          <div class="read-guide-card" style="margin-top: 24px;">
-            <p class="read-guide-card-text">
-              요한복음 21장을 다 마치셨네요. 정말 큰 자리예요.<br/><br/>
-              이어서 사도행전으로 가실 수 있어요. 새로운 시작이 펼쳐집니다.
-            </p>
-          </div>
-        ` : `
-          <div class="read-guide-card" style="margin-top: 24px;">
-            <p class="read-guide-card-text">
-              내일은 ${nextChapterTitle}으로 이어집니다.<br/>
-              오늘은 잠시 멈추셔도 좋고, 다른 성경 앱으로 더 읽어가셔도 좋아요.
-            </p>
-          </div>
-        `}
-
+        <div class="read-path">
         ${evening.prayerExample ? `
-          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-          <div class="read-prayer-example">
-            <p class="read-prayer-example-text">"${evening.prayerExample}"</p>
-          </div>
-
-          <textarea
-            class="read-prayer-input"
-            id="prayer-input"
-            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
-        ` : ''}
+            <section class="read-step is-fill">
+              <h3 class="read-step-title">한 마디 기도</h3>
+              <div class="read-pray-panel">
+                <div class="read-prayer-example">
+                  <p class="read-prayer-example-text">${evening.prayerExample}</p>
+                </div>
+                <textarea
+                  class="read-prayer-input"
+                  id="prayer-input"
+                  placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                  autocomplete="off" autocorrect="off" spellcheck="false"
+                >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
+              </div>
+            </section>
+          ` : ''}
+        </div>
 
         <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>
@@ -908,9 +892,8 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
         ${renderHeaderRight(currentTranslation)}
       </div>
 
-      <div class="read-body">
-        <p class="read-section-label">오늘의 통독</p>
-        <p class="read-verse-ref" style="margin-bottom: 12px;">${refLabel}</p>
+      <div class="read-body read-morning">
+        <p class="read-ref-top">오늘의 통독 · ${refLabel}</p>
 
         <div class="continuous-size-toggle">
           ${['3', '5', '7', '10'].map(s => `
@@ -918,31 +901,34 @@ async function renderContinuousEvening(screen, navigateTo, day, lessonId, dayInd
           `).join('')}
         </div>
 
-        <div class="continuous-verses" id="verses-area">
+        <div class="read-scripture" id="verses-area">
           ${versesHtml}
         </div>
 
-        ${evening.reflectQuestion ? `
-          <div class="read-divider"></div>
-          <p class="read-section-label">하루를 돌아보며</p>
-          <p class="read-guide-body">${evening.reflectQuestion}</p>
-        ` : ''}
-
+        <div class="read-path">
+          ${evening.reflectQuestion ? `
+            <section class="read-step">
+              <h3 class="read-step-title">하루를 돌아보며</h3>
+              <p class="read-step-question">${evening.reflectQuestion}</p>
+            </section>
+          ` : ''}
         ${evening.prayerExample ? `
-          <p class="read-section-label" style="margin-top: 28px;">한 마디 기도</p>
-          <div class="read-prayer-example">
-            <p class="read-prayer-example-text">"${evening.prayerExample}"</p>
-          </div>
-
-          <textarea
-            class="read-prayer-input"
-            id="prayer-input"
-            placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
-        ` : ''}
+            <section class="read-step is-fill">
+              <h3 class="read-step-title">한 마디 기도</h3>
+              <div class="read-pray-panel">
+                <div class="read-prayer-example">
+                  <p class="read-prayer-example-text">${evening.prayerExample}</p>
+                </div>
+                <textarea
+                  class="read-prayer-input"
+                  id="prayer-input"
+                  placeholder="이 기도를 받아들이거나, 자기 말로 적어보세요"
+                  autocomplete="off" autocorrect="off" spellcheck="false"
+                >${Storage.getPrayer(lessonId, dayIndex, 'evening')}</textarea>
+              </div>
+            </section>
+          ` : ''}
+        </div>
 
         <button class="btn read-cta" id="btn-next">잠잠히 머물기</button>
       </div>

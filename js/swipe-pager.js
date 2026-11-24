@@ -262,4 +262,5 @@ export function setupSwipePager(screen, options) {
     window.removeEventListener('hashchange', cleanup);
   };
   window.addEventListener('hashchange', cleanup);
+  if (window.registerScreenCleanup) window.registerScreenCleanup(cleanup);
 }

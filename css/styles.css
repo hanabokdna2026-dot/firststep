@@ -3,35 +3,52 @@
    ========================================== */
 
 /* 디자인 토큰 */
+/* 리디바탕 — SIL Open Font License 1.1, © RIDI Corp. (assets/fonts/OFL-RIDIBatang.txt) */
+@font-face {
+  font-family: 'RIDIBatang';
+  src: url('../assets/fonts/RIDIBatang.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* 색상 - amber 계열 (따뜻한 베이지/옥색) */
-  --bg-primary: #FAEEDA;          /* amber 50 - 메인 배경 */
-  --bg-card: rgba(255, 255, 255, 0.5);
-  --bg-card-soft: rgba(255, 255, 255, 0.4);
-  --bg-card-softer: rgba(255, 255, 255, 0.35);
+  /* 바탕과 면 — 종이 한 장 위에 흰 종이 카드를 얹은 느낌 */
+  --bg-primary: #F7F0E3;          /* 종이 (바탕) */
+  --surface: #FFFCF7;             /* 카드·말씀 판 */
+  --surface-tint: #F2E7D3;        /* 기도 판·알약·토글 바탕 (옅은 앰버) */
+  --bg-card: var(--surface);
+  --bg-card-soft: var(--surface);
+  --bg-card-softer: var(--surface);
 
-  --text-primary: #412402;        /* amber 900 - 가장 진한 글자 */
-  --text-secondary: #633806;      /* amber 800 - 보조 글자 */
-  --text-muted: #854F0B;          /* amber 600 - 흐린 글자 */
+  /* 글자 — 세 단계 */
+  --text-primary: #3B2A12;        /* 본문 (대비 12:1) */
+  --text-secondary: #5F4B30;      /* 안내 (7:1) */
+  --text-muted: #7A6345;          /* 날짜·출처 같은 작은 정보 (5:1) */
 
-  --accent: #BA7517;              /* amber 600 - 버튼/액센트 */
-  --accent-soft: #EF9F27;         /* amber 500 - 부드러운 액센트 */
-  --accent-pale: #FAC775;         /* amber 200 - 매우 옅은 액센트 */
+  /* 강조 — 앰버 하나 */
+  --accent: #A2651A;              /* 버튼·선택·채운 점 (흰 글자 4.8:1) */
+  --accent-ink: #94590F;          /* 앰버색 작은 글자 (절 번호 등) */
+  --accent-soft: #D29B4C;         /* 낮 세션 점 */
+  --accent-pale: #E8C891;         /* 아침 세션 점 */
 
-  --border-soft: rgba(186, 117, 23, 0.2);
-  --border-mid: rgba(186, 117, 23, 0.3);
+  /* 선 */
+  --line: #E7DAC4;
+  --line-strong: #D8C4A2;
+  --border-soft: var(--line);
+  --border-mid: var(--line-strong);
 
-  /* 폰트 */
-  --font-serif: 'Noto Serif KR', 'Noto Serif', serif;
-  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* 글꼴 — 본문은 리디바탕, 제목·버튼·라벨은 본고딕 */
+  --font-serif: 'RIDIBatang', 'Noto Serif KR', 'AppleMyungjo', serif;
+  --font-sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
 
-  /* 간격 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
+  /* 모서리 */
+  --radius-sm: 10px;
+  --radius-md: 14px;
   --radius-lg: 16px;
-  --radius-xl: 28px;
+  --radius-xl: 20px;
 
-  /* 화면 크기 - 모바일 우선 */
+  /* 레이아웃 */
   --max-width: 480px;
 }
 
@@ -50,8 +67,12 @@ html, body {
 
 body {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
+  font-synthesis: none;          /* 리디바탕은 한 굵기뿐 — 가짜 굵게·기울임 막기 */
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;          /* 한글 낱말 중간에서 줄 바꾸지 않기 */
+  overflow-wrap: break-word;
   color: var(--text-primary);
   background: var(--bg-primary);
   min-height: 100vh;
@@ -79,10 +100,10 @@ body {
   transform: translateX(-50%);
   padding: 6px 14px;
   font-family: var(--font-serif);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   z-index: 100;
   pointer-events: none;
   /* 살짝 옅게 */
@@ -121,17 +142,18 @@ body.silence-deep #app::before {
 
 /* 라벨 */
 .eyebrow {
-  font-size: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* 제목 */
 h1.title-large {
   font-family: var(--font-serif);
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-primary);
   text-align: center;
   margin-bottom: 12px;
@@ -140,7 +162,7 @@ h1.title-large {
 h2.title {
   font-family: var(--font-serif);
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-primary);
   line-height: 1.4;
   margin-bottom: 16px;
@@ -152,7 +174,7 @@ h2.title-with-subtitle {
 
 /* 본문 */
 p.body {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -214,7 +236,7 @@ p.subtle {
   width: 100%;
   opacity: 0.7;
   text-decoration: underline;
-  text-decoration-color: rgba(186, 117, 23, 0.3);
+  text-decoration-color: var(--line-strong);
   text-underline-offset: 3px;
 }
 
@@ -250,7 +272,7 @@ p.subtle {
 
 .input-text:focus {
   border-color: var(--accent-soft);
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 /* 카드 - 옵션 카드 */
@@ -274,12 +296,12 @@ p.subtle {
 }
 
 .option-card.selected {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
   border: 1px solid var(--accent);
 }
 
 .option-card:active {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 .option-card-header {
@@ -296,7 +318,7 @@ p.subtle {
 }
 
 .option-card-badge {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -322,7 +344,7 @@ p.subtle {
 }
 
 .info-card-body {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -342,7 +364,7 @@ p.subtle {
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 500;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
@@ -361,14 +383,14 @@ p.subtle {
 }
 
 .time-input-v2:focus {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   outline: 0.5px solid var(--accent);
 }
 
 /* iOS의 시간 input 내부 텍스트 스타일 통일 */
 .time-input-v2::-webkit-date-and-time-value {
   text-align: right;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 500;
 }
 
@@ -376,8 +398,8 @@ p.subtle {
    알림 카드 (notify 자리)
    ========================================== */
 .notify-push-card {
-  background: rgba(186, 117, 23, 0.06);
-  border: 1px solid rgba(186, 117, 23, 0.18);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 18px 18px 16px;
   margin-bottom: 24px;
@@ -387,13 +409,13 @@ p.subtle {
 .notify-push-title {
   font-family: var(--font-serif);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-primary);
   margin: 0 0 6px;
 }
 
 .notify-push-body {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 14px;
@@ -406,7 +428,7 @@ p.subtle {
 }
 
 .notify-push-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   margin: 0;
 }
@@ -427,18 +449,18 @@ p.subtle {
 }
 
 .time-row:active {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 .time-row-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
   margin-bottom: 2px;
 }
 
 .time-row-value {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 500;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -484,9 +506,9 @@ p.subtle {
 }
 
 .screen-header-title {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 /* 진행 표시 (작게) */
@@ -566,7 +588,7 @@ p.subtle {
 }
 
 .session-time-desc {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -595,17 +617,17 @@ p.subtle {
 
 /* 여정 화면 — 올리브 크림 (깊은 모래·차분한 자리) */
 .screen.journey-screen {
-  background: #D5CFA0;
+  background: #EFE6D3;
 }
 
 /* 미리보기 홈 — 포그 블루 (옅은 안개·다가올 자리) */
 .screen.home-preview {
-  background: #C8D4DD;
+  background: #ECEAE2;
 }
 
 /* 시간대별 배경 — 미묘한 변화 (오늘 홈) */
 .screen.home-dawn {
-  background: linear-gradient(180deg, #FEF3DD 0%, #FAEEDA 280px);
+  background: linear-gradient(180deg, #FBF6EC 0%, var(--bg-primary) 280px);
 }
 
 .screen.home-day {
@@ -613,11 +635,11 @@ p.subtle {
 }
 
 .screen.home-dusk {
-  background: linear-gradient(180deg, #F8E5C7 0%, #FAEEDA 280px);
+  background: linear-gradient(180deg, #F3E6D0 0%, var(--bg-primary) 280px);
 }
 
 .screen.home-night {
-  background: linear-gradient(180deg, #F0DFC0 0%, #FAEEDA 280px);
+  background: linear-gradient(180deg, #ECDFC8 0%, var(--bg-primary) 280px);
 }
 
 /* 미리보기 모드는 시간대 배경 무시하고 포그 블루로 통일 */
@@ -625,7 +647,7 @@ p.subtle {
 .screen.home-preview.home-day,
 .screen.home-preview.home-dusk,
 .screen.home-preview.home-night {
-  background: #C8D4DD;
+  background: #ECEAE2;
 }
 
 /* ==========================================
@@ -647,9 +669,9 @@ p.subtle {
 
 .swipe-placeholder-label {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
   opacity: 0.75;
 }
 
@@ -666,14 +688,14 @@ p.subtle {
 .home-greeting-title {
   font-family: var(--font-serif);
   font-size: 28px;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1.35;
   color: var(--text-primary);
   margin-bottom: 8px;
-  letter-spacing: -0.3px;
 }
 
 .home-greeting-sub {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 24px;
 }
@@ -710,16 +732,16 @@ p.subtle {
 }
 
 .home-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 20px 20px 20px;
 }
 
 .home-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  margin-bottom: 14px;
 }
 
 .home-card-lesson {
@@ -737,7 +759,6 @@ p.subtle {
 .home-card-header-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .home-card-header-right {
@@ -747,18 +768,19 @@ p.subtle {
 }
 
 .home-card-lesson-num {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
 .home-card-lesson-title {
-  font-family: var(--font-serif);
-  font-size: 16px;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
   color: var(--text-primary);
-  font-weight: 500;
-  line-height: 1.3;
 }
 
 .home-card-day-label {
@@ -784,9 +806,10 @@ p.subtle {
 
 /* 마침 시 버튼 — amber 색상 유지하되 살짝 옅은 톤으로 */
 .home-card-done .home-card-btn {
-  background: rgba(186, 117, 23, 0.55);
+  /* 이미 마친 자리 — 조용한 보조 버튼 */
+  background: var(--surface-tint);
   border: none;
-  color: var(--bg-primary);
+  color: var(--text-secondary);
 }
 
 .home-card-done .home-card-btn:active {
@@ -835,18 +858,18 @@ p.subtle {
 }
 
 .home-card-divider {
-  height: 0.5px;
-  background: rgba(186, 117, 23, 0.2);
-  margin-bottom: 14px;
+  height: 1px;
+  background: var(--line);
+  margin-bottom: 16px;
 }
 
 .card-section-label {
   display: inline-block;
-  background: rgba(186, 117, 23, 0.12);
+  background: var(--surface-tint);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
   padding: 5px 11px;
   border-radius: 999px;
   margin-bottom: 12px;
@@ -854,22 +877,22 @@ p.subtle {
 
 .card-verse-text {
   font-family: var(--font-serif);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: 17px;
+  line-height: 1.75;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .card-verse-ref {
-  font-size: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   color: var(--text-muted);
-  font-style: italic;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .card-passage-ref {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
@@ -898,7 +921,7 @@ p.subtle {
 }
 
 .home-next-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 2px;
 }
@@ -933,7 +956,7 @@ p.subtle {
   width: 100%;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 14px 14px 14px 16px;
@@ -944,7 +967,7 @@ p.subtle {
 }
 
 .home-other-card:active {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
   transform: scale(0.99);
 }
 
@@ -1015,7 +1038,7 @@ p.subtle {
 
 /* 마친 카드 — 옅게 */
 .home-other-card-done {
-  background: rgba(186, 117, 23, 0.06);
+  background: var(--surface-tint);
   border-color: transparent;
 }
 .home-other-card-done .home-other-card-label { color: var(--text-muted); font-weight: 500; }
@@ -1025,10 +1048,10 @@ p.subtle {
 /* 하단 탭바 */
 .home-tabbar {
   display: flex;
-  border-top: 0.5px solid rgba(186, 117, 23, 0.25);
+  border-top: 0.5px solid var(--line);
   padding: 10px 0 calc(env(safe-area-inset-bottom) + 12px);
   margin-top: auto;
-  background: rgba(250, 238, 218, 0.92);
+  background: rgba(247, 240, 227, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   position: sticky;
@@ -1051,7 +1074,7 @@ p.subtle {
 }
 
 .home-tab:active {
-  background: rgba(186, 117, 23, 0.05);
+  background: var(--surface-tint);
 }
 
 .home-tab-icon {
@@ -1062,10 +1085,10 @@ p.subtle {
 }
 
 .home-tab-label {
-  font-size: 11px;
+  font-size: 12px;
   color: inherit;
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 /* 활성 탭 - amber로 강조 */
@@ -1122,8 +1145,8 @@ p.subtle {
 
 .title-centered {
   font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 500;
+  font-size: 22px;
+  font-weight: 400;
   color: var(--text-primary);
   text-align: center;
   margin-bottom: 12px;
@@ -1154,61 +1177,68 @@ p.subtle {
    ========================================== */
 
 .read-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;  /* 오른쪽 영역이 위아래로 두 자리 차지 */
-  padding: 16px 24px 16px;
-  gap: 12px;
+  /* 1줄: 닫기 · 제목 / 2줄: 번역 선택 · 글씨 크기 */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas:
+    "back title ."
+    "tools tools tools";
+  align-items: center;
+  row-gap: 10px;
+  padding: 8px 20px 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 .read-header-back {
+  grid-area: back;
+  justify-self: start;
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 15px;
   cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-  margin-top: 6px;  /* 오른쪽 영역과 시각적 균형 */
+  min-height: 44px;
+  padding: 0 8px 0 0;
 }
 
 .read-header-title {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
-  margin-top: 8px;  /* 오른쪽 영역과 시각적 균형 */
+  grid-area: title;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* 헤더 오른쪽 — 번역 토글(위) + 글씨 크기 버튼(아래) */
 .read-header-right {
+  grid-area: tools;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* 번역 토글 — segmented control 짜임
    양쪽 옵션이 다 보이는 짜임으로 직관적으로 누를 수 있음을 알림 */
 .read-header-segment {
   display: inline-flex;
-  background: rgba(186, 117, 23, 0.08);  /* 옅은 amber 트랙 */
+  background: var(--surface-tint);
   border-radius: 999px;
-  padding: 2px;
-  gap: 2px;
+  padding: 3px;
 }
 
 .read-header-segment-option {
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 500;
-  padding: 4px 10px;
+  padding: 7px 14px;
   border-radius: 999px;
   cursor: pointer;
-  font-family: inherit;
   transition: background 0.18s ease, color 0.18s ease;
-  letter-spacing: -0.1px;
 }
 
 .read-header-segment-option.is-active {
@@ -1219,7 +1249,7 @@ p.subtle {
 }
 
 .read-header-segment-option:not(.is-active):active {
-  background: rgba(186, 117, 23, 0.05);
+  background: var(--surface-tint);
 }
 
 .read-body {
@@ -1229,7 +1259,7 @@ p.subtle {
 .read-section-label {
   font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-bottom: 12px;
 }
 
@@ -1313,20 +1343,19 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
    ========================================== */
 .read-header-text-size {
   display: flex;
-  gap: 4px;
-  justify-content: flex-end;
 }
 
 .read-header-text-size-btn {
   background: transparent;
-  border: 0.5px solid var(--border-mid);
-  color: var(--text-muted);
-  font-family: var(--font-serif);
+  border: 1px solid var(--line-strong);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
-  width: 28px;
-  height: 24px;
-  border-radius: 8px;
+  width: 40px;
+  height: 34px;
+  margin-left: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1337,7 +1366,7 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 }
 
 .read-header-text-size-btn:active {
-  background: rgba(186, 117, 23, 0.08);
+  background: var(--surface-tint);
 }
 
 .read-header-text-size-btn:disabled {
@@ -1347,14 +1376,14 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* A는 살짝 작게, +/- 기호는 가운데에 */
 .read-header-text-size-btn .a {
-  font-size: 11px;
+  font-size: 12px;
   margin-right: 1px;
 }
 
 .read-verse-ref {
   font-size: 13px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
   margin-bottom: 36px;
 }
 
@@ -1365,7 +1394,7 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 }
 
 .read-guide-body {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 32px;
   line-height: 1.65;
@@ -1380,10 +1409,10 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 .read-prayer-example-text {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.6;
-  font-style: italic;
+  font-style: normal;
 }
 
 .read-prayer-input {
@@ -1393,7 +1422,7 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
   border: 0.5px solid var(--border-mid);
   border-radius: var(--radius-md);
   padding: 14px 16px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: var(--font-serif);
   color: var(--text-primary);
   box-sizing: border-box;
@@ -1406,7 +1435,7 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 .read-prayer-input:focus {
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 .read-cta {
@@ -1423,20 +1452,22 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
    ========================================== */
 
 .read-body.read-morning {
-  padding: 20px 24px 32px;
+  padding: 22px 24px 40px;
 }
 
 /* 본문 출처 — 말씀 판 위, 왼쪽 */
 .read-ref-top {
+  font-family: var(--font-sans);
   font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
-  margin: 0 4px 12px;
+  margin: 0 4px 10px;
 }
 
 /* 말씀 판 */
 .read-scripture {
-  background: rgba(255, 255, 255, 0.45);
-  border-radius: 22px;
+  background: var(--surface);
+  border-radius: 20px;
   padding: 24px 22px 20px;
   margin-bottom: 30px;
 }
@@ -1455,18 +1486,18 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* 한 절만 있는 1~3과는 조금 크게 */
 .read-scripture.is-single p {
-  font-size: 21px;
+  font-size: 22px;
   line-height: 1.7;
 }
 
 /* 절 번호 */
 .read-verse-num {
   font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--accent);
-  vertical-align: 0.55em;
-  margin-right: 5px;
+  font-size: 0.6em;              /* 본문 크기에 따라 함께 커지고 작아짐 */
+  font-weight: 600;
+  color: var(--accent-ink);
+  vertical-align: 0.6em;
+  margin-right: 4px;
 }
 
 /* 걸음길 — 왼쪽 세로선 */
@@ -1524,9 +1555,10 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* 안내·풀이 — 조용하게 */
 .read-step-text {
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.75;
+  /* 안내·풀이 — 읽는 글이므로 리디바탕 */
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.8;
   color: var(--text-secondary);
   margin-bottom: 12px;
 }
@@ -1537,13 +1569,14 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* 질문 — 여기서 멈춰 답하는 자리 */
 .read-step-question {
+  /* 질문 — 여기서 멈춰 답하는 자리 */
   font-family: var(--font-serif);
   font-size: 17px;
-  font-weight: 500;
-  line-height: 1.7;
+  font-weight: 400;
+  line-height: 1.75;
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 14px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   padding: 14px 16px;
   margin-bottom: 12px;
 }
@@ -1554,8 +1587,8 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 /* 기도 판 */
 .read-pray-panel {
-  background: rgba(250, 199, 117, 0.22);
-  border-radius: 18px;
+  background: var(--surface-tint);
+  border-radius: 16px;
   padding: 16px 16px 14px;
 }
 
@@ -1566,15 +1599,16 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 }
 
 .read-pray-panel .read-prayer-example-text {
-  font-style: normal;
-  font-size: 15.5px;
-  line-height: 1.7;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text-secondary);
 }
 
 .read-pray-panel .read-prayer-input,
 .read-pray-panel .read-lords-input {
-  background: rgba(255, 255, 255, 0.6);
-  border-color: rgba(186, 117, 23, 0.15);
+  background: var(--surface);
+  border-color: var(--line);
   margin-bottom: 0;
 }
 
@@ -1592,18 +1626,18 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
 
 .read-pray-panel .read-lords-keyword-row {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.65;
   margin-bottom: 8px;
 }
 
 .read-pray-panel .read-lords-keyword-key {
-  font-size: 14px;
+  font-size: 15px;
   margin-right: 8px;
 }
 
 .read-pray-panel .read-lords-keyword-meaning {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .read-pray-panel .read-lords-example {
@@ -1616,28 +1650,40 @@ body[data-text-size="5"] .continuous-verse { font-size: 18px; }
   margin-bottom: 0;
 }
 
-/* 글씨 크기 단계 — 새 아침 레이아웃 */
+/* 글씨 크기 단계 — 새 본문 배치 (기본은 2단계) */
 body[data-text-size="1"] .read-scripture p { font-size: 15px; }
 body[data-text-size="1"] .read-scripture.is-single p { font-size: 17px; }
-body[data-text-size="1"] .read-step-text { font-size: 13px; }
+body[data-text-size="1"] .read-step-text,
+body[data-text-size="1"] .read-prayer-example-text,
+body[data-text-size="1"] .read-prayer-input,
+body[data-text-size="1"] .read-finish-text { font-size: 14px; }
 body[data-text-size="1"] .read-step-question { font-size: 15px; }
 body[data-text-size="2"] .read-scripture p { font-size: 17px; }
 body[data-text-size="2"] .read-scripture.is-single p { font-size: 19px; }
-body[data-text-size="2"] .read-step-text { font-size: 14px; }
+body[data-text-size="2"] .read-step-text,
+body[data-text-size="2"] .read-prayer-example-text,
+body[data-text-size="2"] .read-prayer-input,
+body[data-text-size="2"] .read-finish-text { font-size: 15px; }
 body[data-text-size="2"] .read-step-question { font-size: 16px; }
 body[data-text-size="4"] .read-scripture p { font-size: 21px; line-height: 1.9; }
 body[data-text-size="4"] .read-scripture.is-single p { font-size: 24px; }
-body[data-text-size="4"] .read-step-text { font-size: 17px; }
+body[data-text-size="4"] .read-step-text,
+body[data-text-size="4"] .read-prayer-example-text,
+body[data-text-size="4"] .read-prayer-input,
+body[data-text-size="4"] .read-finish-text { font-size: 18px; }
 body[data-text-size="4"] .read-step-question { font-size: 19px; }
 body[data-text-size="5"] .read-scripture p { font-size: 24px; line-height: 1.95; }
 body[data-text-size="5"] .read-scripture.is-single p { font-size: 27px; }
-body[data-text-size="5"] .read-step-text { font-size: 19px; }
+body[data-text-size="5"] .read-step-text,
+body[data-text-size="5"] .read-prayer-example-text,
+body[data-text-size="5"] .read-prayer-input,
+body[data-text-size="5"] .read-finish-text { font-size: 20px; }
 body[data-text-size="5"] .read-step-question { font-size: 21px; }
 
 /* 낮 통독 - 단락 본문 */
 .read-passage-paragraph {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.75;
   color: var(--text-primary);
   margin-bottom: 16px;
@@ -1654,9 +1700,8 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 /* 분량 토글 (3분/5분/7분/10분) */
 .continuous-size-toggle {
   display: flex;
-  gap: 6px;
-  margin-bottom: 24px;
-  background: rgba(186, 117, 23, 0.08);
+  margin: 0 0 14px;
+  background: var(--surface-tint);
   border-radius: var(--radius-md);
   padding: 4px;
 }
@@ -1665,10 +1710,10 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  padding: 8px 0;
+  color: var(--text-secondary);
+  padding: 9px 0;
   font-size: 13px;
-  font-family: inherit;
+  font-family: var(--font-sans);
   cursor: pointer;
   border-radius: calc(var(--radius-md) - 4px);
   font-weight: 500;
@@ -1676,10 +1721,9 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 }
 
 .continuous-size-btn.active {
-  background: var(--bg-primary);
-  color: var(--accent);
+  background: var(--surface);
+  color: var(--text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(186, 117, 23, 0.1);
 }
 
 /* 절 단위 본문 */
@@ -1689,7 +1733,7 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 
 .continuous-verse {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.85;
   color: var(--text-primary);
   margin-bottom: 12px;
@@ -1699,7 +1743,7 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 .continuous-verse-num {
   display: inline-block;
   color: var(--accent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   vertical-align: top;
   margin-right: 6px;
@@ -1713,11 +1757,7 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
    입술 고백 카드 (5과부터 사용)
    ========================================== */
 .read-confess-card {
-  background: linear-gradient(
-    180deg,
-    rgba(186, 117, 23, 0.08) 0%,
-    rgba(186, 117, 23, 0.04) 100%
-  );
+  background: var(--surface-tint);
   border-left: 2px solid var(--accent);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   padding: 18px 20px;
@@ -1729,24 +1769,24 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
   font-size: 17px;
   line-height: 1.7;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   margin-bottom: 8px;
 }
 
 .read-confess-ref {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   text-align: right;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 /* ==========================================
    주기도 따라 드리기 카드 (5·6과)
    ========================================== */
 .read-lords-card {
-  background: rgba(186, 117, 23, 0.06);
-  border: 1px solid rgba(186, 117, 23, 0.18);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 18px 20px;
   margin: 16px 0 16px;
@@ -1754,8 +1794,8 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 
 /* 7~10과 — 주기도의 한 부분에 머물기 (간단한 짜임) */
 .read-lords-focus-card {
-  background: rgba(186, 117, 23, 0.05);
-  border-left: 3px solid rgba(186, 117, 23, 0.35);
+  background: var(--surface-tint);
+  border-left: 3px solid var(--line-strong);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: 16px 20px;
   margin: 16px 0 16px;
@@ -1763,16 +1803,16 @@ body[data-text-size="5"] .read-step-question { font-size: 21px; }
 
 .read-lords-focus-line {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   margin-bottom: 12px;
-  font-style: italic;
+  font-style: normal;
 }
 
 .read-lords-focus-prayer {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--text-secondary);
   margin: 0;
@@ -1790,13 +1830,13 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .read-lords-part {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   margin-bottom: 14px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
+  border-bottom: 1px solid var(--line);
 }
 
 /* 키워드 리스트 */
@@ -1833,22 +1873,22 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 /* 예시 기도 */
 .read-lords-example-label {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--accent);
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
   margin-top: 14px;
   margin-bottom: 6px;
   padding-top: 14px;
-  border-top: 1px solid rgba(186, 117, 23, 0.12);
+  border-top: 1px solid var(--line);
 }
 
 .read-lords-example {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--text-secondary);
-  font-style: italic;
+  font-style: normal;
   margin: 0;
 }
 
@@ -1872,9 +1912,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .journey-day-status-inactive {
   background: transparent;
   color: var(--text-muted);
-  font-size: 10px;
-  font-style: italic;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-style: normal;
+  letter-spacing: 0;
 }
 
 /* ==========================================
@@ -1903,7 +1943,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
   cursor: pointer;
   transition: transform 0.12s, filter 0.15s;
 }
@@ -1922,8 +1962,8 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 /* 여정 / 다음 날 — 앰버 톤온톤 (배경과 한 계열, 은은하게) */
 .home-swipe-hint-left,
 .home-swipe-hint-right {
-  background: rgba(186, 117, 23, 0.12);
-  color: #7A4B0A;
+  background: var(--surface-tint);
+  color: var(--text-secondary);
 }
 
 /* ==========================================
@@ -1959,19 +1999,19 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .hanabok-text-ko {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #3D7359;
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
   margin: 0;
 }
 
 .hanabok-text-en {
   font-family: var(--font-sans);
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: #5A9DC4;
-  letter-spacing: 1.5px;
+  letter-spacing: 0;
   margin: 0;
 }
 
@@ -2007,7 +2047,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .read-week-verse-day {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   font-weight: 500;
   margin-bottom: 2px;
@@ -2015,16 +2055,16 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .read-week-verse-fragment {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   line-height: 1.5;
   margin-bottom: 2px;
 }
 
 .read-week-verse-ref {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
 }
 
 /* ==========================================
@@ -2045,7 +2085,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(186, 117, 23, 0.15);
+  background: var(--surface-tint);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2070,14 +2110,14 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .done-next-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-bottom: 4px;
 }
 
 .done-next-value {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
@@ -2122,9 +2162,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .silence-header-title {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .silence-header-spacer {
@@ -2164,9 +2204,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .silence-setup-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-bottom: 16px;
 }
 
@@ -2196,7 +2236,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .silence-time-btn:active:not(:disabled) {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
 }
 
 .silence-time-btn:disabled {
@@ -2245,15 +2285,15 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   gap: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  background: rgba(186, 117, 23, 0.05);
-  border: 1px solid rgba(186, 117, 23, 0.15);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   cursor: pointer;
   user-select: none;
 }
 
 .silence-nature-icon {
-  font-size: 18px;
+  font-size: 19px;
   flex-shrink: 0;
 }
 
@@ -2282,7 +2322,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(133, 79, 11, 0.25);
-  border-radius: 22px;
+  border-radius: 20px;
   transition: 0.2s;
 }
 
@@ -2324,7 +2364,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .silence-counting-label {
   font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-bottom: 56px;
 }
 
@@ -2363,9 +2403,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .silence-circle-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin: 8px 0 0;
 }
 
@@ -2373,7 +2413,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.7;
-  font-style: italic;
+  font-style: normal;
 }
 
 /* 마침 화면 */
@@ -2396,7 +2436,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .silence-done-bell-label {
   font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin: 12px 0 0;
 }
 
@@ -2413,7 +2453,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
    ========================================== */
 
 .pace-check-lesson-title {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 4px;
@@ -2472,9 +2512,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .pace-check-other-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
   margin: 16px 0 12px;
 }
 
@@ -2492,11 +2532,11 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .pace-check-other-card:active {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 .pace-check-other-card .option-card-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 2px;
@@ -2525,12 +2565,13 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .title-small {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 500;
+  /* 화면 이름 — 본고딕 */
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
   color: var(--text-primary);
   margin-bottom: 24px;
-  line-height: 1.4;
 }
 
 .record-header {
@@ -2540,8 +2581,8 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .record-export {
   margin-bottom: 24px;
   padding: 16px;
-  background: rgba(186, 117, 23, 0.06);
-  border: 1px solid rgba(186, 117, 23, 0.18);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   text-align: center;
 }
@@ -2551,7 +2592,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .record-export-hint {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
@@ -2596,27 +2637,27 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .record-card-lesson {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 .record-card-session {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
 .record-card-verse {
   font-size: 12px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
   margin-bottom: 8px;
 }
 
 .record-card-prayer {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   line-height: 1.65;
 }
@@ -2636,7 +2677,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .settings-section-label {
   font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
   margin-bottom: 12px;
 }
 
@@ -2646,7 +2687,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   line-height: 1.55;
   margin-top: -4px;
   margin-bottom: 16px;
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
 }
 
 .settings-pace-option {
@@ -2658,20 +2699,20 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   border-radius: var(--radius-md);
   padding: 12px 16px;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
   cursor: pointer;
   text-align: left;
 }
 
 .settings-pace-option.selected {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
   border: 1px solid var(--accent);
   font-weight: 500;
 }
 
 .settings-pace-option:active {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 /* 토글 행 */
@@ -2694,14 +2735,14 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .settings-toggle-label {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
 }
 
 .settings-toggle-switch {
   width: 44px;
   height: 26px;
-  border-radius: 13px;
+  border-radius: 14px;
   background: rgba(186, 117, 23, 0.25);
   position: relative;
   transition: background 0.2s;
@@ -2750,14 +2791,14 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   justify-content: center;
   gap: 8px;
   padding: 14px 16px;
-  background: rgba(186, 117, 23, 0.08);
-  border: 1px solid rgba(186, 117, 23, 0.2);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   margin: 12px 0;
 }
 
 .push-on-icon {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .push-on-text {
@@ -2771,7 +2812,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   padding: 12px 20px;
   margin: 12px 0 8px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
   cursor: pointer;
   border: 1px solid transparent;
@@ -2804,21 +2845,21 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   display: block;
   width: 100%;
   background: transparent;
-  border: 0.5px solid rgba(186, 117, 23, 0.3);
+  border: 0.5px solid var(--line-strong);
   color: var(--text-muted);
   border-radius: var(--radius-md);
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
   cursor: pointer;
 }
 
 .settings-danger-btn:active {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .settings-danger-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
@@ -2833,7 +2874,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   background: var(--text-primary);
   color: var(--bg-primary);
   padding: 12px 24px;
-  border-radius: 24px;
+  border-radius: 20px;
   font-size: 13px;
   opacity: 0;
   transition: opacity 0.3s, transform 0.3s;
@@ -2893,7 +2934,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 
 .journey-lesson-card-current {
   border: 1px solid var(--accent);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .journey-lesson-card-done {
@@ -2905,7 +2946,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-lesson-card-expanded {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 /* 과 카드 헤더 (클릭 가능) */
@@ -2923,7 +2964,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-lesson-header:active {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--surface);
 }
 
 .journey-lesson-info {
@@ -2935,17 +2976,17 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-lesson-num {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   font-weight: 500;
 }
 
 .journey-lesson-title {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.3;
 }
 
@@ -2977,24 +3018,24 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-lesson-progress {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent);
-  background: rgba(186, 117, 23, 0.12);
+  background: var(--surface-tint);
   padding: 3px 8px;
   border-radius: 10px;
   font-variant-numeric: tabular-nums;
 }
 
 .journey-lesson-current-mark {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent);
   font-weight: 500;
 }
 
 .journey-lesson-unavailable {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
 }
 
 /* 펼친 일 목록 */
@@ -3009,9 +3050,9 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.6;
-  font-style: italic;
+  font-style: normal;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--surface);
   border-radius: var(--radius-sm);
   margin-bottom: 4px;
 }
@@ -3038,12 +3079,12 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-day-card:active {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
 }
 
 .journey-day-card-current {
   border: 1px solid var(--accent);
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--surface);
 }
 
 .journey-day-card-done {
@@ -3080,11 +3121,11 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-day-status {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--accent);
-  background: rgba(186, 117, 23, 0.12);
+  background: var(--surface-tint);
   padding: 2px 6px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .journey-day-verse {
@@ -3100,13 +3141,13 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-day-ref {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
 }
 
 .journey-day-current-mark {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent);
   font-weight: 500;
   margin-top: 6px;
@@ -3127,11 +3168,11 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   align-items: center;
   justify-content: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   border: 0.5px solid var(--border-soft);
   border-radius: var(--radius-sm);
   padding: 7px 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-family: inherit;
   cursor: pointer;
@@ -3139,12 +3180,12 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .journey-day-session-btn:active {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
 }
 
 .journey-day-session-btn-done {
-  background: rgba(186, 117, 23, 0.1);
-  border-color: rgba(186, 117, 23, 0.3);
+  background: var(--surface-tint);
+  border-color: var(--line-strong);
   color: var(--accent);
 }
 
@@ -3155,7 +3196,7 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .journey-hint {
   margin-top: 12px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -3188,13 +3229,13 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.6;
-  font-style: italic;
+  font-style: normal;
 }
 
 .days-list-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-bottom: 12px;
 }
 
@@ -3219,12 +3260,12 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .days-day-card:active {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
 }
 
 .days-day-card-current {
   border: 1px solid var(--accent);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .days-day-card-done {
@@ -3266,16 +3307,16 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .days-day-status-text {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent);
-  background: rgba(186, 117, 23, 0.12);
+  background: var(--surface-tint);
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .days-day-verse {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   line-height: 1.55;
   margin-bottom: 4px;
@@ -3286,13 +3327,13 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 }
 
 .days-day-ref {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  font-style: italic;
+  font-style: normal;
 }
 
 .days-day-current-mark {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent);
   font-weight: 500;
   margin-top: 8px;
@@ -3301,6 +3342,39 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
 .days-hint {
   margin-top: 12px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
+}
+
+
+/* ==========================================
+   통독 한 장을 다 읽었을 때
+   ========================================== */
+.read-finish {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 24px 22px;
+  margin-bottom: 30px;
+}
+.read-finish-mark {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  margin-bottom: 8px;
+}
+.read-finish-title {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.read-finish-text {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-top: 8px;
 }

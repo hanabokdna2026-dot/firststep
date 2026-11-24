@@ -77,14 +77,13 @@ export default async function renderRecord({ navigateTo }) {
   screen.innerHTML = `
     <div class="screen-inner-with-tabs">
       <div class="record-header">
-        <p class="eyebrow">기록</p>
         <h2 class="title-small">한 마디씩 적은 기도</h2>
       </div>
 
       ${prayers.length > 0 ? `
         <div class="record-export">
           <button class="btn btn-narrow record-export-btn" id="btn-export-book">
-            📖 한 권의 책으로 받기
+            한 권의 책으로 받기
           </button>
           <p class="record-export-hint">지금까지 적은 기록을 책 짜임으로 정리해서 보여드려요.<br/>인쇄하거나 PDF로 저장할 수 있어요.</p>
         </div>

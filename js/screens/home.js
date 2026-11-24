@@ -286,17 +286,36 @@ export default async function renderHome({ navigateTo, param, extra }) {
   });
 
   // ============= 시간대 자동 갱신 (오늘 모드에서만) =============
+  // 1분마다, 그리고 앱으로 돌아올 때마다 확인해서
+  // 아침·낮·저녁이나 날짜가 바뀌었으면 화면을 다시 그림.
+  // (휴대폰은 앱을 밤새 뒤에 두었다가 아침에 열면 새로 불러오지 않고 이어 보여주기 때문)
   if (!isPreview) {
     const now = new Date();
     const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
     let intervalId = null;
+    let checking = false;
 
-    function checkSessionAndGreeting() {
-      // 시간대(아침/낮/저녁)가 바뀌었으면 화면 다시 그리기
-      const newSessionType = getCurrentSessionType();
-      const newTimeClass = getTimeOfDayClass();
-      if (newSessionType !== currentSessionType || newTimeClass !== timeClass) {
-        navigateTo('#home');
+    async function checkSessionAndGreeting() {
+      if (checking) return;
+      checking = true;
+      try {
+        // 날짜가 바뀌었으면 — 빠진 날 진도를 먼저 맞추고 다시 그림
+        if (getTodayISO() !== todayISO) {
+          try {
+            const { catchUpMissedDays } = await import('../catch-up.js');
+            await catchUpMissedDays();
+          } catch (e) {
+            console.warn('날짜 변경 진도 맞추기 실패:', e);
+          }
+          navigateTo('#home');
+          return;
+        }
+        // 시간대(아침/낮/저녁)나 인사말 색조가 바뀌었으면 다시 그림
+        if (getCurrentSessionType() !== currentSessionType || getTimeOfDayClass() !== timeClass) {
+          navigateTo('#home');
+        }
+      } finally {
+        checking = false;
       }
     }
 
@@ -305,21 +324,25 @@ export default async function renderHome({ navigateTo, param, extra }) {
       intervalId = setInterval(checkSessionAndGreeting, 60000);
     }, msUntilNextMinute);
 
-    // 앱이 background에서 돌아올 때도 즉시 체크 (iOS는 background에서 setInterval 멈춤)
+    // 앱이 뒤에 있다가 돌아올 때 즉시 확인 (iOS는 뒤에 있는 동안 타이머가 멈춤)
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkSessionAndGreeting();
-      }
+      if (document.visibilityState === 'visible') checkSessionAndGreeting();
     };
+    const onResume = () => checkSessionAndGreeting();
     document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pageshow', onResume);
+    window.addEventListener('focus', onResume);
 
     const cleanup = () => {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pageshow', onResume);
+      window.removeEventListener('focus', onResume);
       window.removeEventListener('hashchange', cleanup);
     };
     window.addEventListener('hashchange', cleanup);
+    if (window.registerScreenCleanup) window.registerScreenCleanup(cleanup);
   }
 
   // ============= 좌우 스와이프 =============
@@ -418,15 +441,13 @@ export default async function renderHome({ navigateTo, param, extra }) {
       <div class="home-card ${isDone ? 'home-card-done' : ''}">
         <div class="home-card-header">
           <div class="home-card-header-left">
-            <span class="home-card-lesson-num">${lessonId}과</span>
+            <span class="home-card-lesson-num">${lessonId}과 · ${displayDayLabel}</span>
             <span class="home-card-lesson-title">${lesson.title}</span>
           </div>
           <div class="home-card-header-right">
             ${doneCheck}
           </div>
         </div>
-
-        <p class="home-card-day-label">${displayDayLabel}</p>
 
         <div class="home-card-divider"></div>
 

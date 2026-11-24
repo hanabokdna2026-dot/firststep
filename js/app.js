@@ -78,6 +78,21 @@ function navigateTo(hash) {
   }
 }
 
+// 이전 화면 정리 — 다른 화면으로 가거나 같은 화면을 다시 그릴 때
+// 이전 화면이 걸어둔 타이머·리스너를 모두 풀어줌.
+// (같은 #home을 다시 그리면 hashchange가 일어나지 않아 정리가 빠지고,
+//  1분마다 도는 시간 확인 타이머가 계속 쌓이던 문제를 막음)
+const screenCleanups = [];
+window.registerScreenCleanup = (fn) => {
+  if (typeof fn === 'function') screenCleanups.push(fn);
+};
+function runScreenCleanups() {
+  while (screenCleanups.length) {
+    const fn = screenCleanups.pop();
+    try { fn(); } catch (e) { console.warn('화면 정리 실패:', e); }
+  }
+}
+
 // 동시 render 방지 — 진행 중인 render가 있으면 새 요청은 그것이 끝난 후에
 let renderInFlight = null;
 
@@ -94,6 +109,7 @@ async function render() {
     const app = document.getElementById('app');
 
     if (matched) {
+      runScreenCleanups();
       try {
         const module = await matched.route.loader();
         const renderFn = module.default;

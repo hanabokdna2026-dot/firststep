@@ -16,7 +16,7 @@
  */
 
 import Storage from './storage.js';
-import { getCurrentSessionType, getSessionLabel } from './time.js';
+import { getCurrentSessionType, getSessionLabel, getKoreaParts } from './time.js';
 
 // 알림 권한 요청
 export async function requestNotificationPermission() {
@@ -74,9 +74,9 @@ export function startNotifyScheduler() {
 
 function scheduleNext() {
   const times = Storage.getNotifyTimes();
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const nowSec = nowMin * 60 + now.getSeconds();
+  const now = getKoreaParts();
+  const nowMin = now.hour * 60 + now.minute;
+  const nowSec = nowMin * 60 + now.second;
 
   // 오늘 남은 알림 시간들
   const candidates = [

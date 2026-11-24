@@ -311,7 +311,6 @@ export default function renderSilence({ navigateTo, param, extra }) {
           <p class="silence-setup-hint">시작 종이 울리고 시간이 흐릅니다.<br/>마침 종이 울리면 천천히 마치셔도 됩니다.</p>
 
           <label class="silence-nature-toggle">
-            <span class="silence-nature-icon">🍃</span>
             <span class="silence-nature-label">머무는 동안 자연의 소리</span>
             <span class="silence-nature-switch">
               <input type="checkbox" id="natureToggle" ${Storage.isNatureSoundOn() ? 'checked' : ''}>

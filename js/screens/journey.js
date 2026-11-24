@@ -66,7 +66,6 @@ export default async function renderJourney({ navigateTo }) {
 
       <div class="screen-inner-with-tabs">
         <div class="journey-title-row">
-          <p class="eyebrow">여정 전체</p>
           <h2 class="title-small">풍성한 삶으로 첫걸음</h2>
           <p class="journey-intro">하나님과 함께 걸어갈<br/>열 번의 한 주</p>
         </div>

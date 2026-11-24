@@ -40,7 +40,7 @@ export default function renderSettings({ navigateTo }) {
   screen.innerHTML = `
     <div class="screen-inner-with-tabs">
       <div class="settings-header">
-        <p class="eyebrow">설정</p>
+        <h2 class="title-small">설정</h2>
       </div>
 
       <!-- 이름 -->

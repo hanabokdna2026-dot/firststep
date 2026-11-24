@@ -8,6 +8,64 @@
 
 import Storage from './storage.js';
 
+// ==========================================
+// 한국 시간 기준으로 계산
+// ------------------------------------------
+// 기기의 시간대 설정과 상관없이 늘 서울 시간으로 아침·낮·저녁과 오늘 날짜를 정함.
+// 휴대폰의 자동 시간대가 꺼져 있거나 브라우저가 시간대를 UTC로 알려주면
+// 기기 시각이 9시간 어긋나 낮과 밤이 뒤바뀌어 보이던 문제를 막기 위함.
+// 알림을 보내는 서버(functions)도 서울 시간 기준이라 서로 맞춰짐.
+// Intl을 못 쓰는 오래된 기기에서는 기기 시각으로 대신함.
+// ==========================================
+const KOREA_TZ = 'Asia/Seoul';
+let koreaFormatter;
+
+function getKoreaFormatter() {
+  if (koreaFormatter !== undefined) return koreaFormatter;
+  try {
+    koreaFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: KOREA_TZ,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hourCycle: 'h23',
+    });
+    if (typeof koreaFormatter.formatToParts !== 'function') koreaFormatter = null;
+  } catch (e) {
+    koreaFormatter = null;
+  }
+  return koreaFormatter;
+}
+
+// 서울 시간의 연·월·일·시·분·초
+export function getKoreaParts(date = new Date()) {
+  const fmt = getKoreaFormatter();
+  if (fmt) {
+    try {
+      const p = {};
+      fmt.formatToParts(date).forEach(part => { p[part.type] = part.value; });
+      let hour = parseInt(p.hour, 10);
+      if (hour === 24) hour = 0;  // 일부 오래된 사파리가 자정을 24로 표기
+      const parts = {
+        year: parseInt(p.year, 10),
+        month: parseInt(p.month, 10),
+        day: parseInt(p.day, 10),
+        hour,
+        minute: parseInt(p.minute, 10),
+        second: parseInt(p.second, 10),
+      };
+      if (Object.values(parts).every(n => !isNaN(n))) return parts;
+    } catch (e) { /* 아래 기기 시각으로 */ }
+  }
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    second: date.getSeconds(),
+  };
+}
+
 // "07:30" → 분 단위 숫자 (450)
 function timeToMinutes(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
@@ -35,8 +93,7 @@ export function formatKoreanShortTime(hhmm) {
 
 // 현재 시간 - 자연스럽게 (예: "오후 1시 32분")
 export function formatCurrentTime(date = new Date()) {
-  const h = date.getHours();
-  const m = date.getMinutes();
+  const { hour: h, minute: m } = getKoreaParts(date);
   const hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   return formatKoreanShortTime(hhmm);
 }
@@ -49,7 +106,7 @@ export function formatCurrentTime(date = new Date()) {
 // 저녁 20~21시: 저녁 시간이에요
 // 밤 22~새벽 4시: 고요한 밤이에요
 export function getTimeGreeting(date = new Date()) {
-  const h = date.getHours();
+  const h = getKoreaParts(date).hour;
   if (h >= 5 && h < 10) return '좋은 아침이에요';
   if (h >= 10 && h < 12) return '오전이 깊어가요';
   if (h >= 12 && h < 17) return '낮 시간이에요';
@@ -61,7 +118,7 @@ export function getTimeGreeting(date = new Date()) {
 // 시간대 분류 (배경 색조 결정용)
 // dawn (새벽~아침), day (낮), dusk (저녁), night (밤)
 export function getTimeOfDayClass(date = new Date()) {
-  const h = date.getHours();
+  const h = getKoreaParts(date).hour;
   if (h >= 5 && h < 10) return 'dawn';
   if (h >= 10 && h < 17) return 'day';
   if (h >= 17 && h < 21) return 'dusk';
@@ -70,20 +127,15 @@ export function getTimeOfDayClass(date = new Date()) {
 
 // 오늘 날짜 ISO (YYYY-MM-DD)
 export function getTodayISO() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  const { year, month, day } = getKoreaParts();
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 // 한국어 날짜 (요일 빼고)
 // 예: "2026년 5월 5일"
 export function formatKoreanDate(date = new Date()) {
-  const yyyy = date.getFullYear();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  return `${yyyy}년 ${m}월 ${d}일`;
+  const { year, month, day } = getKoreaParts(date);
+  return `${year}년 ${month}월 ${day}일`;
 }
 
 // 현재 시간대 판별
@@ -94,8 +146,8 @@ export function formatKoreanDate(date = new Date()) {
 //
 // 사용자의 '만날 시간'은 자기 약속으로만 기록됨 — 활성 자리에는 영향 없음
 export function getCurrentSessionType() {
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const { hour, minute } = getKoreaParts();
+  const nowMin = hour * 60 + minute;
 
   const morningStart = 4 * 60 + 30;   // 04:30
   const middayStart = 12 * 60;        // 12:00

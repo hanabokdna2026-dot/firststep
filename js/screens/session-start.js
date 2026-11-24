@@ -13,6 +13,7 @@
  */
 
 import Storage from '../storage.js';
+import { getTodayISO } from '../time.js';
 
 const SESSION_LABELS = {
   morning: '아침 세션',
@@ -103,11 +104,7 @@ export default function renderSessionStart({ navigateTo, param, extra }) {
         if (lessonId === Storage.getCurrentLesson() && dayIndex === Storage.getCurrentDay()) {
           // 오늘 마쳤다고 기록된 거라면 풀어주기
           // dateStr 알아내기 (오늘만 풀어줌 - 다른 날짜의 흔적은 남겨둠)
-          const today = new Date();
-          const yyyy = today.getFullYear();
-          const mm = String(today.getMonth() + 1).padStart(2, '0');
-          const dd = String(today.getDate()).padStart(2, '0');
-          const todayStr = `${yyyy}-${mm}-${dd}`;
+          const todayStr = getTodayISO();
           Storage.unmarkTodaySession(todayStr, sessionType);
         }
         // 홈으로 (홈에서 세션 카드가 미마침 상태로 다시 보임)
