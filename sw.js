@@ -41,7 +41,7 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, {
     body: body,
     icon: './icons/icon-192.png',
-    badge: './icons/icon-72.png',
+    badge: './icons/badge-72.png',
     tag: 'firststep-meeting',
     data: data,
   });
@@ -65,7 +65,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_VERSION = 'firststep-v36';
+const CACHE_VERSION = 'firststep-v37';
 const APP_SHELL = [
   './',
   './index.html',
