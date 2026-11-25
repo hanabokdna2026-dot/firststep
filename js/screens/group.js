@@ -1,13 +1,17 @@
 /**
- * 모임 진행 상황 (인도자 화면)
+ * 모임 진행 상황 (이끄미 화면)
  *
- * URL: #group/{모임 ID}
+ * URL: #group            (아래 '모임' 탭 — 이끄는 모임이 하나면 바로, 여럿이면 고르기)
+ *      #group/{모임 ID}
  *
  * 보이는 것: 이름, 지금 몇 과 몇째 날, 최근 7일 아침·낮·저녁, 마지막으로 앱을 연 날
  * 보이지 않는 것: 기도와 묵상 내용 (서버 규칙으로도 막혀 있음)
  */
 
 import { getTodayISO } from '../time.js';
+import { getLedCache } from '../sync-meta.js';
+import { tabbarHtml, bindTabbar } from '../tabbar.js';
+import { escapeHtml, shareInvite, shareLabel } from '../group-ui.js';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -24,17 +28,31 @@ function daysBetween(a, b) {
 }
 
 export default function renderGroup({ navigateTo, param }) {
-  const gid = param;
+  let gid = param || null;
   const screen = document.createElement('div');
   screen.className = 'screen';
   screen.innerHTML = `
-    <div class="acct">
-      <button class="journey-back" id="grp-back">← 계정과 모임</button>
+    <div class="screen-inner-with-tabs">
+      <div id="grp-switch"></div>
       <div id="grp-body"><p class="acct-muted">불러오는 중…</p></div>
     </div>
+    ${tabbarHtml('group')}
   `;
-  screen.querySelector('#grp-back').addEventListener('click', () => navigateTo('#account'));
+  bindTabbar(screen, navigateTo, 'group');
   const body = screen.querySelector('#grp-body');
+
+  // 이끄는 모임이 여럿이면 위에서 고름 (이 기기에 기억해 둔 목록)
+  function paintSwitch() {
+    const led = getLedCache();
+    if (!gid && led.length) gid = led[0].gid;
+    const box = screen.querySelector('#grp-switch');
+    box.innerHTML = led.length > 1 ? `
+      <div class="grp-switch">
+        ${led.map(g => `<button class="grp-switch-opt ${g.gid === gid ? 'is-on' : ''}" data-gid="${escapeHtml(g.gid)}">${escapeHtml(g.name)}</button>`).join('')}
+      </div>` : '';
+    box.querySelectorAll('.grp-switch-opt').forEach(b => b.addEventListener('click', () => navigateTo('#group/' + b.dataset.gid)));
+  }
+  paintSwitch();
 
   (async () => {
     let c;
@@ -44,6 +62,17 @@ export default function renderGroup({ navigateTo, param }) {
       if (!user) { navigateTo('#account'); return; }
     } catch (e) {
       body.innerHTML = '<p class="acct-muted">인터넷에 연결되면 모임 정보를 보여 드릴게요.</p>';
+      return;
+    }
+    if (!gid) {
+      // 기억해 둔 목록이 없으면 서버에서 확인
+      try { await c.getLedGroups(); } catch (e) { /* 아래 안내 */ }
+      paintSwitch();
+    }
+    if (!gid) {
+      body.innerHTML = `
+        <h2 class="title-small grp-title">모임</h2>
+        <p class="acct-muted">이끄는 모임이 없어요. 설정 → 계정과 모임에서 모임을 만들 수 있어요.</p>`;
       return;
     }
     await paint(c);
@@ -70,9 +99,9 @@ export default function renderGroup({ navigateTo, param }) {
           <p class="acct-card-label">초대 코드</p>
           <p class="grp-code">${escapeHtml(g.code)}</p>
         </div>
-        <button class="btn-outline" id="grp-share">${navigator.share ? '코드 보내기' : '코드 복사'}</button>
+        <button class="btn-outline" id="grp-share">${shareLabel()}</button>
       </div>
-      <p class="acct-note grp-note">모임 사람들의 진행 상황만 보여요. 기도와 묵상 내용은 보이지 않아요.</p>
+      <p class="acct-note grp-note">따르미들의 진행 상황만 보여요. 기도와 묵상 내용은 보이지 않아요.</p>
 
       <div class="grp-legend">
         <span><i class="grp-dot is-m"></i>아침</span>
@@ -85,21 +114,14 @@ export default function renderGroup({ navigateTo, param }) {
         <ul class="grp-list">
           ${members.map(m => memberRow(m, days, today)).join('')}
         </ul>` : `
-        <p class="acct-muted grp-empty">아직 들어온 사람이 없어요. 초대 코드를 나눠 주세요.<br/>모임 사람들은 설정 → 계정과 모임에서 코드를 넣으면 돼요.</p>`}
+        <p class="acct-muted grp-empty">아직 들어온 따르미가 없어요. 초대 코드를 나눠 주세요.<br/>따르미는 처음 시작할 때 '따르미로'를 고르거나, 설정 → 계정과 모임에서 코드를 넣으면 돼요.</p>`}
 
       <div class="settings-divider"></div>
       <button class="btn-tertiary" id="grp-delete">이 모임 없애기</button>
     `;
 
-    body.querySelector('#grp-share').addEventListener('click', async () => {
-      const text = `풍성한 첫걸음 '${g.name}' 모임 초대 코드: ${g.code}\n앱에서 설정 → 계정과 모임에 들어가 코드를 넣어 주세요.\nhttps://hanabokdna2026-dot.github.io/firststep/`;
-      if (navigator.share) {
-        try { await navigator.share({ text }); } catch (e) { /* 취소 */ }
-      } else {
-        try { await navigator.clipboard.writeText(g.code); toast('코드를 복사했어요'); }
-        catch (e) { prompt('초대 코드', g.code); }
-      }
-    });
+    body.querySelector('#grp-share').addEventListener('click', () =>
+      shareInvite(g, () => toast('초대 글을 복사했어요')));
 
     body.querySelectorAll('.grp-remove').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -111,8 +133,11 @@ export default function renderGroup({ navigateTo, param }) {
     });
 
     body.querySelector('#grp-delete').addEventListener('click', async () => {
-      if (!confirm(`'${g.name}' 모임을 없앨까요?\n\n초대 코드도 함께 없어지고, 모임 사람들의 기록은 지워지지 않아요.`)) return;
-      try { await c.deleteGroup(gid); navigateTo('#account'); } catch (e) { alert(c.authMessage(e)); }
+      if (!confirm(`'${g.name}' 모임을 없앨까요?\n\n초대 코드도 함께 없어지고, 따르미들의 기록은 지워지지 않아요.`)) return;
+      try {
+        await c.deleteGroup(gid);
+        navigateTo(getLedCache().length ? '#group' : '#account');
+      } catch (e) { alert(c.authMessage(e)); }
     });
   }
 
@@ -154,10 +179,4 @@ export default function renderGroup({ navigateTo, param }) {
   }
 
   return screen;
-}
-
-function escapeHtml(text) {
-  return String(text == null ? '' : text).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
 }

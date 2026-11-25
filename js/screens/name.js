@@ -10,6 +10,7 @@
  */
 
 import Storage from '../storage.js';
+import { isLinked } from '../sync-meta.js';
 
 export default function renderName({ navigateTo }) {
   const screen = document.createElement('div');
@@ -61,13 +62,13 @@ export default function renderName({ navigateTo }) {
     if (name) {
       Storage.setUserName(name);
     }
-    navigateTo('#pace');
+    navigateTo(isLinked() ? '#role' : '#pace');
   });
 
   // 건너뛰기 — 이름 비워둠
   btnSkip.addEventListener('click', () => {
     Storage.setUserName('');
-    navigateTo('#pace');
+    navigateTo(isLinked() ? '#role' : '#pace');
   });
 
   // 엔터 키로 다음

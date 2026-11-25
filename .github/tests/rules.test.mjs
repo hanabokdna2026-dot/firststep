@@ -35,7 +35,7 @@ await deny('정해지지 않은 묶음 이름', setDoc(doc(alice, 'users/alice/d
 await deny('기록 묶음에 다른 칸', setDoc(doc(alice, 'users/alice/data/rec-4'), { e: {}, u: 1, note: 'x' }));
 await allow('본인 기도 기록 읽기', getDoc(doc(alice, 'users/alice/data/rec-4')));
 await deny('다른 사람이 기도 기록 읽기', getDoc(doc(bob, 'users/alice/data/rec-4')));
-await deny('인도자가 기도 기록 읽기', getDoc(doc(leader, 'users/alice/data/rec-4')));
+await deny('이끄미가 기도 기록 읽기', getDoc(doc(leader, 'users/alice/data/rec-4')));
 await deny('로그인 안 한 사람이 읽기', getDoc(doc(anon, 'users/alice/data/rec-4')));
 await deny('다른 사람이 기록 쓰기', setDoc(doc(bob, 'users/alice/data/rec-4'), { e: {}, u: 1 }));
 await deny('다른 사람 계정 문서 읽기', getDoc(doc(bob, 'users/alice')));
@@ -44,15 +44,15 @@ console.log('모임 만들기');
 const b = writeBatch(leader);
 b.set(doc(leader, 'groups/g1'), { name: '화요 소그룹', leaderUid: 'leader', leaderName: '목자', code: 'ABC234', createdAt: 'x' });
 b.set(doc(leader, 'groupCodes/ABC234'), { gid: 'g1', leaderUid: 'leader' });
-await allow('인도자가 모임과 코드 함께 만들기', b.commit());
+await allow('이끄미가 모임과 코드 함께 만들기', b.commit());
 await deny('남의 모임을 가리키는 코드 만들기', setDoc(doc(bob, 'groupCodes/ZZZ999'), { gid: 'g1', leaderUid: 'bob' }));
 await deny('이미 있는 코드 덮어쓰기', setDoc(doc(bob, 'groupCodes/ABC234'), { gid: 'g1', leaderUid: 'bob' }));
-await deny('다른 사람을 인도자로 모임 만들기', setDoc(doc(bob, 'groups/g2'), { name: 'x', leaderUid: 'leader', leaderName: '', code: 'QQQ222', createdAt: 'x' }));
-await deny('인도자 아닌 사람이 모임 고치기', setDoc(doc(bob, 'groups/g1'), { name: '바꿈' }, { merge: true }));
+await deny('다른 사람을 이끄미로 모임 만들기', setDoc(doc(bob, 'groups/g2'), { name: 'x', leaderUid: 'leader', leaderName: '', code: 'QQQ222', createdAt: 'x' }));
+await deny('이끄미 아닌 사람이 모임 고치기', setDoc(doc(bob, 'groups/g1'), { name: '바꿈' }, { merge: true }));
 await allow('로그인한 사람이 코드로 모임 찾기', getDoc(doc(bob, 'groupCodes/ABC234')));
 await deny('코드 목록 보기', getDocs(collection(bob, 'groupCodes')));
 await deny('로그인 안 한 사람이 코드 찾기', getDoc(doc(anon, 'groupCodes/ABC234')));
-await allow('인도자가 자기 모임 목록 보기', getDocs(query(collection(leader, 'groups'), where('leaderUid', '==', 'leader'))));
+await allow('이끄미가 자기 모임 목록 보기', getDocs(query(collection(leader, 'groups'), where('leaderUid', '==', 'leader'))));
 await deny('모든 모임 목록 보기', getDocs(collection(bob, 'groups')));
 
 console.log('모임 들어가기와 진행 요약');
@@ -62,11 +62,11 @@ await deny('남의 이름으로 들어가기', setDoc(doc(bob, 'groups/g1/member
 await allow('맞는 코드로 들어가기', setDoc(doc(alice, 'groups/g1/members/alice'), summary({ code: 'ABC234', joinedAt: 'x', consentAt: 'x' })));
 await allow('본인 요약 갱신', updateDoc(doc(alice, 'groups/g1/members/alice'), { day: 3, u: 2 }));
 await deny('요약의 코드 바꾸기', updateDoc(doc(alice, 'groups/g1/members/alice'), { code: 'XYZ789' }));
-await allow('인도자가 모임 사람들 진행 보기', getDocs(collection(leader, 'groups/g1/members')));
-await deny('모임 사람이 다른 사람들 진행 보기', getDocs(collection(alice, 'groups/g1/members')));
+await allow('이끄미가 따르미들 진행 보기', getDocs(collection(leader, 'groups/g1/members')));
+await deny('따르미가 다른 사람들 진행 보기', getDocs(collection(alice, 'groups/g1/members')));
 await deny('모임 밖 사람이 진행 보기', getDoc(doc(bob, 'groups/g1/members/alice')));
 await allow('본인 요약 읽기', getDoc(doc(alice, 'groups/g1/members/alice')));
-await allow('인도자가 내보내기', deleteDoc(doc(leader, 'groups/g1/members/alice')));
+await allow('이끄미가 내보내기', deleteDoc(doc(leader, 'groups/g1/members/alice')));
 await deny('내보낸 뒤 요약 갱신으로 다시 들어오기', updateDoc(doc(alice, 'groups/g1/members/alice'), { day: 4, u: 3 }));
 
 console.log('알림 토큰 (기존 규칙)');

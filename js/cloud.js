@@ -8,7 +8,7 @@
  *   users/{uid}/data/progress    — 진행 기록 { e: { 키: { v: 값|null, t: 시각 } }, u: 시각 }
  *   users/{uid}/data/rec-{과}    — 그 과의 기도 기록 (같은 모양)
  *   groups/{gid}                 — 모임 { name, leaderUid, leaderName, code, createdAt }
- *   groups/{gid}/members/{uid}   — 인도자에게 보이는 진행 요약 (기도 내용은 절대 없음)
+ *   groups/{gid}/members/{uid}   — 이끄미에게 보이는 진행 요약 (기도 내용은 절대 없음)
  *   groupCodes/{code}            — 초대 코드 → 모임
  *
  * 같은 기록을 두 기기에서 고치면 나중에 고친 쪽이 남음 (키마다 시각 비교).
@@ -18,7 +18,7 @@ import Storage from './storage.js';
 import { getAuthKit, getDbKit } from './firebase-core.js';
 import {
   getMeta, saveMeta, startMeta, clearMeta, setDirtyListener,
-  isSyncedKey, docIdFor, fullKey, listLocalSyncedKeys,
+  isSyncedKey, docIdFor, fullKey, listLocalSyncedKeys, getLedCache, setLedCache,
 } from './sync-meta.js';
 import { getTodayISO } from './time.js';
 
@@ -204,7 +204,7 @@ export async function deleteAccount(password) {
   if (groupId) {
     try { await F.deleteDoc(F.doc(db, 'groups', groupId, 'members', uid)); } catch (e) { /* 이미 없음 */ }
   }
-  // 2) 내가 인도하는 모임 모두 없애기
+  // 2) 내가 이끄는 모임 모두 없애기
   const led = await F.getDocs(F.query(F.collection(db, 'groups'), F.where('leaderUid', '==', uid)));
   for (const g of led.docs) {
     await deleteGroupDocs(g.id, g.data().code);
@@ -307,6 +307,9 @@ async function pull(m) {
   if (!us.exists()) return false;
   const ud = us.data();
   m.groupId = ud.groupId || null;
+  if (!m.ledAt || Date.now() - m.ledAt > 6 * 3600 * 1000) {
+    try { await getLedGroups(); } catch (e) { /* 다음에 */ }
+  }
   const docs = ud.docs || {};
   let changed = false;
   for (const [docId, u] of Object.entries(docs)) {
@@ -383,7 +386,7 @@ async function push(m) {
 }
 
 // ==========================================
-// 모임 — 인도자에게 보이는 진행 요약
+// 모임 — 이끄미에게 보이는 진행 요약
 // ==========================================
 function addDays(iso, n) {
   const d = new Date(iso + 'T00:00:00Z');
@@ -430,7 +433,7 @@ async function updateMemberSummary(m) {
     m.summaryGroup = m.groupId;
   } catch (err) {
     if (err && (err.code === 'not-found' || err.code === 'permission-denied')) {
-      // 인도자가 모임에서 내보냈거나 모임이 없어짐
+      // 이끄미가 모임에서 내보냈거나 모임이 없어짐
       await F.setDoc(F.doc(db, 'users', m.uid), { groupId: null }, { merge: true });
       m.groupId = null;
       m.summarySig = null;
@@ -504,13 +507,13 @@ export async function leaveGroup() {
   emit();
 }
 
-/** 내가 들어가 있는 모임 (이름·인도자) */
+/** 내가 들어가 있는 모임 (이름·이끄미) */
 export async function getMyGroup() {
   const m = getMeta();
   if (!m || !m.groupId) return null;
   const { db, F } = await getDbKit();
   const g = await F.getDoc(F.doc(db, 'groups', m.groupId));
-  // 내 요약이 아직 명단에 있는지도 확인 — 인도자가 내보냈거나 모임이 없어졌으면 정리
+  // 내 요약이 아직 명단에 있는지도 확인 — 이끄미가 내보냈거나 모임이 없어졌으면 정리
   let stillMember = false;
   if (g.exists()) {
     try {
@@ -530,14 +533,16 @@ export async function getMyGroup() {
   return { gid: g.id, name: g.data().name, leaderName: g.data().leaderName || '' };
 }
 
-/** 내가 인도하는 모임들 */
+/** 내가 이끄는 모임들 */
 export async function getLedGroups() {
   const user = await getUser();
   if (!user) return [];
   const { db, F } = await getDbKit();
   const q = await F.getDocs(F.query(F.collection(db, 'groups'), F.where('leaderUid', '==', user.uid)));
-  return q.docs.map(d => ({ gid: d.id, ...d.data() }))
+  const list = q.docs.map(d => ({ gid: d.id, ...d.data() }))
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  setLedCache(list);
+  return list;
 }
 
 export async function createGroup(name) {
@@ -560,6 +565,8 @@ export async function createGroup(name) {
     batch.set(F.doc(db, 'groupCodes', code), { gid: gref.id, leaderUid: user.uid });
     try {
       await batch.commit();
+      setLedCache([...getLedCache(), { gid: gref.id, name: clean }]);
+      emit();
       return { gid: gref.id, name: clean, code };
     } catch (err) {
       // 같은 코드가 이미 있으면 (아주 드묾) 새 코드로 다시
@@ -570,7 +577,7 @@ export async function createGroup(name) {
   throw { code: 'app/code-failed' };
 }
 
-/** 인도자 화면: 모임 정보와 사람들의 진행 요약 */
+/** 이끄미 화면: 모임 정보와 사람들의 진행 요약 */
 export async function getGroupProgress(gid) {
   const { db, F } = await getDbKit();
   const g = await F.getDoc(F.doc(db, 'groups', gid));
@@ -596,6 +603,7 @@ async function deleteGroupDocs(gid, code) {
 export async function deleteGroup(gid) {
   const { db, F } = await getDbKit();
   const g = await F.getDoc(F.doc(db, 'groups', gid));
-  if (!g.exists()) return;
-  await deleteGroupDocs(gid, g.data().code);
+  if (g.exists()) await deleteGroupDocs(gid, g.data().code);
+  setLedCache(getLedCache().filter(x => x.gid !== gid));
+  emit();
 }

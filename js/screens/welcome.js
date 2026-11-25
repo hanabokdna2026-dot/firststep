@@ -4,8 +4,8 @@
  * 풍성한 삶으로 첫걸음
  * 풍성한 삶으로 한 걸음씩 함께
  *
- * [시작하기] → #name
- * [이미 시작한 적이 있어요] → #account/welcome (로그인해서 기록 이어 쓰기)
+ * [로그인하고 시작하기] → #account/start → (가입·로그인) → #name → #role → #pace …
+ * [로그인 없이 시작하기] → #name → #pace …
  */
 
 export default function renderWelcome({ navigateTo }) {
@@ -24,9 +24,10 @@ export default function renderWelcome({ navigateTo }) {
 
       <p class="body-large" style="margin-bottom: 64px;">풍성한 삶으로<br/>한 걸음씩 함께</p>
 
-      <div style="width: 100%; max-width: 280px;">
-        <button class="btn" id="btn-start">시작하기</button>
-        <button class="btn-secondary" id="btn-existing">이미 시작한 적이 있어요</button>
+      <div class="welcome-actions">
+        <button class="btn" id="btn-login-start">로그인하고 시작하기</button>
+        <button class="btn-ghost" id="btn-start">로그인 없이 시작하기</button>
+        <p class="welcome-hint">로그인하면 이끄미로 모임을 이끌거나 따르미로 함께할 수 있고, 여러 기기에서 기록을 이어 볼 수 있어요. 다른 기기에서 쓰던 계정도 여기서 로그인하면 돼요.</p>
       </div>
 
       <div class="hanabok-credit">
@@ -39,13 +40,14 @@ export default function renderWelcome({ navigateTo }) {
     </div>
   `;
 
-  screen.querySelector('#btn-start').addEventListener('click', () => {
-    navigateTo('#name');
+  // 로그인하고 시작 — 가입(또는 다른 기기 계정으로 로그인) 뒤 이름 → 함께하기 → 속도 …
+  screen.querySelector('#btn-login-start').addEventListener('click', () => {
+    navigateTo('#account/start');
   });
 
-  // 다른 기기에서 쓰던 기록 — 로그인해서 이어 쓰기
-  screen.querySelector('#btn-existing').addEventListener('click', () => {
-    navigateTo('#account/welcome');
+  // 로그인 없이 — 기록은 이 휴대폰에만 (나중에 설정에서 로그인 가능)
+  screen.querySelector('#btn-start').addEventListener('click', () => {
+    navigateTo('#name');
   });
 
   return screen;

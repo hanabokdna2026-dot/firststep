@@ -129,3 +129,16 @@ export function listLocalSyncedKeys() {
   }
   return keys;
 }
+
+// 내가 이끄는 모임 (이 기기에만 기억 — 탭에 '모임'을 보일지 바로 알기 위해)
+export function getLedCache() {
+  const m = load();
+  return (m && Array.isArray(m.led)) ? m.led : [];
+}
+export function setLedCache(list) {
+  const m = load();
+  if (!m) return;
+  m.led = (list || []).map(g => ({ gid: g.gid, name: g.name }));
+  m.ledAt = Date.now();
+  saveMeta();
+}
