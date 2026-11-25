@@ -6,7 +6,8 @@
  */
 
 import Storage from './storage.js';
-import { firebaseConfig, VAPID_KEY } from './firebase-config.js';
+import { VAPID_KEY } from './firebase-config.js';
+import { getFirebaseApp, getDbKit, loadSdk } from './firebase-core.js';
 
 let firebaseApp = null;
 let messaging = null;
@@ -54,12 +55,10 @@ function buildScheduledSlots(meetingTimes) {
 async function ensureFirebase() {
   if (firebaseApp) return { firebaseApp, messaging, firestore };
 
-  // Firebase SDK CDN에서 로드 (모듈로)
-  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js');
-  const { getMessaging, getToken, isSupported } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging.js');
-  const { getFirestore, doc, setDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js');
-
-  firebaseApp = initializeApp(firebaseConfig);
+  // 계정·동기화와 같은 Firebase 앱을 함께 씀 (firebase-core.js)
+  const app = await getFirebaseApp();
+  const { getMessaging, getToken, isSupported } = await loadSdk('firebase-messaging');
+  const { db, F } = await getDbKit();
 
   // 환경이 푸시 지원하는지 (iOS 16.4+, Android, 데스크톱 등)
   const supported = await isSupported();
@@ -67,11 +66,12 @@ async function ensureFirebase() {
     throw new Error('이 브라우저에서는 푸시 알림이 지원되지 않아요.');
   }
 
-  messaging = getMessaging(firebaseApp);
-  firestore = getFirestore(firebaseApp);
+  firebaseApp = app;
+  messaging = getMessaging(app);
+  firestore = db;
 
   // helper 함수 보관
-  ensureFirebase._helpers = { getToken, doc, setDoc, deleteDoc };
+  ensureFirebase._helpers = { getToken, doc: F.doc, setDoc: F.setDoc, deleteDoc: F.deleteDoc };
 
   return { firebaseApp, messaging, firestore };
 }
@@ -166,7 +166,6 @@ export async function enablePushNotifications() {
 
     // Firestore에 토큰 + 약속 시간 + cron 자리 저장
     const meetingTimes = Storage.getNotifyTimes();
-    const userName = Storage.getUserName() || '';
     const userDoc = doc(firestore, 'pushUsers', token);
 
     const meetingTimesObj = {
@@ -177,7 +176,6 @@ export async function enablePushNotifications() {
 
     await setDoc(userDoc, {
       token: token,
-      userName: userName,
       meetingTimes: meetingTimesObj,
       scheduledSlots: buildScheduledSlots(meetingTimesObj),  // cron 자리들 미리 짜둠
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
@@ -239,9 +237,14 @@ export async function updateMeetingTimes() {
       evening: meetingTimes.evening || '18:00',
     };
 
+    // 토큰과 켜짐 표시도 함께 저장 — 서버에서 문서가 지워진 뒤에도 (무효 토큰 정리 등)
+    // 앱을 다시 열면 문서가 새로 만들어져 알림이 다시 이어지게 함 (보안 규칙이 이 두 값을 요구함)
     await setDoc(userDoc, {
+      token: token,
+      enabled: true,
       meetingTimes: meetingTimesObj,
       scheduledSlots: buildScheduledSlots(meetingTimesObj),  // cron 자리도 같이 갱신
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
       lastUpdated: new Date().toISOString(),
     }, { merge: true });
   } catch (err) {

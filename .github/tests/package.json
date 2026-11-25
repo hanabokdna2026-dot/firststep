@@ -1,0 +1,6 @@
+{
+  "name": "firststep-cloud-tests",
+  "private": true,
+  "type": "module",
+  "description": "계정·동기화·모임 기능과 보안 규칙을 Firebase 에뮬레이터로 시험 (배포되지 않음)"
+}

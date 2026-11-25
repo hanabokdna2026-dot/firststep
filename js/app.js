@@ -45,6 +45,9 @@ const routes = [
   { pattern: '#read/', loader: () => import('./screens/read.js' + v) },
   { pattern: '#silence/', loader: () => import('./screens/silence.js' + v) },
   { pattern: '#done/', loader: () => import('./screens/done.js' + v) },
+  { pattern: '#account', loader: () => import('./screens/account.js' + v) },
+  { pattern: '#account/', loader: () => import('./screens/account.js' + v) },
+  { pattern: '#group/', loader: () => import('./screens/group.js' + v) },
 ];
 
 // 해시에서 라우트와 파라미터 추출
@@ -145,6 +148,28 @@ async function init() {
 
   // 글씨 크기 적용 (body에 data-text-size 속성)
   document.body.setAttribute('data-text-size', Storage.getTextSize());
+
+  // 로그인한 기기라면 — 다른 기기에서 진행한 것을 먼저 받아온 뒤 빠진 날을 계산
+  // (인터넷이 느리면 4초까지만 기다리고 그냥 시작. 받아온 뒤 화면을 다시 그림)
+  // cloud.js와 sync-meta.js는 다른 화면들과 같은 인스턴스를 쓰도록 ?v 없이 불러옴
+  try {
+    const { isLinked } = await import('./sync-meta.js');
+    if (isLinked()) {
+      const cloud = await import('./cloud.js');
+      await Promise.race([
+        cloud.syncNow({ reason: 'start' }),
+        new Promise(resolve => setTimeout(resolve, 4000)),
+      ]);
+    }
+  } catch (e) {
+    console.warn('시작 동기화 실패:', e);
+  }
+
+  // 다른 기기에서 바뀐 기록이 내려오면 — 보고만 있는 화면은 다시 그림
+  // (읽기·머물기 화면은 적던 글이 사라지지 않게 그대로 둠)
+  window.addEventListener('firststep:synced', () => {
+    if (/^#(home|journey|record)(\/|$)/.test(window.location.hash)) render();
+  });
 
   // 빠진 날 자동 진행 (사용자가 며칠 빼먹어도 자연스럽게 흘러감)
   // 온보딩 마친 사용자만 — 새 사용자는 진도 아직 시작 안 함

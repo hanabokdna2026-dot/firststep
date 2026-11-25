@@ -5,7 +5,7 @@
  * 풍성한 삶으로 한 걸음씩 함께
  *
  * [시작하기] → #name
- * [이미 시작한 적이 있어요] → (v2 기능, MVP에서는 노출만)
+ * [이미 시작한 적이 있어요] → #account/welcome (로그인해서 기록 이어 쓰기)
  */
 
 export default function renderWelcome({ navigateTo }) {
@@ -43,8 +43,9 @@ export default function renderWelcome({ navigateTo }) {
     navigateTo('#name');
   });
 
+  // 다른 기기에서 쓰던 기록 — 로그인해서 이어 쓰기
   screen.querySelector('#btn-existing').addEventListener('click', () => {
-    alert('데이터 복원 기능은 다음 버전에 준비됩니다.');
+    navigateTo('#account/welcome');
   });
 
   return screen;
