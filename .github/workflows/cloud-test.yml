@@ -33,7 +33,9 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: 에뮬레이터에서 시험
-        run: npx firebase emulators:exec --only auth,firestore --project demo-firststep "node rules.test.mjs && node e2e.mjs"
+        run: |
+          cp ../../firestore.rules ../../firestore.indexes.json .
+          npx firebase emulators:exec --only auth,firestore --project demo-firststep "node rules.test.mjs && node e2e.mjs"
 
       - name: 화면 저장
         if: always()
