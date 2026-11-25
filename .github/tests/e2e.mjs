@@ -296,6 +296,7 @@ try {
   await E.fill('#name-input', '바나바');
   await E.click('#btn-next');
   ok(!!await until(async () => (await E.evaluate(() => location.hash)) === '#role'), '로그인했으니 이름 다음에 함께하기 화면');
+  await E.waitForSelector('.option-card[data-role="leader"]');
   ok(await E.$eval('#btn-next', b => b.disabled), '고르기 전에는 다음 버튼이 잠김');
   await shot(E, '11_role_choose.png');
   await E.click('.option-card[data-role="leader"]');
@@ -333,6 +334,7 @@ try {
   await F.fill('#name-input', '루디아');
   await F.click('#btn-next');
   await until(async () => (await F.evaluate(() => location.hash)) === '#role');
+  await F.waitForSelector('.option-card[data-role="member"]');
   await F.click('.option-card[data-role="member"]');
   await F.fill('#role-code', code2);
   await F.click('#role-join');
