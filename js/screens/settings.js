@@ -223,7 +223,6 @@ export default function renderSettings({ navigateTo }) {
 
   // 탭
   bindTabbar(screen, navigateTo, 'settings');
-  });
 
   // 푸시 알림 자리 짜임 — 비동기로 진행
   setupPushSection(screen);

@@ -99,7 +99,6 @@ export default async function renderRecord({ navigateTo }) {
   `;
 
   bindTabbar(screen, navigateTo, 'record');
-  });
 
   // 한 권의 책으로 받기
   const exportBtn = screen.querySelector('#btn-export-book');
