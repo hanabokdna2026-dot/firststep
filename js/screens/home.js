@@ -13,6 +13,7 @@
  */
 
 import Storage from '../storage.js';
+import { tabbarHtml, bindTabbar } from '../tabbar.js';
 import { getDay, getLesson, getActiveDayIndices, getDisplayDayLabel, getNextActiveDay } from '../content.js';
 import {
   getCurrentSessionType,
@@ -133,30 +134,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
   // 위쪽 힌트 바에 이미 흐름이 있으니 아래 버튼은 안 둠 (중복 방지)
 
   // 탭바 — 미리보기 모드에서는 안 보임 (위쪽 힌트의 "오늘"이 그 역할)
-  const tabbarHtml = isPreview ? '' : `
-    <nav class="home-tabbar">
-      <button class="home-tab home-tab-active" data-tab="today">
-        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="4" fill="currentColor"/>
-          <path d="M12 3V5M12 19V21M3 12H5M19 12H21M5.6 5.6L7 7M17 17L18.4 18.4M5.6 18.4L7 17M17 7L18.4 5.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="home-tab-label">오늘</span>
-      </button>
-      <button class="home-tab" data-tab="record">
-        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M4 5C4 3.89543 4.89543 3 6 3H18C19.1046 3 20 3.89543 20 5V21L12 17L4 21V5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <span class="home-tab-label">기록</span>
-      </button>
-      <button class="home-tab" data-tab="settings">
-        <svg class="home-tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M4 21C4 16.5817 7.58172 13 12 13C16.4183 13 20 16.5817 20 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="home-tab-label">설정</span>
-      </button>
-    </nav>
-  `;
+  const tabbarMarkup = isPreview ? '' : tabbarHtml('today');
 
   // 좌우 힌트 바
   // 오늘 모드: 왼쪽 "여정" / 오른쪽 "다음 날"
@@ -211,7 +189,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
       ${sessionsHtml}
     </div>
 
-    ${tabbarHtml}
+    ${tabbarMarkup}
   `;
 
   // ============= 이벤트 =============
@@ -276,14 +254,7 @@ export default async function renderHome({ navigateTo, param, extra }) {
   }
 
   // 탭
-  screen.querySelectorAll('.home-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabName = tab.dataset.tab;
-      if (tabName === 'today') return;
-      if (tabName === 'record') navigateTo('#record');
-      else if (tabName === 'settings') navigateTo('#settings');
-    });
-  });
+  bindTabbar(screen, navigateTo, 'today');
 
   // ============= 시간대 자동 갱신 (오늘 모드에서만) =============
   // 1분마다, 그리고 앱으로 돌아올 때마다 확인해서

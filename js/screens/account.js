@@ -1,15 +1,18 @@
 /**
  * 계정과 모임
  *
- * URL: #account          (설정에서 들어옴)
- *      #account/welcome  (처음 화면의 '이미 시작한 적이 있어요'에서 들어옴)
+ * URL: #account        (설정에서 들어옴)
+ *      #account/start  (처음 화면의 '로그인하고 시작하기'에서 들어옴 — 가입 탭이 먼저)
+ *                      가입·로그인 뒤: 이미 진행하던 계정이면 오늘 화면으로,
+ *                      처음이면 이름 → 함께하기(이끄미/따르미/혼자) → 속도 … 순서로
  *
  * 로그인하지 않은 상태: 로그인 / 처음 가입 (가입은 동의 두 가지를 받은 뒤에만)
- * 로그인한 상태: 동기화 상태, 내 모임(초대 코드로 들어가기), 인도하는 모임, 로그아웃, 계정 삭제
+ * 로그인한 상태: 동기화 상태, 내 모임(초대 코드로 들어가기), 이끄는 모임, 로그아웃, 계정 삭제
  */
 
 import Storage from '../storage.js';
 import { isLinked } from '../sync-meta.js';
+import { escapeHtml, openSheet, openJoinSheet, findGroupByCode } from '../group-ui.js';
 
 const PRIVACY_TEXT = `
   <p><b>개인정보 수집·이용 (필수)</b></p>
@@ -23,18 +26,18 @@ const SENSITIVE_TEXT = `
   <p><b>민감정보 처리 (필수, 따로 받는 동의)</b></p>
   <p>수집 항목: 한 마디 기도, 주기도로 적은 기도 같은 신앙에 관한 기록</p>
   <p>이용 목적: 본인이 여러 기기에서 이어 보기</p>
-  <p>보이는 범위: 다른 성도나 모임 인도자에게는 보이지 않아요.</p>
+  <p>보이는 범위: 다른 성도나 모임 이끄미에게는 보이지 않아요.</p>
   <p>보관 기간: 탈퇴할 때까지. 계정을 삭제하면 바로 지워져요.</p>
   <p>동의하지 않으셔도 괜찮아요. 그러면 로그인 없이 이 기기에서만 쓸 수 있어요.</p>`;
 
 export default function renderAccount({ navigateTo, param }) {
-  const fromWelcome = param === 'welcome';
+  const fromWelcome = param === 'start' || param === 'welcome';
   const screen = document.createElement('div');
   screen.className = 'screen';
   screen.innerHTML = `
     <div class="acct">
       <button class="journey-back" id="acct-back">← ${fromWelcome ? '처음으로' : '설정'}</button>
-      <h2 class="title-small acct-title">${fromWelcome ? '기록 이어서 쓰기' : '계정과 모임'}</h2>
+      <h2 class="title-small acct-title">${fromWelcome ? '로그인하고 시작하기' : '계정과 모임'}</h2>
       <div id="acct-body"></div>
     </div>
   `;
@@ -57,12 +60,12 @@ export default function renderAccount({ navigateTo, param }) {
   // ------------------------------------------------------------
   // 로그인하지 않은 상태
   // ------------------------------------------------------------
-  function renderSignedOut(mode = 'login') {
+  function renderSignedOut(mode = fromWelcome ? 'signup' : 'login') {
     const signup = mode === 'signup';
     body.innerHTML = `
       <p class="acct-intro">${fromWelcome
-        ? '다른 기기에서 쓰던 계정으로 로그인하면 기록과 진도를 그대로 이어서 쓸 수 있어요.'
-        : '로그인하면 여러 기기에서 기록을 이어 보고, 모임 인도자와 진행 상황을 나눌 수 있어요. 로그인하지 않아도 지금처럼 이 휴대폰에서 쓸 수 있어요.'}</p>
+        ? '가입하면 이끄미로 모임을 이끌거나 따르미로 함께할 수 있고, 여러 기기에서 기록을 이어 볼 수 있어요. 다른 기기에서 쓰던 계정이 있으면 로그인을 눌러 주세요.'
+        : '로그인하면 여러 기기에서 기록을 이어 보고, 모임 이끄미와 진행 상황을 나눌 수 있어요. 로그인하지 않아도 지금처럼 이 휴대폰에서 쓸 수 있어요.'}</p>
 
       <div class="acct-seg" role="tablist">
         <button class="acct-seg-opt ${signup ? '' : 'is-on'}" data-mode="login" role="tab">로그인</button>
@@ -156,8 +159,9 @@ export default function renderAccount({ navigateTo, param }) {
   }
 
   function afterSignIn() {
-    if (fromWelcome) {
-      // 다른 기기의 진도가 내려왔으면 바로 오늘 화면으로, 아니면 처음 설정부터
+    if (fromWelcome || !Storage.isOnboardingDone()) {
+      // 다른 기기의 진도가 내려왔으면 바로 오늘 화면으로,
+      // 처음이면 이름 → 함께하기(이끄미/따르미/혼자) → 속도 … 순서로
       navigateTo(Storage.isOnboardingDone() ? '#home' : '#name');
       return;
     }
@@ -185,7 +189,7 @@ export default function renderAccount({ navigateTo, param }) {
       <p class="settings-section-label">내 모임</p>
       <div id="acct-mygroup" class="acct-block"><p class="acct-muted">불러오는 중…</p></div>
 
-      <p class="settings-section-label">인도하는 모임</p>
+      <p class="settings-section-label">이끄는 모임</p>
       <div id="acct-led" class="acct-block"><p class="acct-muted">불러오는 중…</p></div>
 
       <div class="settings-divider"></div>
@@ -237,18 +241,18 @@ export default function renderAccount({ navigateTo, param }) {
       box.innerHTML = `
         <div class="acct-card acct-card-tight">
           <p class="acct-group-name">${escapeHtml(g.name)}</p>
-          <p class="acct-muted">인도자 ${escapeHtml(g.leaderName || '')}</p>
-          <p class="acct-note">인도자에게는 지금 몇 과 몇째 날인지와 최근 7일 동안 아침·낮·저녁을 했는지만 보여요. 기도와 묵상 내용은 보이지 않아요.</p>
+          <p class="acct-muted">이끄미 ${escapeHtml(g.leaderName || '')}</p>
+          <p class="acct-note">이끄미에게는 지금 몇 과 몇째 날인지와 최근 7일 동안 아침·낮·저녁을 했는지만 보여요. 기도와 묵상 내용은 보이지 않아요.</p>
           <button class="btn-tertiary acct-left" id="acct-leave">모임에서 나가기</button>
         </div>`;
       box.querySelector('#acct-leave').addEventListener('click', async () => {
-        if (!confirm(`'${g.name}' 모임에서 나갈까요?\n\n인도자에게 내 진행 상황이 더 이상 보이지 않아요.`)) return;
+        if (!confirm(`'${g.name}' 모임에서 나갈까요?\n\n이끄미에게 내 진행 상황이 더 이상 보이지 않아요.`)) return;
         try { await c.leaveGroup(); } catch (e) { alert(c.authMessage(e)); }
         paintMyGroup();
       });
     } else {
       box.innerHTML = `
-        <p class="acct-muted acct-muted-gap">인도자에게 받은 초대 코드가 있으면 넣어 주세요.</p>
+        <p class="acct-muted acct-muted-gap">이끄미에게 받은 초대 코드가 있으면 넣어 주세요.</p>
         <div class="acct-code-row">
           <input class="input-text acct-code-input" id="acct-code" maxlength="7" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off" spellcheck="false" />
           <button class="btn acct-code-btn" id="acct-join">들어가기</button>
@@ -256,18 +260,10 @@ export default function renderAccount({ navigateTo, param }) {
         <p class="acct-error" id="acct-join-err" role="alert"></p>`;
       const err = box.querySelector('#acct-join-err');
       box.querySelector('#acct-join').addEventListener('click', async () => {
-        const raw = box.querySelector('#acct-code').value;
-        const code = c.normalizeCode(raw);
-        if (code.length !== 6) { err.textContent = '초대 코드 6자리를 확인해 주세요.'; return; }
         err.textContent = '';
-        try {
-          const info = await c.lookupGroup(code);
-          openJoinSheet(c, info);
-        } catch (e) {
-          err.textContent = (e && (e.code === 'app/no-group' || e.code === 'app/bad-code'))
-            ? '이 코드로 된 모임이 없어요. 다시 확인해 주세요.'
-            : c.authMessage(e);
-        }
+        const found = await findGroupByCode(c, box.querySelector('#acct-code').value);
+        if (found.error) { err.textContent = found.error; return; }
+        if (await openJoinSheet(screen, c, found.info)) paintMyGroup();
       });
     }
   }
@@ -291,7 +287,7 @@ export default function renderAccount({ navigateTo, param }) {
       <div id="acct-new-wrap">
         <button class="btn-outline acct-new-btn" id="acct-new">새 모임 만들기</button>
       </div>
-      ${groups.length ? '' : '<p class="acct-muted acct-muted-gap">소그룹을 인도하신다면 모임을 만들어 초대 코드를 나눠 주세요. 모임 사람들의 진행 상황을 볼 수 있어요.</p>'}
+      ${groups.length ? '' : '<p class="acct-muted acct-muted-gap">이끄미로 섬기신다면 모임을 만들어 초대 코드를 나눠 주세요. 따르미들의 진행 상황을 볼 수 있어요.</p>'}
     `;
     box.querySelectorAll('.acct-led-card').forEach(b => {
       b.addEventListener('click', () => navigateTo('#group/' + b.dataset.gid));
@@ -310,7 +306,7 @@ export default function renderAccount({ navigateTo, param }) {
         const name = input.value.trim();
         const err = wrap.querySelector('#acct-new-err');
         if (!name) { err.textContent = '모임 이름을 적어 주세요.'; return; }
-        if (!Storage.getUserName()) { err.textContent = '설정에서 이름을 먼저 정해 주세요. 모임 사람들에게 인도자 이름으로 보여요.'; return; }
+        if (!Storage.getUserName()) { err.textContent = '설정에서 이름을 먼저 정해 주세요. 따르미들에게 이끄미 이름으로 보여요.'; return; }
         try {
           const g = await c.createGroup(name);
           navigateTo('#group/' + g.gid);
@@ -321,52 +317,10 @@ export default function renderAccount({ navigateTo, param }) {
     });
   }
 
-  // ------------------------------------------------------------
-  // 아래에서 올라오는 확인 창
-  // ------------------------------------------------------------
-  function openSheet(html) {
-    const sheet = document.createElement('div');
-    sheet.className = 'acct-sheet';
-    sheet.innerHTML = `<div class="acct-sheet-panel" role="dialog" aria-modal="true">${html}</div>`;
-    screen.appendChild(sheet);
-    sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.remove(); });
-    return sheet;
-  }
-
-  function openJoinSheet(c, info) {
-    const sheet = openSheet(`
-      <p class="acct-sheet-title">'${escapeHtml(info.name)}' 모임에 들어갈까요?</p>
-      <p class="acct-sheet-text">인도자 ${escapeHtml(info.leaderName || '')}님에게는 이것만 보여요.</p>
-      <ul class="acct-sheet-list">
-        <li>내 이름</li>
-        <li>지금 몇 과 몇째 날인지</li>
-        <li>최근 7일 동안 아침·낮·저녁을 했는지</li>
-        <li>마지막으로 앱을 연 날</li>
-      </ul>
-      <p class="acct-sheet-text">기도와 묵상 내용은 보이지 않아요. 모임에서 나가면 바로 보이지 않게 돼요.</p>
-      <label class="acct-check"><input type="checkbox" id="c-share" /> <span>위 내용을 인도자와 나누는 데 동의해요</span></label>
-      <p class="acct-error" id="sheet-err" role="alert"></p>
-      <button class="btn" id="sheet-ok">동의하고 들어가기</button>
-      <button class="btn-secondary" id="sheet-cancel">취소</button>
-    `);
-    sheet.querySelector('#sheet-cancel').addEventListener('click', () => sheet.remove());
-    sheet.querySelector('#sheet-ok').addEventListener('click', async () => {
-      const err = sheet.querySelector('#sheet-err');
-      if (!sheet.querySelector('#c-share').checked) { err.textContent = '동의해 주셔야 들어갈 수 있어요.'; return; }
-      try {
-        await c.joinGroup(info.code, true);
-        sheet.remove();
-        paintMyGroup();
-      } catch (e) {
-        err.textContent = c.authMessage(e);
-      }
-    });
-  }
-
   function openDeleteSheet(c) {
-    const sheet = openSheet(`
+    const sheet = openSheet(screen, `
       <p class="acct-sheet-title">계정을 삭제할까요?</p>
-      <p class="acct-sheet-text">서버에 저장된 기록과 모임 정보가 모두 지워지고 되돌릴 수 없어요. 내가 인도하는 모임도 함께 없어져요. 이 휴대폰에 있는 기록은 그대로 남아요.</p>
+      <p class="acct-sheet-text">서버에 저장된 기록과 모임 정보가 모두 지워지고 되돌릴 수 없어요. 내가 이끄는 모임도 함께 없어져요. 이 휴대폰에 있는 기록은 그대로 남아요.</p>
       <label class="acct-label" for="del-pw">확인을 위해 비밀번호를 적어 주세요</label>
       <input class="input-text" id="del-pw" type="password" autocomplete="current-password" />
       <p class="acct-error" id="sheet-err" role="alert"></p>
@@ -404,7 +358,7 @@ export default function renderAccount({ navigateTo, param }) {
         body.innerHTML = '<p class="acct-muted">인터넷에 연결되면 계정 정보를 보여 드릴게요. 기록은 이 휴대폰에 안전하게 있어요.</p>';
       });
   } else {
-    renderSignedOut('login');
+    renderSignedOut();   // 첫 화면에서 왔으면 가입 탭, 설정에서 왔으면 로그인 탭
   }
 
   return screen;
@@ -420,9 +374,4 @@ function timeAgo(ms) {
   return `${Math.floor(h / 24)}일 전`;
 }
 
-function escapeHtml(text) {
-  return String(text == null ? '' : text).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
-}
 const escapeAttr = escapeHtml;

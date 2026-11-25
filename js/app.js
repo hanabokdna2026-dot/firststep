@@ -47,7 +47,9 @@ const routes = [
   { pattern: '#done/', loader: () => import('./screens/done.js' + v) },
   { pattern: '#account', loader: () => import('./screens/account.js' + v) },
   { pattern: '#account/', loader: () => import('./screens/account.js' + v) },
+  { pattern: '#group', loader: () => import('./screens/group.js' + v) },
   { pattern: '#group/', loader: () => import('./screens/group.js' + v) },
+  { pattern: '#role', loader: () => import('./screens/role.js' + v) },
 ];
 
 // 해시에서 라우트와 파라미터 추출
@@ -168,7 +170,7 @@ async function init() {
   // 다른 기기에서 바뀐 기록이 내려오면 — 보고만 있는 화면은 다시 그림
   // (읽기·머물기 화면은 적던 글이 사라지지 않게 그대로 둠)
   window.addEventListener('firststep:synced', () => {
-    if (/^#(home|journey|record)(\/|$)/.test(window.location.hash)) render();
+    if (/^#(home|journey|record|group)(\/|$)/.test(window.location.hash)) render();
   });
 
   // 빠진 날 자동 진행 (사용자가 며칠 빼먹어도 자연스럽게 흘러감)

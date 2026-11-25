@@ -3729,3 +3729,60 @@ body[data-text-size="5"] .read-lords-focus-prayer { font-size: 18px; }
   cursor: pointer;
 }
 .grp-empty { margin: 16px 0; }
+
+/* 첫 화면 — 로그인하고 시작 / 로그인 없이 시작 */
+.welcome-actions {
+  width: 100%;
+  max-width: 300px;
+}
+.welcome-actions .btn { margin-bottom: 10px; }
+.btn-ghost {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: var(--accent-ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: 15px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+.btn-ghost:active { background: var(--surface); }
+.welcome-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* 처음 시작 — 함께하기 */
+.role-panel { margin: 4px 0 20px; }
+.role-panel .acct-label { margin-top: 4px; }
+.role-gap { margin-bottom: 14px; }
+.role-done { margin-bottom: 8px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.grp-switch {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 8px;
+}
+.grp-switch-opt {
+  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.grp-switch-opt.is-on {
+  background: var(--surface-tint);
+  border-color: var(--accent-pale);
+  color: var(--text-primary);
+}

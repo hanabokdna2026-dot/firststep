@@ -65,7 +65,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_VERSION = 'firststep-v38';
+const CACHE_VERSION = 'firststep-v39';
 const APP_SHELL = [
   './',
   './index.html',

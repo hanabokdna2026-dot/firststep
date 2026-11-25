@@ -1,5 +1,5 @@
 // 여러 기기 시험 — 실제 앱 화면을 브라우저로 열어 에뮬레이터에 붙여서 확인
-//  A: 원래 쓰던 휴대폰 (기록이 있음)  B: 새 휴대폰  C: 인도자  D: 계정 삭제 시험용
+//  A: 원래 쓰던 휴대폰 (기록이 있음)  B: 새 휴대폰  C: 이끄미  D: 계정 삭제 시험용
 import { chromium } from 'playwright';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -118,9 +118,12 @@ try {
   console.log('2. 새 휴대폰에서 로그인하면 기록과 진도를 그대로 이어감');
   const B = await device('B');
   await B.goto(BASE + '/index.html');
-  await B.waitForSelector('#btn-existing');
-  await B.click('#btn-existing');
+  await B.waitForSelector('#btn-login-start');
+  await shot(B, '00_welcome.png');
+  await B.click('#btn-login-start');
   await B.waitForSelector('#acct-email');
+  ok(await B.$('.acct-seg-opt.is-on[data-mode="signup"]') !== null, '첫 화면에서 들어오면 가입 탭이 먼저');
+  await B.click('.acct-seg-opt[data-mode="login"]');
   await shot(B, '03_welcome_login.png');
   await B.fill('#acct-email', 'grace@test.kr');
   await B.fill('#acct-pw', 'wrongpass');
@@ -165,7 +168,7 @@ try {
   ok(!!await until(async () => entry(await remote(`users/${aUid}/data/rec-4`), 'prayer:4:3:midday') === '오프라인에서 적음'), '연결되자 올라감');
 
   // ------------------------------------------------------------
-  console.log('6. 인도자가 모임을 만들고, A가 초대 코드로 들어감');
+  console.log('6. 이끄미가 모임을 만들고, A가 초대 코드로 들어감');
   const C = await device('C', { 'firststep:onboardingDone': 'true', 'firststep:userName': '목자', 'firststep:lastAdvanceDate': today });
   await C.goto(BASE + '/index.html#account');
   await C.click('.acct-seg-opt[data-mode="signup"]');
@@ -179,7 +182,7 @@ try {
   await C.click('#acct-new');
   await C.fill('#acct-new-name', '화요 소그룹');
   await C.click('#acct-new-ok');
-  ok(!!await until(async () => (await C.evaluate(() => location.hash)).startsWith('#group/')), '모임 만들고 인도자 화면으로');
+  ok(!!await until(async () => (await C.evaluate(() => location.hash)).startsWith('#group/')), '모임 만들고 이끄미 화면으로');
   await C.waitForSelector('.grp-code');
   const code = (await C.textContent('.grp-code')).trim();
   ok(/^[A-Z0-9]{6}$/.test(code), '초대 코드 6자리 생성: ' + code);
@@ -205,7 +208,7 @@ try {
   await C.reload();
   await C.waitForSelector('.grp-item', { timeout: 15000 });
   const row = await C.textContent('.grp-item');
-  ok(row.includes('은혜') && row.includes('4과'), '인도자 화면에 A의 이름과 진도', row.replace(/\s+/g, ' '));
+  ok(row.includes('은혜') && row.includes('4과'), '이끄미 화면에 A의 이름과 진도', row.replace(/\s+/g, ' '));
   ok(row.includes('오늘'), '마지막 활동 오늘');
   ok(await C.$('.grp-day.is-today .grp-dot.is-m.is-on') !== null, '오늘 아침을 한 것이 점으로 보임');
   await shot(C, '09_leader_view.png');
@@ -214,9 +217,9 @@ try {
     const { db, F } = await getDbKit();
     try { await F.getDoc(F.doc(db, 'users', uid, 'data', 'rec-4')); return 'read'; } catch (e) { return e.code; }
   }, aUid);
-  ok(peek === 'permission-denied', '인도자가 A의 기도 기록을 직접 읽으려 하면 막힘', peek);
+  ok(peek === 'permission-denied', '이끄미가 A의 기도 기록을 직접 읽으려 하면 막힘', peek);
 
-  // A가 오늘 저녁을 마치면 인도자 화면에 반영
+  // A가 오늘 저녁을 마치면 이끄미 화면에 반영
   await A.evaluate(async (t) => {
     const S = (await import('/js/storage.js')).default;
     S.markSessionDone(t, 'evening');
@@ -224,7 +227,7 @@ try {
   await sleep(4000);
   await C.reload();
   await C.waitForSelector('.grp-item');
-  ok(await C.$('.grp-day.is-today .grp-dot.is-e.is-on') !== null, 'A가 저녁을 마치자 인도자 화면에 반영');
+  ok(await C.$('.grp-day.is-today .grp-dot.is-e.is-on') !== null, 'A가 저녁을 마치자 이끄미 화면에 반영');
 
   // ------------------------------------------------------------
   console.log('7. 계정 삭제 — 서버 기록과 모임 정보가 모두 지워짐');
@@ -255,7 +258,7 @@ try {
   ok((await ls(D, 'firststep:prayer:1:1:morning')) === '지울 기도', '휴대폰의 기록은 그대로 남음');
 
   // ------------------------------------------------------------
-  console.log('8. 인도자가 내보내면 A 쪽에서도 모임이 사라짐, 로그아웃해도 기록은 남음');
+  console.log('8. 이끄미가 내보내면 A 쪽에서도 모임이 사라짐, 로그아웃해도 기록은 남음');
   await C.reload();
   await C.waitForSelector('.grp-remove');
   await C.click('.grp-remove');
@@ -275,6 +278,97 @@ try {
   await A.goto(BASE + '/index.html#settings');
   await A.waitForSelector('#btn-account');
   await shot(A, '10_settings.png');
+
+  // ------------------------------------------------------------
+  console.log('9. 첫 화면에서 로그인하고 이끄미로 시작');
+  const E = await device('E');
+  await E.goto(BASE + '/index.html');
+  await E.waitForSelector('#btn-login-start');
+  await E.click('#btn-login-start');
+  await E.waitForSelector('#acct-pw2');
+  await E.fill('#acct-email', 'ikkumi@test.kr');
+  await E.fill('#acct-pw', 'lead5678');
+  await E.fill('#acct-pw2', 'lead5678');
+  await E.check('#c-privacy');
+  await E.check('#c-sensitive');
+  await E.click('#acct-submit');
+  ok(!!await until(async () => (await E.evaluate(() => location.hash)) === '#name'), '가입 뒤 이름 화면으로');
+  await E.fill('#name-input', '바나바');
+  await E.click('#btn-next');
+  ok(!!await until(async () => (await E.evaluate(() => location.hash)) === '#role'), '로그인했으니 이름 다음에 함께하기 화면');
+  await E.waitForSelector('.option-card[data-role="leader"]');
+  ok(await E.$eval('#btn-next', b => b.disabled), '고르기 전에는 다음 버튼이 잠김');
+  await shot(E, '11_role_choose.png');
+  await E.click('.option-card[data-role="leader"]');
+  await E.fill('#role-gname', '목요 따르미 모임');
+  await E.click('#role-make');
+  await E.waitForSelector('#role-panel .grp-code', { timeout: 15000 });
+  const code2 = (await E.textContent('#role-panel .grp-code')).trim();
+  ok(/^[A-Z0-9]{6}$/.test(code2), '이끄미로 모임 만들고 코드 받음: ' + code2);
+  await shot(E, '12_role_leader_done.png');
+  await E.click('#btn-next');
+  ok(!!await until(async () => (await E.evaluate(() => location.hash)) === '#pace'), '다음은 속도 화면');
+  await E.click('#btn-next');
+  await until(async () => (await E.evaluate(() => location.hash)) === '#intro');
+  await E.click('#btn-next');
+  await until(async () => (await E.evaluate(() => location.hash)) === '#notify');
+  await E.click('#btn-start');
+  ok(!!await until(async () => (await E.evaluate(() => location.hash)) === '#home'), '오늘 화면까지 도착');
+  await E.waitForSelector('.home-tab[data-tab="group"]', { timeout: 10000 });
+  ok(true, '이끄미에게 아래 모임 탭이 보임');
+  await shot(E, '13_leader_home_tab.png');
+
+  console.log('10. 첫 화면에서 로그인하고 따르미로 시작');
+  const F = await device('F');
+  await F.goto(BASE + '/index.html');
+  await F.waitForSelector('#btn-login-start');
+  await F.click('#btn-login-start');
+  await F.waitForSelector('#acct-pw2');
+  await F.fill('#acct-email', 'ttareumi@test.kr');
+  await F.fill('#acct-pw', 'follow12');
+  await F.fill('#acct-pw2', 'follow12');
+  await F.check('#c-privacy');
+  await F.check('#c-sensitive');
+  await F.click('#acct-submit');
+  await until(async () => (await F.evaluate(() => location.hash)) === '#name');
+  await F.fill('#name-input', '루디아');
+  await F.click('#btn-next');
+  await until(async () => (await F.evaluate(() => location.hash)) === '#role');
+  await F.waitForSelector('.option-card[data-role="member"]');
+  await F.click('.option-card[data-role="member"]');
+  await F.fill('#role-code', code2);
+  await F.click('#role-join');
+  await F.waitForSelector('#c-share');
+  await shot(F, '14_role_member_consent.png');
+  await F.check('#c-share');
+  await F.click('#sheet-ok');
+  ok(!!await until(async () => (await F.textContent('#role-panel')).includes('목요 따르미 모임')), '따르미로 모임에 들어감');
+  ok(!(await F.$eval('#btn-next', b => b.disabled)), '들어간 뒤 다음 버튼이 열림');
+  await F.click('#btn-next');
+  await until(async () => (await F.evaluate(() => location.hash)) === '#pace');
+  await F.click('#btn-next');
+  await until(async () => (await F.evaluate(() => location.hash)) === '#intro');
+  await F.click('#btn-next');
+  await until(async () => (await F.evaluate(() => location.hash)) === '#notify');
+  await F.click('#btn-start');
+  ok(!!await until(async () => (await F.evaluate(() => location.hash)) === '#home'), '따르미도 오늘 화면까지 도착');
+  ok(await F.$('.home-tab[data-tab="group"]') === null, '따르미에게는 모임 탭이 없음');
+
+  await E.click('.home-tab[data-tab="group"]');
+  await E.waitForSelector('.grp-item', { timeout: 15000 });
+  const erow = await E.textContent('.grp-item');
+  ok(erow.includes('루디아') && erow.includes('1과'), '이끄미 모임 탭에 따르미 루디아와 진도', erow.replace(/\s+/g, ' '));
+  await shot(E, '15_leader_tab_view.png');
+
+  console.log('11. 로그인 없이 시작하면 함께하기 단계 없이 그대로');
+  const G = await device('G');
+  await G.goto(BASE + '/index.html');
+  await G.waitForSelector('#btn-start');
+  await G.click('#btn-start');
+  await until(async () => (await G.evaluate(() => location.hash)) === '#name');
+  await G.fill('#name-input', '혼자');
+  await G.click('#btn-next');
+  ok(!!await until(async () => (await G.evaluate(() => location.hash)) === '#pace'), '이름 다음 바로 속도 화면 (함께하기 없음)');
 } catch (e) {
   fail++;
   console.log('  ✗ 시험 중단:', e && e.stack || e);
