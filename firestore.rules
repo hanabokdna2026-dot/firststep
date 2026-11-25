@@ -2,47 +2,143 @@ rules_version = '2';
 
 // 풍성한 첫걸음 — Firestore 보안 규칙
 //
-// 짜임:
-//   pushUsers/{token} — 알림 토큰 자리. 클라이언트(앱)가 자기 토큰으로 쓰고 지움.
-//   서버(Cloud Functions / cron)는 Admin SDK를 쓰므로 이 규칙을 우회함.
+// 구조:
+//   pushUsers/{token}            — 알림 토큰. 앱이 자기 토큰으로 쓰고 지움.
+//   users/{uid}                  — 계정 문서 (동의 시각, 묶음별 저장 시각, 소속 모임)
+//   users/{uid}/data/{docId}     — 진행 기록(progress)과 과별 기도 기록(rec-N). 본인만.
+//   groups/{gid}                 — 모임. 인도자만 고치고 지움.
+//   groups/{gid}/members/{uid}   — 인도자에게 보이는 진행 요약. 기도 내용 칸은 받지 않음.
+//   groupCodes/{code}            — 초대 코드 → 모임. 목록 보기는 막음.
+//   서버(Cloud Functions)는 Admin SDK를 쓰므로 이 규칙을 거치지 않음.
 //
 // 원칙:
-//   - 클라이언트는 자기 토큰 자리에만 쓰기·지우기 가능 (자기 토큰을 문서 ID로 씀)
-//   - 목록(list)은 클라이언트에게 막음 (다른 사람 토큰을 못 보게)
+//   - 기도·묵상 기록은 본인 외에는 누구도 읽을 수 없음 (인도자 포함)
+//   - 인도자는 자기 모임 사람들의 진행 요약만 읽음
+//   - 저장할 수 있는 칸을 정해 두고, 그 밖의 칸은 받지 않음
 //   - 그 밖의 모든 자리는 기본 거부
-//
-// FCM 토큰은 사용자 기기만 아는 자리라서, 이걸 문서 ID로 쓰면
-// 다른 사람 자리를 건드릴 수 없음 (자기 토큰을 알아야만 그 자리에 접근 가능).
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 토큰이 FCM 토큰 짜임인지 짚음 (너무 짧거나 빈 자리는 막음).
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isMe(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function groupPath(gid) {
+      return /databases/$(database)/documents/groups/$(gid);
+    }
+    function isLeaderOf(gid) {
+      return signedIn() && get(groupPath(gid)).data.leaderUid == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------
+    // 알림 토큰 (기존 그대로)
+    // ------------------------------------------------------------
     function isTokenShaped(token) {
       return token is string && token.size() > 20;
     }
-
-    // 저장하려는 자료의 짜임이 올바른지 짚음.
-    // 자료 안의 token이 문서 ID(pathToken)와 같아야 — 남의 자리에 못 쓰게.
-    function isValidUserDoc(pathToken) {
+    // 자료 안의 token이 문서 ID와 같아야 — 남의 자리에 못 쓰게.
+    function isValidPushDoc(pathToken) {
       let d = request.resource.data;
       return d.token is string
         && d.token == pathToken
         && d.enabled is bool
         && d.meetingTimes is map;
     }
-
-    // 알림 토큰 자리
     match /pushUsers/{token} {
-      // 읽기(get) — 자기 토큰 자리만. 목록(list)은 막음.
       allow get: if isTokenShaped(token);
       allow list: if false;
-
-      // 만들기·갱신 — 토큰 짜임이 올바르고, 저장하는 자료의 짜임도 올바를 때.
-      allow create, update: if isTokenShaped(token) && isValidUserDoc(token);
-
-      // 지우기 — 자기 토큰 자리만.
+      allow create, update: if isTokenShaped(token) && isValidPushDoc(token);
       allow delete: if isTokenShaped(token);
+    }
+
+    // ------------------------------------------------------------
+    // 계정과 기록 — 본인만
+    // ------------------------------------------------------------
+    match /users/{uid} {
+      allow read, delete: if isMe(uid);
+      allow create, update: if isMe(uid)
+        && request.resource.data.keys().hasOnly(['createdAt', 'consent', 'docs', 'groupId'])
+        && (!('docs' in request.resource.data) || request.resource.data.docs is map)
+        && (!('groupId' in request.resource.data)
+            || request.resource.data.groupId == null
+            || request.resource.data.groupId is string);
+
+      match /data/{docId} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid)
+          && (docId == 'progress' || docId.matches('rec-[0-9]{1,2}'))
+          && request.resource.data.keys().hasOnly(['e', 'u'])
+          && request.resource.data.e is map
+          && request.resource.data.u is int;
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 모임
+    // ------------------------------------------------------------
+    function validGroup(d) {
+      return d.keys().hasOnly(['name', 'leaderUid', 'leaderName', 'code', 'createdAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 30
+        && d.leaderName is string && d.leaderName.size() <= 20
+        && d.code is string && d.code.size() == 6
+        && d.leaderUid == request.auth.uid;
+    }
+
+    match /groups/{gid} {
+      // 모임 ID는 초대 코드로만 알 수 있음 — 로그인한 사람은 이름을 확인할 수 있게
+      allow get: if signedIn();
+      // 목록은 자기가 인도하는 모임만
+      allow list: if signedIn() && resource.data.leaderUid == request.auth.uid;
+      allow create: if signedIn() && validGroup(request.resource.data);
+      allow update: if signedIn() && resource.data.leaderUid == request.auth.uid
+        && validGroup(request.resource.data)
+        && request.resource.data.code == resource.data.code;
+      allow delete: if signedIn() && resource.data.leaderUid == request.auth.uid;
+
+      // 진행 요약 — 기도·묵상 내용이 들어갈 칸이 없음
+      function validMember(d) {
+        return d.keys().hasOnly(['name', 'lesson', 'day', 'place', 'lastActive', 'week', 'u',
+                                 'code', 'joinedAt', 'consentAt'])
+          && d.name is string && d.name.size() <= 20
+          && d.lesson is int && d.day is int
+          && d.place is string && d.place.size() <= 40
+          && d.lastActive is string && d.lastActive.size() == 10
+          && d.week is map && d.week.size() <= 7
+          && d.u is int;
+      }
+
+      match /members/{mid} {
+        allow get: if isMe(mid) || isLeaderOf(gid);
+        allow list: if isLeaderOf(gid);
+        // 들어오기: 그 모임의 초대 코드를 알아야 함
+        allow create: if isMe(mid)
+          && exists(groupPath(gid))
+          && request.resource.data.code == get(groupPath(gid)).data.code
+          && validMember(request.resource.data);
+        // 요약 갱신: 본인만, 코드는 그대로
+        allow update: if isMe(mid)
+          && request.resource.data.code == resource.data.code
+          && validMember(request.resource.data);
+        // 나가기는 본인이, 내보내기는 인도자가
+        allow delete: if isMe(mid) || isLeaderOf(gid);
+      }
+    }
+
+    match /groupCodes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      // 모임과 함께 만들 때만 (같은 코드가 이미 있으면 '수정'이 되어 거부됨)
+      allow create: if signedIn()
+        && code.matches('[A-Z0-9]{6}')
+        && request.resource.data.keys().hasOnly(['gid', 'leaderUid'])
+        && request.resource.data.leaderUid == request.auth.uid
+        && getAfter(groupPath(request.resource.data.gid)).data.leaderUid == request.auth.uid
+        && getAfter(groupPath(request.resource.data.gid)).data.code == code;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.leaderUid == request.auth.uid;
     }
 
     // 그 밖의 모든 자리는 거부

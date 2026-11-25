@@ -9,6 +9,21 @@
  * IndexedDB는 다음 단계에 추가.
  */
 
+import { noteLocalChange } from './sync-meta.js';
+
+// 값을 바꿀 때는 늘 이 두 함수를 거침 — 로그인한 기기라면 동기화 장부에 적힘
+function _set(key, value) {
+  const v = String(value);
+  if (localStorage.getItem(key) === v) return;  // 같은 값이면 아무 일 없음
+  localStorage.setItem(key, v);
+  noteLocalChange(key);
+}
+function _remove(key) {
+  if (localStorage.getItem(key) === null) return;
+  localStorage.removeItem(key);
+  noteLocalChange(key);
+}
+
 const STORAGE_KEYS = {
   USER_NAME: 'firststep:userName',
   DEFAULT_PACE: 'firststep:defaultPace',  // 'one' | 'two' | 'three' (한 과/두 과/세 과)
@@ -53,7 +68,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
   },
   setUserName(name) {
-    localStorage.setItem(STORAGE_KEYS.USER_NAME, name);
+    _set(STORAGE_KEYS.USER_NAME, name);
   },
 
   // 기본 속도
@@ -61,7 +76,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.DEFAULT_PACE) || 'one';
   },
   setDefaultPace(pace) {
-    localStorage.setItem(STORAGE_KEYS.DEFAULT_PACE, pace);
+    _set(STORAGE_KEYS.DEFAULT_PACE, pace);
   },
 
   // 알림 시간
@@ -82,7 +97,7 @@ const Storage = {
     };
   },
   setNotifyTimes(times) {
-    localStorage.setItem(STORAGE_KEYS.NOTIFY_TIMES, JSON.stringify(times));
+    _set(STORAGE_KEYS.NOTIFY_TIMES, JSON.stringify(times));
   },
 
   getNotifyEnabled() {
@@ -91,7 +106,7 @@ const Storage = {
     return stored === 'true';
   },
   setNotifyEnabled(enabled) {
-    localStorage.setItem(STORAGE_KEYS.NOTIFY_ENABLED, enabled ? 'true' : 'false');
+    _set(STORAGE_KEYS.NOTIFY_ENABLED, enabled ? 'true' : 'false');
   },
 
   // 온보딩 완료 여부
@@ -99,7 +114,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.ONBOARDING_DONE) === 'true';
   },
   setOnboardingDone() {
-    localStorage.setItem(STORAGE_KEYS.ONBOARDING_DONE, 'true');
+    _set(STORAGE_KEYS.ONBOARDING_DONE, 'true');
   },
 
   // 진도
@@ -108,7 +123,7 @@ const Storage = {
     return stored ? parseInt(stored, 10) : 1;
   },
   setCurrentLesson(lessonId) {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_LESSON, String(lessonId));
+    _set(STORAGE_KEYS.CURRENT_LESSON, String(lessonId));
   },
 
   getCurrentDay() {
@@ -116,14 +131,14 @@ const Storage = {
     return stored ? parseInt(stored, 10) : 1;
   },
   setCurrentDay(dayIndex) {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_DAY, String(dayIndex));
+    _set(STORAGE_KEYS.CURRENT_DAY, String(dayIndex));
   },
 
   getWeekPace() {
     return localStorage.getItem(STORAGE_KEYS.WEEK_PACE) || this.getDefaultPace();
   },
   setWeekPace(pace) {
-    localStorage.setItem(STORAGE_KEYS.WEEK_PACE, pace);
+    _set(STORAGE_KEYS.WEEK_PACE, pace);
   },
 
   // 마지막으로 진도 이동한 날 (ISO 형식 'YYYY-MM-DD')
@@ -132,7 +147,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.LAST_ADVANCE_DATE) || '';
   },
   setLastAdvanceDate(isoDate) {
-    localStorage.setItem(STORAGE_KEYS.LAST_ADVANCE_DATE, isoDate);
+    _set(STORAGE_KEYS.LAST_ADVANCE_DATE, isoDate);
   },
 
   // 글씨 크기 (1~5, 기본 3)
@@ -145,7 +160,7 @@ const Storage = {
   setTextSize(size) {
     const n = parseInt(size, 10);
     if (isNaN(n) || n < 1 || n > 5) return;
-    localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(n));
+    _set(STORAGE_KEYS.TEXT_SIZE, String(n));
   },
 
   // 자연의 소리 토글 (잠잠히 머무는 동안) — 기본 켜짐
@@ -155,7 +170,7 @@ const Storage = {
     return stored === 'on';
   },
   setNatureSoundOn(on) {
-    localStorage.setItem(STORAGE_KEYS.NATURE_SOUND, on ? 'on' : 'off');
+    _set(STORAGE_KEYS.NATURE_SOUND, on ? 'on' : 'off');
   },
 
   // 푸시 알림 — 기본 꺼짐
@@ -163,7 +178,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.PUSH_ENABLED) === 'true';
   },
   setPushEnabled(enabled) {
-    localStorage.setItem(STORAGE_KEYS.PUSH_ENABLED, enabled ? 'true' : 'false');
+    _set(STORAGE_KEYS.PUSH_ENABLED, enabled ? 'true' : 'false');
   },
 
   // FCM 토큰
@@ -172,9 +187,9 @@ const Storage = {
   },
   setPushToken(token) {
     if (token) {
-      localStorage.setItem(STORAGE_KEYS.PUSH_TOKEN, token);
+      _set(STORAGE_KEYS.PUSH_TOKEN, token);
     } else {
-      localStorage.removeItem(STORAGE_KEYS.PUSH_TOKEN);
+      _remove(STORAGE_KEYS.PUSH_TOKEN);
     }
   },
 
@@ -184,7 +199,7 @@ const Storage = {
     return stored ? parseInt(stored, 10) : 0;
   },
   setLastPaceCheckLesson(lessonId) {
-    localStorage.setItem(STORAGE_KEYS.LAST_PACE_CHECK_LESSON, String(lessonId));
+    _set(STORAGE_KEYS.LAST_PACE_CHECK_LESSON, String(lessonId));
   },
 
   // 디버그 - 모든 데이터 초기화
@@ -207,7 +222,7 @@ const Storage = {
     return localStorage.getItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType) === 'done';
   },
   markSessionDone(dateStr, sessionType) {
-    localStorage.setItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType, 'done');
+    _set(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType, 'done');
   },
 
   // 일별 완료 기록 (이 과의 어떤 일을 했는지 - 일 목록 화면용)
@@ -216,15 +231,15 @@ const Storage = {
     return localStorage.getItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`) === 'done';
   },
   markDaySessionDone(lessonId, dayIndex, sessionType) {
-    localStorage.setItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`, 'done');
+    _set(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`, 'done');
   },
   // 마침 해제 (사용자가 직접 풀거나, 다시 하고 싶을 때)
   unmarkDaySessionDone(lessonId, dayIndex, sessionType) {
-    localStorage.removeItem(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`);
+    _remove(`firststep:dayDone:${lessonId}:${dayIndex}:${sessionType}`);
   },
   // 오늘 날짜 기준 마침도 함께 해제 (오늘 마쳤던 세션만 의미 있음)
   unmarkTodaySession(dateStr, sessionType) {
-    localStorage.removeItem(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType);
+    _remove(STORAGE_KEYS.SESSION_PREFIX + dateStr + ':' + sessionType);
   },
 
   // 어떤 일이 "어느 정도라도" 마쳐졌는지 (세 세션 중 하나라도)
@@ -249,7 +264,7 @@ const Storage = {
   },
   setPrayer(lessonId, dayIndex, sessionType, text) {
     if (text && text.trim()) {
-      localStorage.setItem(
+      _set(
         STORAGE_KEYS.PRAYER_PREFIX + lessonId + ':' + dayIndex + ':' + sessionType,
         text.trim()
       );
@@ -287,14 +302,14 @@ const Storage = {
   },
   setReadingProgress(book, chapter, lastVerse) {
     const key = `firststep:read:${book}:${chapter}:lastVerse`;
-    localStorage.setItem(key, String(lastVerse));
+    _set(key, String(lastVerse));
   },
   // 통독 분량 선택 기억 (사용자가 다음에 들어올 때 같은 분량으로)
   getReadingSize() {
     return localStorage.getItem('firststep:readingSize') || '3';  // '3'|'5'|'7'|'10'
   },
   setReadingSize(size) {
-    localStorage.setItem('firststep:readingSize', String(size));
+    _set('firststep:readingSize', String(size));
   },
 
   // 통독 책갈피 — 현재 어느 장 읽고 있는지 (저녁 통독 새 결 4-10과)
@@ -306,7 +321,7 @@ const Storage = {
   },
   setReadingChapter(book, chapter) {
     const key = `firststep:reading:${book}:chapter`;
-    localStorage.setItem(key, String(chapter));
+    _set(key, String(chapter));
   },
 
   // 주기도 자기 말 저장 (5·6과 아침 세션에서 사용)
@@ -317,9 +332,9 @@ const Storage = {
   setLordsEntry(lessonId, dayIndex, text) {
     const key = `firststep:lords:${lessonId}:${dayIndex}`;
     if (text && text.length > 0) {
-      localStorage.setItem(key, text);
+      _set(key, text);
     } else {
-      localStorage.removeItem(key);
+      _remove(key);
     }
   },
 

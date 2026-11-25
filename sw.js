@@ -65,7 +65,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_VERSION = 'firststep-v37';
+const CACHE_VERSION = 'firststep-v38';
 const APP_SHELL = [
   './',
   './index.html',
@@ -103,7 +103,23 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 외부 도메인은 캐시 안 함 (구글 폰트 등)
+  // Firebase SDK (버전이 주소에 박혀 있어 내용이 바뀌지 않음) — 한 번 받으면 캐시에서
+  // 로그인한 기기가 인터넷 없이 켜져도 앱이 정상 시작되고, 연결되면 바로 맞출 수 있게
+  if (url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/10.13.2/')
+      && event.request.method === 'GET') {
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }))
+    );
+    return;
+  }
+
+  // 그 밖의 외부 도메인은 캐시 안 함 (구글 폰트 등)
   if (url.origin !== self.location.origin) {
     return;
   }

@@ -14,6 +14,7 @@
  */
 
 import Storage from '../storage.js';
+import { isLinked } from '../sync-meta.js';
 import { getLesson, getActiveDayIndices } from '../content.js';
 
 const PACE_LABELS = {
@@ -105,6 +106,21 @@ export default function renderSettings({ navigateTo }) {
 
       <!-- 저장 -->
       <button class="btn settings-save-btn" id="btn-save">변경사항 저장</button>
+
+      <!-- 계정과 모임 -->
+      <div class="settings-divider"></div>
+      <div class="settings-section">
+        <p class="settings-section-label">계정과 모임</p>
+        <button class="settings-link-row" id="btn-account">
+          <span class="settings-link-main">
+            <span class="settings-link-title">${isLinked() ? '로그인되어 있어요' : '로그인하지 않았어요'}</span>
+            <span class="settings-link-sub">${isLinked()
+              ? '여러 기기에서 기록을 이어 보고, 모임과 진행 상황을 나눠요'
+              : '지금은 이 휴대폰에만 저장돼요. 로그인하면 여러 기기에서 이어 볼 수 있어요'}</span>
+          </span>
+          <span class="settings-link-go" aria-hidden="true">›</span>
+        </button>
+      </div>
 
       <!-- 데이터 초기화 (위험) -->
       <div class="settings-divider"></div>
@@ -206,9 +222,20 @@ export default function renderSettings({ navigateTo }) {
     setTimeout(() => navigateTo('#home'), 800);
   });
 
+  screen.querySelector('#btn-account').addEventListener('click', () => navigateTo('#account'));
+
   // 초기화
-  screen.querySelector('#btn-reset').addEventListener('click', () => {
-    if (confirm('정말 처음부터 다시 시작하시겠어요?\n\n저장된 모든 기록이 사라집니다.')) {
+  screen.querySelector('#btn-reset').addEventListener('click', async () => {
+    const linked = isLinked();
+    const msg = linked
+      ? '정말 처음부터 다시 시작하시겠어요?\n\n이 휴대폰의 기록이 모두 지워지고 로그아웃돼요. 계정에 저장된 기록은 남아 있어요. 계정 기록까지 지우려면 계정과 모임에서 계정을 삭제해 주세요.'
+      : '정말 처음부터 다시 시작하시겠어요?\n\n저장된 모든 기록이 사라집니다.';
+    if (confirm(msg)) {
+      if (linked) {
+        // 지운 것이 계정으로 올라가지 않도록 먼저 로그아웃
+        try { const cloud = await import('../cloud.js'); await cloud.signOut(); } catch (e) { /* 오프라인이어도 진행 */ }
+        try { const { clearMeta } = await import('../sync-meta.js'); clearMeta(); } catch (e) { /* 무시 */ }
+      }
       Storage.clearAll();
       navigateTo('#welcome');
     }
